@@ -10,19 +10,27 @@ usuarios de verdad: las pruebas veían filas de fuera de su transacción y
 chocaban con la restricción de unicidad. Una suite que depende de que la base
 esté vacía no está aislada, solo tiene suerte.
 
+El esquema de esa base lo crean **las migraciones**, igual que en producción.
+Usar `create_all` aquí haría que la suite pasara aunque las migraciones
+estuvieran rotas, que es precisamente lo que Alembic viene a impedir.
+
 Dentro de esa base, cada prueba corre en una transacción externa que se
 revierte. `join_transaction_mode="create_savepoint"` convierte un `commit`
 del código en un savepoint, así que ni el que confirma de verdad deja rastro.
 """
 
+from pathlib import Path
+
 import pytest
+from alembic import command
+from alembic.config import Config
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.models import Base
 
+_RAIZ = Path(__file__).resolve().parent.parent
 _URL_DESARROLLO = make_url(settings.database_url)
 _URL_PRUEBAS = _URL_DESARROLLO.set(database=f"{_URL_DESARROLLO.database}_test")
 
@@ -48,11 +56,25 @@ def _crear_base_si_falta() -> None:
 
 
 @pytest.fixture(scope="session")
-def engine_de_prueba():
+def config_alembic() -> Config:
+    """Alembic apuntando a la base de pruebas, sin tocar el entorno del
+    proceso: la sobreescritura de `sqlalchemy.url` tiene prioridad en `env.py`.
+    """
+    config = Config(str(_RAIZ / "alembic.ini"))
+    config.set_main_option("script_location", str(_RAIZ / "migrations"))
+    config.set_main_option("sqlalchemy.url", _URL_PRUEBAS.render_as_string(hide_password=False))
+    return config
+
+
+@pytest.fixture(scope="session")
+def engine_de_prueba(config_alembic: Config):
     _crear_base_si_falta()
 
     engine = create_engine(_URL_PRUEBAS)
-    Base.metadata.create_all(engine)
+
+    # El mismo camino que el despliegue: `alembic upgrade head`.
+    command.upgrade(config_alembic, "head")
+
     try:
         yield engine
     finally:

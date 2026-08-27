@@ -148,10 +148,21 @@ ventana nativa, Tauri puede envolver la misma web sin tocar el backend.
 ## 5. Comandos
 
 ```bash
-docker compose up --build     # levanta web + api + db
+docker compose up --build     # levanta web + api + db (migra al arrancar)
 docker compose run api pytest # pruebas del backend
 npm --prefix web run check    # tsc + build
 ```
+
+Migraciones (Alembic, desde la Fase 1):
+
+```bash
+docker compose run --rm api alembic revision --autogenerate -m "..."
+docker compose run --rm api alembic upgrade head
+```
+
+`upgrade head` corre solo al arrancar el contenedor de `api`; los comandos de
+arriba son para generar una migración nueva o aplicarlas a mano. **El esquema
+no se crea con `create_all` en ningún sitio**, y hay una prueba que lo vigila.
 
 `check` todavía no corre vitest: el criterio E2 pide «tsc + build» y no hay
 una sola prueba de frontend que justifique la dependencia. Se añade cuando

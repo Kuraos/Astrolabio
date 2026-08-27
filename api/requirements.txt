@@ -6,6 +6,10 @@ fastapi==0.141.1
 uvicorn[standard]==0.52.4
 sqlalchemy==2.0.52
 psycopg[binary]==3.3.4
+
+# Criterio F: migraciones desde la Fase 1 (CLAUDE.md §4). El esquema deja de
+# crearse con `create_all`; dos mecanismos a la vez es una fuente de deriva.
+alembic==1.19.1
 pydantic-settings==2.15.0
 
 # Criterio B4: Argon2id. Es la implementacion de referencia y trae los

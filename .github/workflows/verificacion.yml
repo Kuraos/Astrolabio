@@ -19,6 +19,13 @@ jobs:
       - name: Preparar entorno
         run: cp .env.example .env
 
+      # Criterio F3. Las pruebas ya migran su propia base en `conftest.py`, así
+      # que una migración rota las hace fallar igualmente. Este paso cubre algo
+      # distinto: que `alembic upgrade head` funcione por el camino real del
+      # despliegue, contra la base que levanta compose.
+      - name: Migraciones
+        run: docker compose run --rm api alembic upgrade head
+
       - name: docker compose run api pytest
         run: docker compose run --rm api pytest
 

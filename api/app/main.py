@@ -6,27 +6,19 @@ Los estados del flujo no se modelan hasta la conversación con el editor
 (CLAUDE.md §2.8).
 """
 
-from contextlib import asynccontextmanager
-
 from fastapi import FastAPI, Response, status
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
 from .auth import router as auth_router
 from .db import engine
-from .models import Base
 from .piezas import router as piezas_router
 
-
-@asynccontextmanager
-async def lifespan(_: FastAPI):
-    # `create_all` basta en la Fase 0 y el alcance lo dice explícitamente.
-    # En cuanto haya un modelo de dominio real, Alembic (CLAUDE.md §4).
-    Base.metadata.create_all(engine)
-    yield
-
-
-app = FastAPI(title="Astrolabio API", lifespan=lifespan)
+# El esquema lo crean las migraciones, no la aplicación: `alembic upgrade head`
+# corre en el arranque del contenedor (ver `Dockerfile`). Tener además un
+# `create_all` aquí dejaría dos mecanismos compitiendo, y cuál gana dependería
+# del orden de arranque — justo la deriva que Alembic viene a eliminar.
+app = FastAPI(title="Astrolabio API")
 
 app.include_router(auth_router)
 app.include_router(piezas_router)

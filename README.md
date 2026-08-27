@@ -92,6 +92,11 @@ docker compose up --build
 Los tres servicios quedan arriba sin ningún paso manual adicional, y la
 aplicación queda en `http://localhost:8080`.
 
+El esquema lo crean **las migraciones**: el contenedor de `api` corre
+`alembic upgrade head` antes de servir. No hay `create_all` en ninguna parte, y
+una prueba lo vigila — dos mecanismos para crear el mismo esquema derivan, y
+cuál gana depende del orden de arranque.
+
 Los valores de `.env.example` son marcadores de desarrollo, no credenciales de
 nada real. **En cualquier despliegue que no sea el portátil de quien programa,
 cámbialos.**
@@ -118,6 +123,10 @@ docker compose run --rm api pytest
 
 ```bash
 npm --prefix web run check
+```
+
+```bash
+docker compose run --rm api alembic revision --autogenerate -m "..."
 ```
 
 `check` es `tsc` + `build`. Todavía no corre vitest: el alcance de la Fase 0
