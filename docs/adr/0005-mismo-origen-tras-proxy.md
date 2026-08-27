@@ -26,9 +26,9 @@ conoce una dirección y un puerto.
 Con eso la cookie es *same-site*: basta `SameSite=Lax`, no hace falta
 CORS con credenciales y no hace falta TLS para iniciar sesión.
 
-La decisión ya estaba implícita en `.env.example`, donde `VITE_API_BASE`
-viene vacío y anotado como «vacío = mismo origen». Este ADR la hace
-explícita y deja escrito el porqué.
+La decisión ya estaba implícita en la configuración inicial del proyecto,
+que preveía una base de API vacía con la nota «vacío = mismo origen». Este
+ADR la hace explícita y deja escrito el porqué.
 
 ## Alternativas descartadas
 
@@ -45,9 +45,11 @@ explícita y deja escrito el porqué.
 
 ## Consecuencias
 
-- El frontend llama rutas relativas (`/api/...`). `VITE_API_BASE` se
-  queda vacío y solo se rellenaría si algún día se separan, que es
-  precisamente lo que este ADR desaconseja.
+- El frontend llama rutas relativas (`/api/...`) y no hay ninguna variable
+  que configure la dirección de la API: separarlas es justo lo que este ADR
+  desaconseja, y una variable para hacerlo sería una invitación escrita.
+  Si algún día se separan, el cambio se decide en un ADR, no rellenando un
+  hueco que alguien dejó preparado.
 - Las tres variantes de despliegue del ADR 0002 siguen siendo un cambio
   de entorno y no de código: siempre es un puerto.
 - Cuando llegue HTTPS (variante C), la única línea que cambia es

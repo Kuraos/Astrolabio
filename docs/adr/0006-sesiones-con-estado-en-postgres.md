@@ -57,7 +57,12 @@ credencial entera.
 - La tabla `sesion` **no** es un registro de historia del §2.6: las filas se
   borran al cerrar sesión. La auditoría de quién cambió qué es otra cosa y
   vive en `traspaso`, que sí es append-only.
-- `SESSION_SECRET` deja de hacer falta para firmar —no se firma nada— pero
-  se conserva en `.env.example`: el identificador opaco necesita una fuente
-  de aleatoriedad, no una clave, y la variable queda reservada por si algún
-  día se firma algo distinto.
+- **`SESSION_SECRET` desaparece.** No se firma nada, así que no hay clave que
+  guardar: el identificador opaco necesita una fuente de aleatoriedad, y esa
+  la da el sistema operativo a través de `secrets`, no una variable de
+  entorno.
+
+  Una primera versión de este ADR la dejaba «reservada por si algún día se
+  firma algo distinto». Eso es andamiaje preventivo, que este proyecto no
+  admite, y además una variable que nadie lee es una pregunta sin respuesta
+  para quien abra la configuración dentro de seis meses. Se retiró.
