@@ -21,5 +21,13 @@ class Settings(BaseSettings):
     # false; pasa a true solo con HTTPS (variante C del ADR 0002).
     cookie_secure: bool = False
 
+    # Criterio B1: las contraseñas de la siembra salen del entorno, nunca del
+    # código. Sin valor por defecto las cuatro: una contraseña por defecto en
+    # el código es una cuenta abierta en cualquier despliegue que la olvide.
+    seed_investigador_user: str
+    seed_investigador_password: str
+    seed_editor_user: str
+    seed_editor_password: str
+
 
 settings = Settings()

@@ -1,0 +1,61 @@
+"""Modelo de datos.
+
+Los nombres del dominio van en español (CLAUDE.md §4): `usuario`, `rol` son
+las palabras que usan las dos personas y las mismas del vault.
+
+Aquí **no** hay estados de flujo, y no es un olvido: §2.8 dice que la máquina
+de estados sale de una conversación con el editor, usando sus palabras, y esa
+conversación todavía no ha ocurrido.
+"""
+
+from datetime import datetime
+
+from sqlalchemy import DateTime, ForeignKey, String, func
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+
+
+class Base(DeclarativeBase):
+    pass
+
+
+class Usuario(Base):
+    __tablename__ = "usuario"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    # Único: sin esto, sembrar dos veces crea un segundo «johan» y el login
+    # elige uno de los dos según el humor del planificador de consultas.
+    usuario: Mapped[str] = mapped_column(String(50), unique=True, index=True)
+    hash_password: Mapped[str] = mapped_column(String(255))
+    rol: Mapped[str] = mapped_column(String(20))
+    creado_en: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    sesiones: Mapped[list["Sesion"]] = relationship(
+        back_populates="usuario", cascade="all, delete-orphan"
+    )
+
+
+class Sesion(Base):
+    """Sesión con estado (ADR 0006).
+
+    El `id` **es** la credencial: el valor opaco que viaja en la cookie. Por
+    eso no es autoincremental ni un UUID, sino aleatoriedad criptográfica —
+    un identificador adivinable sería una cuenta regalada.
+    """
+
+    __tablename__ = "sesion"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    usuario_id: Mapped[int] = mapped_column(
+        # La cascada evita sesiones huérfanas: sin ella, una cookie apuntando
+        # a un usuario borrado sería un 500 en vez de un 401.
+        ForeignKey("usuario.id", ondelete="CASCADE"),
+        index=True,
+    )
+    creada_en: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    expira_en: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    usuario: Mapped[Usuario] = relationship(back_populates="sesiones")

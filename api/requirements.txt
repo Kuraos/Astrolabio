@@ -8,6 +8,11 @@ sqlalchemy==2.0.52
 psycopg[binary]==3.3.4
 pydantic-settings==2.15.0
 
+# Criterio B4: Argon2id. Es la implementacion de referencia y trae los
+# parametros recomendados por defecto, que es justo lo que no conviene
+# inventarse a mano.
+argon2-cffi==25.1.0
+
 # `docker compose run api pytest` está documentado en CLAUDE.md §5, así que
 # las pruebas corren dentro de esta misma imagen y sus dependencias viven aquí.
 pytest==9.1.1

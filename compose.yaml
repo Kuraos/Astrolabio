@@ -32,6 +32,10 @@ services:
       # La sonda de A4 la necesita para emitir la cookie con el mismo `Secure`
       # que usará la sesión real.
       COOKIE_SECURE: ${COOKIE_SECURE}
+      SEED_INVESTIGADOR_USER: ${SEED_INVESTIGADOR_USER}
+      SEED_INVESTIGADOR_PASSWORD: ${SEED_INVESTIGADOR_PASSWORD}
+      SEED_EDITOR_USER: ${SEED_EDITOR_USER}
+      SEED_EDITOR_PASSWORD: ${SEED_EDITOR_PASSWORD}
     depends_on:
       db:
         condition: service_healthy
