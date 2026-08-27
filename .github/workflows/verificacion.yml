@@ -1,0 +1,44 @@
+name: verificación
+
+# Criterio E3: E1 y E2 en cada push.
+on:
+  push:
+  pull_request:
+
+jobs:
+  backend:
+    name: pruebas del backend (E1)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # Los mismos dos pasos que documenta el README para un clon limpio. La
+      # CI corre el comando real de CLAUDE.md §5 en vez de reconstruir el
+      # entorno con `services:` de Actions: así no puede pasar que la CI
+      # apruebe una configuración que en la máquina de Johan no levanta.
+      - name: Preparar entorno
+        run: cp .env.example .env
+
+      - name: docker compose run api pytest
+        run: docker compose run --rm api pytest
+
+  frontend:
+    name: tsc y build (E2)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          # La misma versión que usa la etapa de build de web/Dockerfile.
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      # `ci` y no `install`: respeta el lockfile en vez de resolver de nuevo,
+      # que es lo que hace reproducible la comprobación.
+      - name: Instalar dependencias
+        run: npm --prefix web ci
+
+      - name: npm run check
+        run: npm --prefix web run check
