@@ -11,8 +11,13 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
 from .db import engine
+from .probe import router as probe_router
 
 app = FastAPI(title="Astrolabio API")
+
+# Instrumento temporal del criterio A4, no funcionalidad. Se retira con la
+# Fase B, cuando haya sesiones de verdad que medir.
+app.include_router(probe_router)
 
 
 def _sondear_base() -> tuple[bool, str | None]:

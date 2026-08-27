@@ -16,5 +16,10 @@ class Settings(BaseSettings):
 
     database_url: str
 
+    # Lo usa la sonda del criterio A4 para emitir la cookie con los mismos
+    # atributos que tendrá la sesión real. En HTTP plano sobre Tailscale va en
+    # false; pasa a true solo con HTTPS (variante C del ADR 0002).
+    cookie_secure: bool = False
+
 
 settings = Settings()
