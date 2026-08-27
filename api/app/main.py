@@ -13,6 +13,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from .auth import router as auth_router
 from .db import engine
 from .piezas import router as piezas_router
+from .respaldo import router as respaldo_router
 
 # El esquema lo crean las migraciones, no la aplicación: `alembic upgrade head`
 # corre en el arranque del contenedor (ver `Dockerfile`). Tener además un
@@ -22,6 +23,7 @@ app = FastAPI(title="Astrolabio API")
 
 app.include_router(auth_router)
 app.include_router(piezas_router)
+app.include_router(respaldo_router)
 
 
 def _sondear_base() -> tuple[bool, str | None]:

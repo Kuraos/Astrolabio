@@ -29,5 +29,15 @@ class Settings(BaseSettings):
     seed_editor_user: str
     seed_editor_password: str
 
+    # Ruta a `03-Negocios/Voz-del-Cosmos/` dentro del contenedor (ADR 0001).
+    #
+    # El nombre es largo a propósito: §2.5 prohíbe el acceso al vault personal
+    # completo, y una variable llamada `VAULT_PATH` invita a apuntarla a la
+    # raíz. Esta dice a qué carpeta pertenece y a cuál no.
+    #
+    # Opcional: el vault vive en la máquina de Johan y el taller debe
+    # funcionar sin él (criterio G4).
+    vault_voz_del_cosmos_path: str | None = None
+
 
 settings = Settings()

@@ -36,6 +36,16 @@ services:
       SEED_INVESTIGADOR_PASSWORD: ${SEED_INVESTIGADOR_PASSWORD}
       SEED_EDITOR_USER: ${SEED_EDITOR_USER}
       SEED_EDITOR_PASSWORD: ${SEED_EDITOR_PASSWORD}
+      VAULT_VOZ_DEL_COSMOS_PATH: /vault
+    volumes:
+      # Solo `03-Negocios/Voz-del-Cosmos/`, nunca la raíz del vault: el §2.5
+      # prohíbe el acceso al vault personal completo, donde está el diario.
+      # El montaje acotado lo hace imposible desde fuera del código.
+      #
+      # `:ro` porque el ADR 0001 le da la autoridad de `literature` al vault y
+      # a Astrolabio solo la lectura. Cuando llegue el exportador de la Fase I
+      # necesitará escritura, y la tendrá sobre `Contenido/` únicamente.
+      - ${VAULT_HOST_PATH}:/vault:ro
     depends_on:
       db:
         condition: service_healthy
