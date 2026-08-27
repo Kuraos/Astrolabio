@@ -125,6 +125,7 @@ def me(usuario: Usuario = Depends(usuario_actual)) -> Usuario:
 @router.post("/logout")
 def logout(
     response: Response,
+    _: Usuario = Depends(usuario_actual),
     astrolabio_sesion: str | None = Cookie(default=None),
     db: Session = Depends(get_db),
 ) -> dict:
@@ -132,6 +133,10 @@ def logout(
 
     Si solo se borrara la cookie, quien tuviera copia del testigo seguiría
     dentro y B5 no se cumpliría.
+
+    Exige sesión aunque parezca innecesario —cerrar sesión sin tenerla podría
+    devolver 200 tranquilamente— porque C5 dice «401 en todo salvo `health` y
+    `login`», y `logout` no está en esa lista.
     """
     if astrolabio_sesion is not None:
         sesion = db.get(Sesion, astrolabio_sesion)

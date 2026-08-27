@@ -15,7 +15,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from .auth import router as auth_router
 from .db import engine
 from .models import Base
-from .probe import router as probe_router
+from .piezas import router as piezas_router
 
 
 @asynccontextmanager
@@ -29,10 +29,7 @@ async def lifespan(_: FastAPI):
 app = FastAPI(title="Astrolabio API", lifespan=lifespan)
 
 app.include_router(auth_router)
-
-# Instrumento temporal del criterio A4, no funcionalidad. Se retira con la
-# Fase B, cuando haya sesiones de verdad que medir.
-app.include_router(probe_router)
+app.include_router(piezas_router)
 
 
 def _sondear_base() -> tuple[bool, str | None]:

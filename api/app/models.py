@@ -59,3 +59,25 @@ class Sesion(Base):
     expira_en: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
     usuario: Mapped[Usuario] = relationship(back_populates="sesiones")
+
+
+class Pieza(Base):
+    """Entidad mínima del criterio C1.
+
+    **Sin campo `estado`, y es deliberado.** El §2.8 dice que los estados del
+    flujo salen de una conversación con el editor, usando sus palabras para su
+    propio trabajo. Esa conversación no ha ocurrido, así que modelarlos ahora
+    sería inventarlos — y es la parte divertida, que por eso es la que se hace
+    demasiado pronto.
+    """
+
+    __tablename__ = "pieza"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    titulo: Mapped[str] = mapped_column(String(200))
+    creada_en: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    # Quién la creó sale de la sesión, nunca del cuerpo de la petición: si lo
+    # mandara el cliente, cualquiera podría atribuirle una pieza al otro.
+    creada_por: Mapped[str] = mapped_column(String(50))
