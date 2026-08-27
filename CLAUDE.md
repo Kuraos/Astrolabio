@@ -150,11 +150,14 @@ ventana nativa, Tauri puede envolver la misma web sin tocar el backend.
 ```bash
 docker compose up --build     # levanta web + api + db
 docker compose run api pytest # pruebas del backend
-npm --prefix web run check    # tsc + vitest + build
+npm --prefix web run check    # tsc + build
 ```
 
-(Ajustar cuando el esqueleto exista; mantener este bloque al día es parte
-del trabajo, no un extra.)
+`check` todavía no corre vitest: el criterio E2 pide «tsc + build» y no hay
+una sola prueba de frontend que justifique la dependencia. Se añade cuando
+haya algo que probar en el cliente, no antes.
+
+(Mantener este bloque al día es parte del trabajo, no un extra.)
 
 ---
 
@@ -180,5 +183,6 @@ del trabajo, no un extra.)
 - `docs/adr/0002-autoalojado-con-tailscale.md`
 - `docs/adr/0003-binarios-fuera-de-la-app.md`
 - `docs/adr/0004-sin-rankings-bajo-umbral.md`
+- `docs/adr/0005-mismo-origen-tras-proxy.md`
 
 Alcance vigente: `docs/fase-0-esqueleto.md`.

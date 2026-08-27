@@ -1,0 +1,14 @@
+# Versiones fijadas: un esqueleto que no se puede reconstruir igual dentro de
+# seis meses no es reproducible, y la reproducibilidad es la mitad del punto
+# de la Fase 0.
+
+fastapi==0.141.1
+uvicorn[standard]==0.52.4
+sqlalchemy==2.0.52
+psycopg[binary]==3.3.4
+pydantic-settings==2.15.0
+
+# `docker compose run api pytest` está documentado en CLAUDE.md §5, así que
+# las pruebas corren dentro de esta misma imagen y sus dependencias viven aquí.
+pytest==9.1.1
+httpx==0.28.1

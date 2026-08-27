@@ -1,0 +1,31 @@
+# Plantilla procesada por la imagen oficial de nginx al arrancar: sustituye
+# ${API_HOST} y ${API_PORT} con las variables del entorno. Las variables
+# propias de nginx ($uri, $host…) sobreviven porque no existen en el entorno.
+#
+# Este archivo es la mitad del ADR 0005: un solo origen para el navegador, y
+# la API detrás de /api en ese mismo origen.
+
+server {
+    listen 80;
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    location /api/ {
+        # Sin barra final en proxy_pass: se conserva el prefijo /api, que es
+        # el que la API monta en sus rutas.
+        proxy_pass http://${API_HOST}:${API_PORT};
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location / {
+        # La aplicación es de una sola página: cualquier ruta desconocida
+        # devuelve el index y decide el enrutador del cliente.
+        try_files $uri $uri/ /index.html;
+    }
+}
