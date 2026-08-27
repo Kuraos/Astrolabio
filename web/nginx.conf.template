@@ -23,9 +23,24 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
+    # Los assets llevan un hash de contenido en el nombre, así que un archivo
+    # con ese nombre nunca cambia: se puede cachear indefinidamente.
+    location /assets/ {
+        # Una sola cabecera: `expires` emite su propio `Cache-Control` y
+        # sumarlo a un `add_header` deja dos, que es pedir comportamiento
+        # impredecible entre navegadores.
+        add_header Cache-Control "public, max-age=31536000, immutable";
+    }
+
     location / {
-        # La aplicación es de una sola página: cualquier ruta desconocida
-        # devuelve el index y decide el enrutador del cliente.
+        # `index.html` es la excepción y **no** se cachea. Es el único archivo
+        # con nombre fijo, y si el navegador se queda con una copia vieja
+        # sigue pidiendo el bundle anterior: el despliegue no llega nunca al
+        # usuario, que ve la versión de ayer y no tiene forma de saberlo.
+        add_header Cache-Control "no-cache";
+
+        # Aplicación de una sola página: cualquier ruta desconocida devuelve
+        # el index y decide el cliente.
         try_files $uri $uri/ /index.html;
     }
 }
