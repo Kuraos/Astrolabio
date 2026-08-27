@@ -184,5 +184,6 @@ haya algo que probar en el cliente, no antes.
 - `docs/adr/0003-binarios-fuera-de-la-app.md`
 - `docs/adr/0004-sin-rankings-bajo-umbral.md`
 - `docs/adr/0005-mismo-origen-tras-proxy.md`
+- `docs/adr/0006-sesiones-con-estado-en-postgres.md`
 
 Alcance vigente: `docs/fase-0-esqueleto.md`.

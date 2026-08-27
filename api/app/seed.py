@@ -71,3 +71,21 @@ def sembrar_usuarios(session: Session, semillas: list[Semilla]) -> int:
 
     session.flush()
     return creados
+
+
+if __name__ == "__main__":
+    # Criterio B1, ejecutable: `docker compose run --rm api python -m app.seed`.
+    # Sin archivo de script aparte: el modulo ya tiene la logica y su entrada.
+    from sqlalchemy.orm import Session
+
+    from .config import settings
+    from .db import engine
+    from .models import Base
+
+    Base.metadata.create_all(engine)
+
+    with Session(engine) as sesion:
+        creados = sembrar_usuarios(sesion, semillas_del_entorno(settings))
+        sesion.commit()
+
+    print(f"Usuarios creados: {creados}")

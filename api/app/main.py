@@ -6,14 +6,29 @@ Los estados del flujo no se modelan hasta la conversación con el editor
 (CLAUDE.md §2.8).
 """
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Response, status
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
+from .auth import router as auth_router
 from .db import engine
+from .models import Base
 from .probe import router as probe_router
 
-app = FastAPI(title="Astrolabio API")
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    # `create_all` basta en la Fase 0 y el alcance lo dice explícitamente.
+    # En cuanto haya un modelo de dominio real, Alembic (CLAUDE.md §4).
+    Base.metadata.create_all(engine)
+    yield
+
+
+app = FastAPI(title="Astrolabio API", lifespan=lifespan)
+
+app.include_router(auth_router)
 
 # Instrumento temporal del criterio A4, no funcionalidad. Se retira con la
 # Fase B, cuando haya sesiones de verdad que medir.
