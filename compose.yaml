@@ -45,7 +45,17 @@ services:
       # `:ro` porque el ADR 0001 le da la autoridad de `literature` al vault y
       # a Astrolabio solo la lectura. Cuando llegue el exportador de la Fase I
       # necesitará escritura, y la tendrá sobre `Contenido/` únicamente.
-      - ${VAULT_HOST_PATH}:/vault:ro
+      - ${VAULT_HOST_PATH}:/vault:rw
+      # `Investigacion/` sigue en solo lectura y montada aparte: el ADR 0001
+      # le da al vault la autoridad sobre `literature`, así que ahí Astrolabio
+      # no escribe nunca — y que no pueda lo impone el sistema de archivos, no
+      # la buena voluntad del código.
+      #
+      # El resto de la carpeta queda escribible porque el exportador toca dos
+      # sitios, `Contenido/` y el MOC, y montar un archivo suelto no sirve:
+      # Docker crea las rutas que faltan como directorios, así que un vault
+      # sin configurar acabaría con una carpeta llamada `MOC-VozDelCosmos.md`.
+      - ${VAULT_HOST_PATH}/Investigacion:/vault/Investigacion:ro
     depends_on:
       db:
         condition: service_healthy

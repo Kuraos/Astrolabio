@@ -169,7 +169,7 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
       */}
       {usuario.rol === 'investigador' && <NuevaPieza alCrear={cargar} />}
 
-      <Panel titulo="Piezas">
+      <Panel titulo="Piezas · abre una para escribir el guion">
         {error ? (
           <Aviso mensaje={error} />
         ) : piezas === null ? (
@@ -185,21 +185,34 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
               <li key={pieza.id}>
                 {/* Los dos roles abren la pieza: el editor lee el guion y
                     puede corregirlo; lo que no ve es el respaldo. */}
+                {/* Que se vea que se abre: fondo al pasar por encima y una
+                    flecha. Sin esto la lista parece de solo lectura — pasó
+                    de verdad, y si el dueño del producto no encuentra el
+                    editor, el editor tampoco. */}
                 <button
                   type="button"
                   onClick={() => setAbierta(pieza)}
-                  className="w-full py-2.5 text-left first:pt-0 last:pb-0 hover:opacity-80"
+                  className="group -mx-2 flex w-[calc(100%+1rem)] items-center gap-3 rounded-md px-2 py-2.5 text-left hover:bg-slate-800/60"
                 >
-                  <span className="block text-sm text-slate-100">
-                    {pieza.titulo}
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm text-slate-100">
+                      {pieza.titulo}
+                    </span>
+                    <span className="block text-xs text-slate-500">
+                      {pieza.creada_por} ·{' '}
+                      {new Date(pieza.creada_en).toLocaleDateString('es-CO', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                      {pieza.guion.trim() === '' && ' · sin guion'}
+                    </span>
                   </span>
-                  <span className="block text-xs text-slate-500">
-                    {pieza.creada_por} ·{' '}
-                    {new Date(pieza.creada_en).toLocaleDateString('es-CO', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
+                  <span
+                    aria-hidden
+                    className="shrink-0 text-slate-600 group-hover:text-slate-300"
+                  >
+                    →
                   </span>
                 </button>
               </li>

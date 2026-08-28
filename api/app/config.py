@@ -39,5 +39,11 @@ class Settings(BaseSettings):
     # funcionar sin él (criterio G4).
     vault_voz_del_cosmos_path: str | None = None
 
+    # Zona horaria del vault, para la `fecha` de las notas exportadas.
+    # `creada_en` se guarda en UTC; una pieza hecha a las 21:00 en Bogotá son
+    # las 02:00 UTC del día siguiente, así que exportar en UTC adelantaría un
+    # día toda pieza escrita de noche, sin que nada avise.
+    vault_zona_horaria: str = "America/Bogota"
+
 
 settings = Settings()

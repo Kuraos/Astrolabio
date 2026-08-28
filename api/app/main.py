@@ -12,6 +12,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from .auth import router as auth_router
 from .db import engine
+from .exportador import router as exportador_router
 from .piezas import router as piezas_router
 from .respaldo import router as respaldo_router
 
@@ -23,6 +24,7 @@ app = FastAPI(title="Astrolabio API")
 
 app.include_router(auth_router)
 app.include_router(piezas_router)
+app.include_router(exportador_router)
 app.include_router(respaldo_router)
 
 

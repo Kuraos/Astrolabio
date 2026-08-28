@@ -56,7 +56,7 @@ export default function VistaPieza({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
+      <div className="relative flex items-center justify-between gap-3">
         <button
           type="button"
           onClick={alVolver}
@@ -76,6 +76,12 @@ export default function VistaPieza({
           >
             {guardando ? 'Guardando…' : 'Guardar'}
           </button>
+          {/* J3: exportar es acción explícita, nunca automática al guardar —
+              escribiría en el vault de Johan sin que lo haya pedido. Solo él
+              exporta, acompañando al 403 del servidor. */}
+          {usuario.rol === 'investigador' && (
+            <Exportar pieza={pieza} haySinGuardar={sinGuardar} />
+          )}
         </div>
       </div>
 
@@ -127,6 +133,63 @@ export default function VistaPieza({
         <PanelRespaldo pieza={pieza} alCambiar={setPieza} />
       )}
     </div>
+  )
+}
+
+/** J3: la acción dice qué archivo escribió y dónde, no solo «exportado». */
+function Exportar({ pieza, haySinGuardar }: { pieza: Pieza; haySinGuardar: boolean }) {
+  const [resultado, setResultado] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [enviando, setEnviando] = useState(false)
+
+  async function exportar() {
+    setEnviando(true)
+    setError(null)
+    setResultado(null)
+    try {
+      const r = await pedir<{ archivo: string }>(
+        `/api/piezas/${pieza.id}/exportar`,
+        { method: 'POST' },
+      )
+      setResultado(r.archivo)
+    } catch (causa) {
+      setError(causa instanceof ErrorDeApi ? causa.message : 'No se pudo exportar')
+    } finally {
+      setEnviando(false)
+    }
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => void exportar()}
+        disabled={enviando}
+        title={
+          haySinGuardar
+            ? 'Se exportará lo último guardado, no lo que tienes sin guardar'
+            : undefined
+        }
+        className="rounded-md border border-slate-700 px-3 py-1.5 text-xs text-slate-300 disabled:opacity-40"
+      >
+        {enviando ? 'Exportando…' : 'Exportar al vault'}
+      </button>
+
+      {(resultado || error) && (
+        <div className="absolute inset-x-0 top-full z-10 mt-2">
+          <p
+            role="status"
+            className={`rounded-md border px-3 py-2 font-mono text-[11px] break-all ${
+              error
+                ? 'border-rose-900/60 bg-rose-950/40 text-rose-200'
+                : 'border-emerald-900/60 bg-emerald-950/30 text-emerald-200'
+            }`}
+          >
+            {error ?? `Escrito en ${resultado}`}
+          </p>
+        </div>
+      )}
+    </>
   )
 }
 

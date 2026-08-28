@@ -196,5 +196,6 @@ haya algo que probar en el cliente, no antes.
 - `docs/adr/0004-sin-rankings-bajo-umbral.md`
 - `docs/adr/0005-mismo-origen-tras-proxy.md`
 - `docs/adr/0006-sesiones-con-estado-en-postgres.md`
+- `docs/adr/0007-como-escribe-astrolabio-en-el-vault.md`
 
 Alcance vigente: `docs/fase-0-esqueleto.md`.
