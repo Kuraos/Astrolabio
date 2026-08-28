@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import { ErrorDeApi, pedir } from './api'
-
-type Usuario = { usuario: string; rol: 'investigador' | 'editor' }
-type Pieza = { id: number; titulo: string; creada_en: string; creada_por: string }
+import { ErrorDeApi, pedir, type Pieza, type Usuario } from './api'
+import VistaPieza from './Pieza'
 
 /**
  * Fase 0, criterios D1–D4.
@@ -107,6 +105,7 @@ function Login({ alEntrar }: { alEntrar: (u: Usuario) => void }) {
 
 function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void }) {
   const [piezas, setPiezas] = useState<Pieza[] | null>(null)
+  const [abierta, setAbierta] = useState<Pieza | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const cargar = useCallback(async () => {
@@ -152,6 +151,17 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
         </div>
       </Panel>
 
+      {abierta ? (
+        <VistaPieza
+          pieza={abierta}
+          usuario={usuario}
+          alVolver={() => {
+            setAbierta(null)
+            void cargar()
+          }}
+        />
+      ) : (
+        <>
       {/*
         D3: al editor no se le enseña el botón. Es **además** del 403 del
         servidor, nunca en su lugar: §2.3 dice que ocultar un botón no es
@@ -172,21 +182,33 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
         ) : (
           <ul className="divide-y divide-slate-800">
             {piezas.map((pieza) => (
-              <li key={pieza.id} className="py-2.5 first:pt-0 last:pb-0">
-                <p className="text-sm text-slate-100">{pieza.titulo}</p>
-                <p className="text-xs text-slate-500">
-                  {pieza.creada_por} ·{' '}
-                  {new Date(pieza.creada_en).toLocaleDateString('es-CO', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric',
-                  })}
-                </p>
+              <li key={pieza.id}>
+                {/* Los dos roles abren la pieza: el editor lee el guion y
+                    puede corregirlo; lo que no ve es el respaldo. */}
+                <button
+                  type="button"
+                  onClick={() => setAbierta(pieza)}
+                  className="w-full py-2.5 text-left first:pt-0 last:pb-0 hover:opacity-80"
+                >
+                  <span className="block text-sm text-slate-100">
+                    {pieza.titulo}
+                  </span>
+                  <span className="block text-xs text-slate-500">
+                    {pieza.creada_por} ·{' '}
+                    {new Date(pieza.creada_en).toLocaleDateString('es-CO', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })}
+                  </span>
+                </button>
               </li>
             ))}
           </ul>
         )}
       </Panel>
+        </>
+      )}
     </div>
   )
 }
