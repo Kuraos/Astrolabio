@@ -46,10 +46,17 @@ def test_la_pieza_no_tiene_campo_estado():
     """§2.8: la máquina de estados sale de una conversación con el editor que
     todavía no ha ocurrido. Modelarla ahora sería inventarla, y esta prueba
     existe para que no se cuele por descuido en un refactor.
+
+    Se afirma el invariante —los cuatro campos de C1 están, `estado` no—, no
+    el conjunto exacto de columnas: la pieza puede crecer legítimamente, y de
+    hecho creció en H1. Una prueba que se rompe cuando el código hace lo
+    correcto acaba siendo la que alguien edita sin leer.
+    La forma completa de la tabla se afirma una sola vez, en `test_guion.py`.
     """
     columnas = set(Pieza.__table__.columns.keys())
 
-    assert columnas == {"id", "titulo", "creada_en", "creada_por"}
+    assert {"id", "titulo", "creada_en", "creada_por"} <= columnas
+    assert "estado" not in columnas
 
 
 # --- C2 y C4 ---

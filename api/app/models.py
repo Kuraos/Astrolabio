@@ -10,7 +10,7 @@ conversación todavía no ha ocurrido.
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, String, func
+from sqlalchemy import ARRAY, DateTime, ForeignKey, String, Text, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -81,3 +81,26 @@ class Pieza(Base):
     # Quién la creó sale de la sesión, nunca del cuerpo de la petición: si lo
     # mandara el cliente, cualquiera podría atribuirle una pieza al otro.
     creada_por: Mapped[str] = mapped_column(String(50))
+
+    # `Text` y no `String(n)`: un guion no tiene longitud máxima razonable, y
+    # un límite inventado se descubre truncando el trabajo de alguien.
+    # Cadena vacía en vez de nulo — una pieza sin guion todavía no es un caso
+    # especial, es una pieza recién creada.
+    guion: Mapped[str] = mapped_column(Text, server_default="", default="")
+
+    # Los tres salen de la plantilla del vault, no de nuestra imaginación.
+    # Nulos mientras no se decidan: al crear una pieza rara vez se sabe ya en
+    # qué plataforma acaba.
+    formato: Mapped[str | None] = mapped_column(String(20), default=None)
+    tema: Mapped[str | None] = mapped_column(String(100), default=None)
+    plataforma: Mapped[str | None] = mapped_column(String(50), default=None)
+
+    # Nombres de notas `literature` del vault, que alimentan `investigacion:`
+    # y `## Respaldo científico` al exportar (ADR 0001).
+    #
+    # Una lista y no una tabla con clave foránea: esas notas viven en el vault
+    # y Astrolabio no las posee, así que no hay integridad referencial que
+    # imponer. Fingirla con una tabla propia sería mentir sobre quién manda.
+    respaldo: Mapped[list[str]] = mapped_column(
+        ARRAY(String(200)), server_default="{}", default=list
+    )
