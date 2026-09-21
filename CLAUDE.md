@@ -199,7 +199,10 @@ haya algo que probar en el cliente, no antes.
 - `docs/adr/0007-como-escribe-astrolabio-en-el-vault.md`
 - `docs/adr/0008-traspaso-append-only-en-la-base.md`
 - `docs/adr/0009-el-estado-viaja-al-vault.md`
+- `docs/adr/0010-la-carpeta-de-cada-pieza.md`
 
 Estados del flujo (§2.8): `docs/estados-del-flujo.md`.
 
-Alcance vigente: `docs/fase-2-traspaso.md`.
+Hoja de ruta, fases 3 a 6: `docs/hoja-de-ruta.md`.
+
+Alcance vigente: `docs/fase-3-material.md`.
