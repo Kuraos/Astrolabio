@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 from app import exportador, respaldo
 from app.db import get_db
 from app import main
-from app.models import Pieza
+from app.models import ESTADOS, Pieza
 from app.seed import Semilla, sembrar_usuarios
 
 CLAVE = "clave-de-prueba"
@@ -91,6 +91,21 @@ def test_el_frontmatter_cumple_la_plantilla(vault: Path, pieza: Pieza):
     assert datos["tags"] == ["voz-del-cosmos"]
     assert datos["investigacion"] == ["GWTC-5"]
     assert "status" in datos
+
+
+@pytest.mark.parametrize("estado", ESTADOS)
+def test_status_es_el_estado_de_la_pieza(
+    vault: Path, pieza: Pieza, sesion_db: Session, estado: str
+):
+    """O1 (ADR 0009): el mismo identificador de la base, sin traducirlo. El MOC
+    agrupa las piezas por este campo, así que es lo que Johan ve en Obsidian.
+    """
+    pieza.estado = estado
+    sesion_db.flush()
+
+    datos = _frontmatter(exportador.exportar(pieza, vault).read_text(encoding="utf-8"))
+
+    assert datos["status"] == estado
 
 
 def test_la_nota_se_declara_generada(vault: Path, pieza: Pieza):

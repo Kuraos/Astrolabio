@@ -1,4 +1,4 @@
-"""Exportador al vault (criterios I1–I5, ADR 0001 y ADR 0007).
+"""Exportador al vault (criterios I1–I5 y O1, ADR 0001, 0007 y 0009).
 
 La mitad «Astrolabio → vault». Una sola dirección: el vault recibe una copia
 marcada como generada que nunca se edita a mano.
@@ -83,10 +83,10 @@ def _nota(pieza: Pieza) -> str:
         "cssclasses": ["vh-contenido"],
         "formato": pieza.formato,
         "tema": pieza.tema,
-        # `idea` mientras no exista la máquina de estados: la pieza no tiene
-        # `estado` (§2.8) y este campo hay que escribirlo con algo. Cuando los
-        # estados existan, saldrán de aquí.
-        "status": "idea",
+        # El estado al exportar, con el mismo identificador de la base y sin
+        # traducirlo (ADR 0009). Es una copia: envejece hasta la exportación
+        # siguiente, igual que el guion.
+        "status": pieza.estado,
         "fecha": _fecha_local(pieza),
         "fecha_publicacion": None,
         "plataforma": pieza.plataforma,
