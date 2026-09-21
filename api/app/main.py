@@ -1,9 +1,8 @@
 """API de Astrolabio.
 
-Fase 0: sin dominio. La única ruta que existe es la de salud, y existe para
-demostrar que el camino navegador → proxy → api → Postgres está completo.
-Los estados del flujo no se modelan hasta la conversación con el editor
-(CLAUDE.md §2.8).
+Aquí se montan los routers de cada criterio. La ruta de salud vive aquí y
+existe para demostrar que el camino navegador → proxy → api → Postgres está
+completo.
 """
 
 from fastapi import FastAPI, Response, status
@@ -15,6 +14,7 @@ from .db import engine
 from .exportador import router as exportador_router
 from .piezas import router as piezas_router
 from .respaldo import router as respaldo_router
+from .traspasos import router as traspasos_router
 
 # El esquema lo crean las migraciones, no la aplicación: `alembic upgrade head`
 # corre en el arranque del contenedor (ver `Dockerfile`). Tener además un
@@ -26,6 +26,7 @@ app.include_router(auth_router)
 app.include_router(piezas_router)
 app.include_router(exportador_router)
 app.include_router(respaldo_router)
+app.include_router(traspasos_router)
 
 
 def _sondear_base() -> tuple[bool, str | None]:
