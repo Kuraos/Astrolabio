@@ -276,6 +276,44 @@ def test_devolver_lleva_la_nota_de_que_ajustar(
     assert fila.nota == nota
 
 
+# --- M3 ---
+
+
+def test_los_dos_leen_la_historia_entera_en_orden(
+    cliente: TestClient, sesion_db: Session
+):
+    pieza = _pieza_en(sesion_db, "investigacion")
+    _entrar_como(cliente, "johan")
+    assert _mover(cliente, pieza, "entregar", "investigacion").status_code == 201
+    cliente.post("/api/auth/logout")
+    _entrar_como(cliente, "dathzon")
+    pasos = [
+        ("aprobar_material", "solicitud_entregada"),
+        ("finalizar", "material_aprobado"),
+    ]
+    for transicion, desde in pasos:
+        assert _mover(cliente, pieza, transicion, desde).status_code == 201
+
+    como_editor = cliente.get(f"/api/piezas/{pieza.id}/traspasos")
+    cliente.post("/api/auth/logout")
+    _entrar_como(cliente, "johan")
+    como_investigador = cliente.get(f"/api/piezas/{pieza.id}/traspasos")
+
+    assert como_editor.status_code == 200
+    assert como_editor.json() == como_investigador.json()
+    assert [(t["transicion"], t["creado_por"]) for t in como_editor.json()] == [
+        ("entregar", "johan"),
+        ("aprobar_material", "dathzon"),
+        ("finalizar", "dathzon"),
+    ]
+
+
+def test_la_historia_de_una_pieza_que_no_existe_es_404(cliente: TestClient):
+    _entrar_como(cliente, "johan")
+
+    assert cliente.get("/api/piezas/999999/traspasos").status_code == 404
+
+
 # --- M2 ---
 
 

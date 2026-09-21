@@ -38,7 +38,7 @@ porque no es su trabajo, y el nombre lo puso Johan (A).
 | `material aprobado` | «en el momento en que se entregan los cuadros […] y están totalmente aprobados para su diseño» (P4); «para aprobar el material y poder iniciar con el diseño de las piezas» (P3) | editor |
 | `finalizada` | «cuando finalice una pieza y se suba al drive o al espacio de almacenamiento de Johan ya corresponde a esa persona» (P4) | Johan |
 | `diseño aprobado` | «cuando el diseño está aprobado por Johan y cumple con los requisitos iniciales» (P10) | Johan |
-| `publicada` | «Johan será el responsable de aprobación y publicación» (P11); «yo lo subo» (A) | Johan |
+| `publicada` | «Johan será el responsable de aprobación y publicación» (P11); «yo lo subo» (A) | nadie |
 
 - **Tres aprobaciones, de dos personas.** `material aprobado`, antes del
   diseño, la marca cualquiera de los dos después de «socializar» el cuadro
@@ -49,6 +49,9 @@ porque no es su trabajo, y el nombre lo puso Johan (A).
   editor que terminó: su parte acaba «cuando el diseño está aprobado por
   Johan» (P10), y «si están aprobadas» es de lo que hoy pregunta por mensaje
   (P12).
+- **`publicada` no es de nadie.** Johan la publica desde `diseño aprobado`,
+  que es su turno; publicada, el flujo terminó y ninguno de los dos tiene nada
+  que hacer con ella.
 - **«En diseño» no es un estado aparte.** Entre que se aprueba el material y
   se entrega la pieza, él trabaja por bloques «semanales, quincenales o
   mensuales» (P1). Que haya empezado o no, no cambia lo que hace Johan, que

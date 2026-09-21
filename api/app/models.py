@@ -73,6 +73,17 @@ ESTADOS = (
     "publicada",
 )
 
+# De quién es la pieza en cada estado (§2 del documento). `publicada` no es de
+# nadie: Johan la publica desde `diseno_aprobado`, y después el flujo terminó.
+DE_QUIEN_ES = {
+    "investigacion": "investigador",
+    "solicitud_entregada": "investigador",
+    "material_aprobado": "editor",
+    "finalizada": "investigador",
+    "diseno_aprobado": "investigador",
+    "publicada": None,
+}
+
 
 class Pieza(Base):
     """La pieza de contenido: nació en C1, creció en H1 y ganó estado en K1.
@@ -129,6 +140,11 @@ class Pieza(Base):
     estado: Mapped[str] = mapped_column(
         String(30), server_default="investigacion", default="investigacion"
     )
+
+    @property
+    def de_quien_es(self) -> str | None:
+        """El rol al que le toca, o nadie si ya se publicó (K4)."""
+        return DE_QUIEN_ES[self.estado]
 
 
 class Traspaso(Base):

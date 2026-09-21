@@ -1,4 +1,4 @@
-"""Piezas y su autorización (criterios C1–C5, H1–H3).
+"""Piezas y su autorización (criterios C1–C5, H1–H3 y K4).
 
 El §2.3 no admite matices: cada endpoint comprueba el rol **en el servidor**.
 Que la aplicación viva en una red privada no cambia nada — los dos roles del
@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from .auth import usuario_actual
 from .db import get_db
 from .models import Pieza, Usuario
+from .traspasos import transiciones_posibles
 
 router = APIRouter(prefix="/api/piezas", tags=["piezas"])
 
@@ -48,8 +49,11 @@ class PiezaEditada(BaseModel):
 
 
 class PiezaPublica(BaseModel):
-    """Todavía sin `estado`: llega con K4, junto con de quién es la pieza y qué
-    transiciones puede dar quien pregunta, para que el cliente no deduzca nada.
+    """La pieza como la ve quien pregunta (K4).
+
+    `estado` y `de_quien_es` son de la pieza; `transiciones`, de la pieza y de
+    quien pregunta. Las tres salen del servidor para que el cliente no deduzca
+    nada: la tabla de transiciones vive en un solo sitio.
     """
 
     model_config = {"from_attributes": True}
@@ -63,6 +67,10 @@ class PiezaPublica(BaseModel):
     tema: str | None
     plataforma: str | None
     respaldo: list[str]
+    estado: str
+    de_quien_es: str | None
+    # La rellena `_publica`: depende de quién pregunta, y la pieza no lo sabe.
+    transiciones: list[str] = []
 
 
 def _solo_investigador(usuario: Usuario) -> None:
@@ -82,29 +90,34 @@ def _buscar(db: Session, pieza_id: int) -> Pieza:
     return pieza
 
 
+def _publica(pieza: Pieza, usuario: Usuario) -> PiezaPublica:
+    publica = PiezaPublica.model_validate(pieza)
+    publica.transiciones = transiciones_posibles(pieza.estado, usuario.rol)
+    return publica
+
+
 @router.get("", response_model=list[PiezaPublica])
 def listar_piezas(
-    _: Usuario = Depends(usuario_actual),
+    usuario: Usuario = Depends(usuario_actual),
     db: Session = Depends(get_db),
-) -> list[Pieza]:
-    """C3: los dos roles ven la misma lista.
-
-    La sesión se exige igual aunque no se use el usuario: sin ella esto sería
-    un endpoint público, y C5 pide 401 en todo salvo `health` y `login`.
+) -> list[PiezaPublica]:
+    """C3: los dos roles ven la misma lista. Solo cambian las `transiciones`,
+    que dependen de quién pregunta (K4).
     """
-    return db.query(Pieza).order_by(Pieza.creada_en.desc()).all()
+    piezas = db.query(Pieza).order_by(Pieza.creada_en.desc()).all()
+    return [_publica(pieza, usuario) for pieza in piezas]
 
 
 @router.get("/{pieza_id}", response_model=PiezaPublica)
 def ver_pieza(
     pieza_id: int,
-    _: Usuario = Depends(usuario_actual),
+    usuario: Usuario = Depends(usuario_actual),
     db: Session = Depends(get_db),
-) -> Pieza:
+) -> PiezaPublica:
     """Los dos roles leen el guion. El editor necesita saber de qué va la
     pieza para poder editarla en vídeo; lo que no hace es escribirlo.
     """
-    return _buscar(db, pieza_id)
+    return _publica(_buscar(db, pieza_id), usuario)
 
 
 @router.post("", response_model=PiezaPublica, status_code=status.HTTP_201_CREATED)
@@ -112,7 +125,7 @@ def crear_pieza(
     nueva: PiezaNueva,
     usuario: Usuario = Depends(usuario_actual),
     db: Session = Depends(get_db),
-) -> Pieza:
+) -> PiezaPublica:
     """C2: solo `investigador`."""
     _solo_investigador(usuario)
 
@@ -127,7 +140,7 @@ def crear_pieza(
     db.commit()
     db.refresh(pieza)
 
-    return pieza
+    return _publica(pieza, usuario)
 
 
 @router.patch("/{pieza_id}", response_model=PiezaPublica)
@@ -136,7 +149,7 @@ def editar_pieza(
     cambios: PiezaEditada,
     usuario: Usuario = Depends(usuario_actual),
     db: Session = Depends(get_db),
-) -> Pieza:
+) -> PiezaPublica:
     """Los dos roles editan la pieza. El respaldo científico, solo Johan.
 
     El guion lo escriben ambos: es una decisión del dueño del producto, no
@@ -162,4 +175,4 @@ def editar_pieza(
     db.commit()
     db.refresh(pieza)
 
-    return pieza
+    return _publica(pieza, usuario)

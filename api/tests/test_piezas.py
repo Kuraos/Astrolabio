@@ -101,7 +101,13 @@ def test_ambos_roles_pueden_listar_piezas(cliente: TestClient):
 
     assert como_investigador.status_code == 200
     assert como_editor.status_code == 200
-    assert como_editor.json() == como_investigador.json()
+
+    # La misma lista. Solo cambian las `transiciones`, que dependen de quién
+    # pregunta (K4).
+    def sin_transiciones(respuesta):
+        return [{**pieza, "transiciones": None} for pieza in respuesta.json()]
+
+    assert sin_transiciones(como_editor) == sin_transiciones(como_investigador)
 
 
 # --- C5 ---

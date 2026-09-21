@@ -1,8 +1,8 @@
-"""Traspasos: la pieza cambia de manos (criterios L1–L5 y M1).
+"""Traspasos: la pieza cambia de manos (criterios L1–L5, M1, M3 y K4).
 
 Es el centro del §1. Cada transición es una fila de `TRANSICIONES`, copiada del
 §3 de `docs/estados-del-flujo.md`, y la tabla vive aquí y solo aquí: el cliente
-preguntará qué puede hacer, no lo deducirá (K4).
+pregunta qué puede hacer, no lo deduce (K4).
 
 El orden de las comprobaciones importa. Primero, si la transición sale de ese
 estado (409). Después, si el rol puede darla (403), que no depende de dónde esté
@@ -45,6 +45,18 @@ TRANSICIONES: dict[tuple[str, str], tuple[str, frozenset[str]]] = {
 }
 
 
+def transiciones_posibles(estado: str, rol: str) -> list[str]:
+    """K4: las que `rol` puede dar desde `estado`, sacadas de la misma tabla que
+    decide el 403. El botón que se ve y la regla que se aplica no pueden
+    separarse.
+    """
+    return [
+        transicion
+        for (transicion, desde), (_, roles) in TRANSICIONES.items()
+        if desde == estado and rol in roles
+    ]
+
+
 class TraspasoNuevo(BaseModel):
     """Quién lo pide no viene aquí: sale de la sesión (M1)."""
 
@@ -64,6 +76,24 @@ class TraspasoPublico(BaseModel):
     creado_por: str
     creado_en: datetime
     nota: str | None
+
+
+@router.get("/{pieza_id}/traspasos", response_model=list[TraspasoPublico])
+def historia_de_la_pieza(
+    pieza_id: int,
+    _: Usuario = Depends(usuario_actual),
+    db: Session = Depends(get_db),
+) -> list[Traspaso]:
+    """M3: los dos roles la leen entera, en orden.
+
+    Por `id` y no por `creado_en`: los traspasos de una pieza se escriben de uno
+    en uno bajo `FOR UPDATE`, así que el `id` es el orden en que ocurrieron,
+    mientras que `now()` es la hora en que empezó cada transacción.
+    """
+    if db.get(Pieza, pieza_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    return db.query(Traspaso).filter_by(pieza_id=pieza_id).order_by(Traspaso.id).all()
 
 
 @router.post(
