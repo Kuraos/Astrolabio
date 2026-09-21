@@ -156,9 +156,15 @@ npm --prefix web run check    # tsc + build
 Migraciones (Alembic, desde la Fase 1):
 
 ```bash
-docker compose run --rm api alembic revision --autogenerate -m "..."
+docker compose run --rm -v ./api/migrations://app/migrations api alembic revision --autogenerate -m "..."
 docker compose run --rm api alembic upgrade head
 ```
+
+El montaje de `revision` es lo que trae la migración al repositorio: sin él,
+nace dentro del contenedor y `--rm` la borra. La doble barra de `//app` no es
+una errata: Git Bash reescribe `/app` como una ruta de Windows y el montaje cae
+en otro sitio sin avisar. Con `//` la ruta llega intacta, y Docker la lee igual
+desde cualquier shell.
 
 `upgrade head` corre solo al arrancar el contenedor de `api`; los comandos de
 arriba son para generar una migración nueva o aplicarlas a mano. **El esquema

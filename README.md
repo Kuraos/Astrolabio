@@ -126,8 +126,11 @@ npm --prefix web run check
 ```
 
 ```bash
-docker compose run --rm api alembic revision --autogenerate -m "..."
+docker compose run --rm -v ./api/migrations://app/migrations api alembic revision --autogenerate -m "..."
 ```
+
+El montaje trae la migración generada al repositorio; sin él, `--rm` la borra
+con el contenedor. La doble barra es para que Git Bash no reescriba la ruta.
 
 `check` es `tsc` + `build`. Todavía no corre vitest: el alcance de la Fase 0
 define la calidad del cliente como «tsc + build», y no hay una sola prueba de
