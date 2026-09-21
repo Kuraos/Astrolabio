@@ -17,6 +17,11 @@ pydantic-settings==2.15.0
 # inventarse a mano.
 argon2-cffi==25.1.0
 
+# El exportador escribe con ella el frontmatter del vault y el respaldo lo lee.
+# Llegaba solo de forma transitiva, por `uvicorn[standard]`: si una versión de
+# uvicorn dejara de arrastrarla, la API no arrancaría.
+pyyaml==6.0.3
+
 # `docker compose run api pytest` está documentado en CLAUDE.md §5, así que
 # las pruebas corren dentro de esta misma imagen y sus dependencias viven aquí.
 pytest==9.1.1
