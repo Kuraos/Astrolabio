@@ -173,3 +173,26 @@ class Traspaso(Base):
     # termina en un mensaje de «¿qué ajusto?», que es lo que el §1 quiere
     # eliminar.
     nota: Mapped[str | None] = mapped_column(Text, default=None)
+
+
+class Enlace(Base):
+    """Un enlace de referencia de la pieza: un pin, un vídeo, un artículo (P1).
+
+    Es material que se comparte, no historia: se añade y se quita, a diferencia
+    de `traspaso`. Las imágenes no van aquí; viven en la carpeta de la pieza en
+    Syncthing (ADR 0010).
+    """
+
+    __tablename__ = "enlace"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    pieza_id: Mapped[int] = mapped_column(ForeignKey("pieza.id"), index=True)
+    # `Text`, como el guion: un límite inventado se descubre cortando la URL de
+    # alguien. Que sea `http` o `https` lo valida la API (P3).
+    url: Mapped[str] = mapped_column(Text)
+    nota: Mapped[str | None] = mapped_column(Text, default=None)
+    # Como `creada_por` en la pieza: sale de la sesión, nunca del cuerpo.
+    creado_por: Mapped[str] = mapped_column(String(50))
+    creado_en: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )

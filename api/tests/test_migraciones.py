@@ -43,7 +43,7 @@ def test_upgrade_crea_todas_las_tablas_desde_cero(engine_de_prueba, config_alemb
     command.upgrade(config_alembic, "head")
 
     tablas = set(inspect(engine_de_prueba).get_table_names())
-    assert {"usuario", "sesion", "pieza", "traspaso"} <= tablas
+    assert {"usuario", "sesion", "pieza", "traspaso", "enlace"} <= tablas
 
 
 def test_el_esquema_ya_no_se_crea_con_create_all():

@@ -8,6 +8,7 @@ import 'katex/dist/katex.min.css'
 import {
   ErrorDeApi,
   pedir,
+  type Enlace,
   type EstadoDelRespaldo,
   type Pieza,
   type Traspaso,
@@ -101,6 +102,8 @@ export default function VistaPieza({
         haySinGuardar={sinGuardar}
         alMover={setPieza}
       />
+
+      <PanelMaterial pieza={pieza} />
 
       {error && (
         <p
@@ -323,6 +326,153 @@ function PanelTraspaso({
       </div>
     </section>
   )
+}
+
+/**
+ * El material de la pieza (S1, S2): lo que Johan le pasa al editor para
+ * hacerla, y que antes iba por chat. Es para los dos roles, a diferencia del
+ * respaldo. Las imágenes llegan con la carpeta de Syncthing (criterios Q y R).
+ */
+function PanelMaterial({ pieza }: { pieza: Pieza }) {
+  const [enlaces, setEnlaces] = useState<Enlace[] | null>(null)
+  const [url, setUrl] = useState('')
+  const [nota, setNota] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [enviando, setEnviando] = useState(false)
+
+  const ruta = `/api/piezas/${pieza.id}/enlaces`
+
+  useEffect(() => {
+    pedir<Enlace[]>(ruta)
+      .then(setEnlaces)
+      .catch((causa: unknown) =>
+        setError(causa instanceof ErrorDeApi ? causa.message : 'No se pudo leer el material'),
+      )
+  }, [ruta])
+
+  async function anadir(evento: React.FormEvent) {
+    evento.preventDefault()
+    setEnviando(true)
+    setError(null)
+    try {
+      const nuevo = await pedir<Enlace>(ruta, {
+        method: 'POST',
+        body: JSON.stringify({ url: url.trim(), nota: nota.trim() || null }),
+      })
+      setEnlaces((actuales) => [...(actuales ?? []), nuevo])
+      setUrl('')
+      setNota('')
+    } catch (causa) {
+      // P3: el 422 trae el motivo de Pydantic, en inglés y en forma de lista.
+      // Aquí basta con decir qué se acepta.
+      setError(
+        causa instanceof ErrorDeApi && causa.estado === 422
+          ? 'Solo se aceptan enlaces http o https.'
+          : causa instanceof ErrorDeApi
+            ? causa.message
+            : 'No se pudo añadir el enlace',
+      )
+    } finally {
+      setEnviando(false)
+    }
+  }
+
+  async function quitar(enlace: Enlace) {
+    setError(null)
+    try {
+      await pedir(`${ruta}/${enlace.id}`, { method: 'DELETE' })
+      setEnlaces((actuales) => (actuales ?? []).filter((e) => e.id !== enlace.id))
+    } catch (causa) {
+      setError(causa instanceof ErrorDeApi ? causa.message : 'No se pudo quitar el enlace')
+    }
+  }
+
+  return (
+    <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
+      <h3 className="text-xs font-medium uppercase tracking-wider text-slate-500">
+        Material
+      </h3>
+
+      <div className="mt-3 space-y-3">
+        {enlaces === null ? (
+          <p className="text-xs text-slate-600">Cargando…</p>
+        ) : enlaces.length === 0 ? (
+          <p className="text-xs text-slate-600">Todavía no hay enlaces.</p>
+        ) : (
+          <ul className="space-y-2">
+            {enlaces.map((enlace) => (
+              <li key={enlace.id} className="flex items-start justify-between gap-3 text-xs">
+                <span className="min-w-0">
+                  {/* S2: en otra pestaña, y sin darle a la página enlazada acceso
+                      a esta ni saber de dónde viene la visita. */}
+                  <a
+                    href={enlace.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="break-words text-slate-100 underline decoration-slate-600 underline-offset-2 hover:decoration-slate-300"
+                  >
+                    {enlace.nota || enlace.url}
+                  </a>
+                  <span className="block text-slate-500">
+                    {dominio(enlace.url)} · {enlace.creado_por}
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => void quitar(enlace)}
+                  className="shrink-0 text-slate-500 hover:text-slate-300"
+                >
+                  Quitar
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <form onSubmit={anadir} className="space-y-2">
+          <input
+            type="url"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="https://… un pin, un vídeo, un artículo"
+            className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-100 outline-none focus:border-slate-500"
+          />
+          <input
+            type="text"
+            value={nota}
+            onChange={(e) => setNota(e.target.value)}
+            placeholder="Nota opcional: para qué sirve"
+            className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-100 outline-none focus:border-slate-500"
+          />
+          <button
+            type="submit"
+            disabled={enviando || !url.trim()}
+            className="rounded-md border border-slate-700 px-3 py-1.5 text-xs text-slate-300 disabled:opacity-40"
+          >
+            {enviando ? 'Añadiendo…' : 'Añadir enlace'}
+          </button>
+        </form>
+
+        {error && (
+          <p
+            role="alert"
+            className="rounded-md border border-rose-900/60 bg-rose-950/40 px-3 py-2 text-xs text-rose-200"
+          >
+            {error}
+          </p>
+        )}
+      </div>
+    </section>
+  )
+}
+
+/** `pinterest.com` en vez de la URL entera: basta para saber qué se va a abrir. */
+function dominio(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '')
+  } catch {
+    return url
+  }
 }
 
 /** J3: la acción dice qué archivo escribió y dónde, no solo «exportado». */

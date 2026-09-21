@@ -36,6 +36,15 @@ export type Pieza = {
   transiciones: string[]
 }
 
+/** Un enlace de referencia de la pieza (criterio P1). */
+export type Enlace = {
+  id: number
+  url: string
+  nota: string | null
+  creado_por: string
+  creado_en: string
+}
+
 /** Un paso de la historia de la pieza (M1, M3). */
 export type Traspaso = {
   id: number
@@ -79,6 +88,9 @@ export async function pedir<T>(ruta: string, init?: RequestInit): Promise<T> {
       respuesta.status,
     )
   }
+
+  // 204: no hay cuerpo que leer, y `json()` fallaría con una respuesta correcta.
+  if (respuesta.status === 204) return undefined as T
 
   return respuesta.json() as Promise<T>
 }
