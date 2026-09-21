@@ -197,5 +197,9 @@ haya algo que probar en el cliente, no antes.
 - `docs/adr/0005-mismo-origen-tras-proxy.md`
 - `docs/adr/0006-sesiones-con-estado-en-postgres.md`
 - `docs/adr/0007-como-escribe-astrolabio-en-el-vault.md`
+- `docs/adr/0008-traspaso-append-only-en-la-base.md`
+- `docs/adr/0009-el-estado-viaja-al-vault.md`
 
-Alcance vigente: `docs/fase-0-esqueleto.md`.
+Estados del flujo (§2.8): `docs/estados-del-flujo.md`.
+
+Alcance vigente: `docs/fase-2-traspaso.md`.
