@@ -70,8 +70,13 @@ def _crear(cliente: TestClient, **campos) -> dict:
 # --- H1 ---
 
 
-def test_la_pieza_tiene_los_campos_nuevos_y_ninguno_es_estado():
-    """§2.8 sigue vigente: la máquina de estados no se inventa."""
+def test_la_pieza_tiene_su_forma_completa():
+    """La forma entera de la tabla se afirma aquí, y solo aquí.
+
+    `estado` entró en K1, cuando la conversación que pide el §2.8 ya estaba
+    escrita en `docs/estados-del-flujo.md`. Hasta entonces esta prueba afirmaba
+    que no estaba.
+    """
     columnas = set(Pieza.__table__.columns.keys())
 
     assert columnas == {
@@ -84,8 +89,8 @@ def test_la_pieza_tiene_los_campos_nuevos_y_ninguno_es_estado():
         "tema",
         "plataforma",
         "respaldo",
+        "estado",
     }
-    assert "estado" not in columnas
 
 
 def test_una_pieza_nace_sin_guion(cliente: TestClient):

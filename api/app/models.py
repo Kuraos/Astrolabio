@@ -3,14 +3,14 @@
 Los nombres del dominio van en español (CLAUDE.md §4): `usuario`, `rol` son
 las palabras que usan las dos personas y las mismas del vault.
 
-Aquí **no** hay estados de flujo, y no es un olvido: §2.8 dice que la máquina
-de estados sale de una conversación con el editor, usando sus palabras, y esa
-conversación todavía no ha ocurrido.
+Los estados del flujo salen de `docs/estados-del-flujo.md`, que recoge con sus
+palabras la conversación con el editor que pide el §2.8. Ninguno entra aquí sin
+pasar antes por ese documento.
 """
 
 from datetime import datetime
 
-from sqlalchemy import ARRAY, DateTime, ForeignKey, String, Text, func
+from sqlalchemy import ARRAY, CheckConstraint, DateTime, ForeignKey, String, Text, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -61,17 +61,37 @@ class Sesion(Base):
     usuario: Mapped[Usuario] = relationship(back_populates="sesiones")
 
 
-class Pieza(Base):
-    """Entidad mínima del criterio C1.
+# Los de `docs/estados-del-flujo.md` §2, en el orden del flujo, con el
+# identificador que guardan la base y el vault (ADR 0009): minúscula, sin
+# tildes y con guion bajo. En pantalla se leen las palabras del documento.
+ESTADOS = (
+    "investigacion",
+    "solicitud_entregada",
+    "material_aprobado",
+    "finalizada",
+    "diseno_aprobado",
+    "publicada",
+)
 
-    **Sin campo `estado`, y es deliberado.** El §2.8 dice que los estados del
-    flujo salen de una conversación con el editor, usando sus palabras para su
-    propio trabajo. Esa conversación no ha ocurrido, así que modelarlos ahora
-    sería inventarlos — y es la parte divertida, que por eso es la que se hace
-    demasiado pronto.
+
+class Pieza(Base):
+    """La pieza de contenido: nació en C1, creció en H1 y ganó estado en K1.
+
+    El estado llegó cuando la conversación con el editor que pide el §2.8 ya
+    estaba escrita, y no antes. Solo lo mueve un traspaso (K3).
     """
 
     __tablename__ = "pieza"
+    # K2 en la base y no solo en el código: un estado fuera de la lista no entra
+    # ni por SQL directo. Añadir uno pide migración, que es cuando la guía de la
+    # conversación dice que se añade: «cuando el hábito exista, con su propia
+    # migración».
+    __table_args__ = (
+        CheckConstraint(
+            "estado IN ({})".format(", ".join(f"'{e}'" for e in ESTADOS)),
+            name="ck_pieza_estado",
+        ),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     titulo: Mapped[str] = mapped_column(String(200))
@@ -104,3 +124,36 @@ class Pieza(Base):
     respaldo: Mapped[list[str]] = mapped_column(
         ARRAY(String(200)), server_default="{}", default=list
     )
+
+    # Toda pieza nace en la etapa de Johan, con el nombre que le puso él (K1).
+    estado: Mapped[str] = mapped_column(
+        String(30), server_default="investigacion", default="investigacion"
+    )
+
+
+class Traspaso(Base):
+    """Una fila cada vez que una pieza cambia de estado (M1).
+
+    Es el historial de quién cambió qué, «la mitad del valor del producto»
+    (§2.3), y de él sale la métrica del §2.6: cuánto tarda una pieza en cada
+    etapa. Por eso es append-only, y no por disciplina: un trigger de Postgres
+    rechaza `UPDATE`, `DELETE` y `TRUNCATE` (ADR 0008).
+    """
+
+    __tablename__ = "traspaso"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    pieza_id: Mapped[int] = mapped_column(ForeignKey("pieza.id"), index=True)
+    transicion: Mapped[str] = mapped_column(String(30))
+    desde: Mapped[str] = mapped_column(String(30))
+    hacia: Mapped[str] = mapped_column(String(30))
+    # Como `creada_por` en la pieza: sale de la sesión, nunca del cuerpo de la
+    # petición, o cualquiera podría atribuirle un traspaso al otro.
+    creado_por: Mapped[str] = mapped_column(String(50))
+    creado_en: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    # Opcional. Existe por `devolver`: sin decir qué ajustar, cada devolución
+    # termina en un mensaje de «¿qué ajusto?», que es lo que el §1 quiere
+    # eliminar.
+    nota: Mapped[str | None] = mapped_column(Text, default=None)

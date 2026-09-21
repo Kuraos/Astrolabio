@@ -48,7 +48,9 @@ class PiezaEditada(BaseModel):
 
 
 class PiezaPublica(BaseModel):
-    """Sin campo `estado`, como el modelo: §2.8 sigue vigente."""
+    """Todavía sin `estado`: llega con K4, junto con de quién es la pieza y qué
+    transiciones puede dar quien pregunta, para que el cliente no deduzca nada.
+    """
 
     model_config = {"from_attributes": True}
 
