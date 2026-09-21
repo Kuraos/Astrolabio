@@ -164,6 +164,19 @@ docker compose run --rm api alembic upgrade head
 arriba son para generar una migración nueva o aplicarlas a mano. **El esquema
 no se crea con `create_all` en ningún sitio**, y hay una prueba que lo vigila.
 
+Dependencias de la api (ADR 0011). `requirements.txt` lo edita una persona;
+`constraints.txt` fija todo lo que instala la imagen, transitivas incluidas, y
+se regenera cuando cambia el primero:
+
+```bash
+docker build --no-cache --target lock --output api api
+```
+
+Al abrir cada fase, antes de regenerar, se suben los digests de las cuatro
+imágenes base (`api/Dockerfile`, `web/Dockerfile`, `compose.yaml`):
+`docker buildx imagetools inspect <imagen>` da el nuevo en su línea `Digest:`.
+Una prueba falla si la imagen y el lock se separan.
+
 `check` todavía no corre vitest: el criterio E2 pide «tsc + build» y no hay
 una sola prueba de frontend que justifique la dependencia. Se añade cuando
 haya algo que probar en el cliente, no antes.
