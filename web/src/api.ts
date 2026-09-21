@@ -15,7 +15,9 @@ export class ErrorDeApi extends Error {
   }
 }
 
-export type Usuario = { usuario: string; rol: 'investigador' | 'editor' }
+export type Rol = 'investigador' | 'editor'
+
+export type Usuario = { usuario: string; rol: Rol }
 
 export type Pieza = {
   id: number
@@ -27,6 +29,22 @@ export type Pieza = {
   tema: string | null
   plataforma: string | null
   respaldo: string[]
+  // K4: los tres los decide el servidor. `transiciones` son las que puede dar
+  // quien pregunta, y el cliente pinta esas y no otras (N2).
+  estado: string
+  de_quien_es: Rol | null
+  transiciones: string[]
+}
+
+/** Un paso de la historia de la pieza (M1, M3). */
+export type Traspaso = {
+  id: number
+  transicion: string
+  desde: string
+  hacia: string
+  creado_por: string
+  creado_en: string
+  nota: string | null
 }
 
 export type NotaDeRespaldo = {

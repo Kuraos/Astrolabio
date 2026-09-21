@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import { ErrorDeApi, pedir, type Pieza, type Usuario } from './api'
+import { aQuienLeToca, enPalabras } from './flujo'
 import VistaPieza from './Pieza'
 
 /**
- * Fase 0, criterios D1–D4.
+ * Fase 0, criterios D1–D4, y la lista de N1.
  *
  * Dos pantallas y ningún enrutador: entrar o estar dentro. Una biblioteca de
  * rutas para dos estados sería infraestructura sin beneficio.
@@ -181,7 +182,7 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
           </p>
         ) : (
           <ul className="divide-y divide-slate-800">
-            {piezas.map((pieza) => (
+            {porTurno(piezas, usuario).map((pieza) => (
               <li key={pieza.id}>
                 {/* Los dos roles abren la pieza: el editor lee el guion y
                     puede corregirlo; lo que no ve es el respaldo. */}
@@ -199,7 +200,7 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
                       {pieza.titulo}
                     </span>
                     <span className="block text-xs text-slate-500">
-                      {pieza.creada_por} ·{' '}
+                      {enPalabras(pieza.estado)} · {pieza.creada_por} ·{' '}
                       {new Date(pieza.creada_en).toLocaleDateString('es-CO', {
                         day: 'numeric',
                         month: 'short',
@@ -208,6 +209,7 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
                       {pieza.guion.trim() === '' && ' · sin guion'}
                     </span>
                   </span>
+                  <Turno pieza={pieza} usuario={usuario} />
                   <span
                     aria-hidden
                     className="shrink-0 text-slate-600 group-hover:text-slate-300"
@@ -223,6 +225,35 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
         </>
       )}
     </div>
+  )
+}
+
+/**
+ * N1: primero las que son de quien mira, después las del otro y al final las
+ * publicadas. Dentro de cada grupo se queda el orden de la API, la más nueva
+ * arriba: `sort` es estable.
+ */
+function porTurno(piezas: Pieza[], usuario: Usuario): Pieza[] {
+  const grupo = (pieza: Pieza) =>
+    pieza.de_quien_es === usuario.rol ? 0 : pieza.de_quien_es === null ? 2 : 1
+  return [...piezas].sort((a, b) => grupo(a) - grupo(b))
+}
+
+/** El turno de cada pieza, resaltado cuando le toca a quien mira. */
+function Turno({ pieza, usuario }: { pieza: Pieza; usuario: Usuario }) {
+  const texto = aQuienLeToca(pieza, usuario)
+  if (texto === null) return null
+
+  return (
+    <span
+      className={`shrink-0 rounded px-2 py-0.5 text-[11px] ${
+        pieza.de_quien_es === usuario.rol
+          ? 'bg-amber-400/15 text-amber-200'
+          : 'text-slate-500'
+      }`}
+    >
+      {texto}
+    </span>
   )
 }
 
