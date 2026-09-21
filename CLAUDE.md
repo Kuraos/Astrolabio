@@ -200,6 +200,7 @@ haya algo que probar en el cliente, no antes.
 - `docs/adr/0008-traspaso-append-only-en-la-base.md`
 - `docs/adr/0009-el-estado-viaja-al-vault.md`
 - `docs/adr/0010-la-carpeta-de-cada-pieza.md`
+- `docs/adr/0011-transitivas-e-imagenes-fijadas.md`
 
 Estados del flujo (§2.8): `docs/estados-del-flujo.md`.
 
