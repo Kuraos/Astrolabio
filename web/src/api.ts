@@ -45,6 +45,19 @@ export type Enlace = {
   creado_en: string
 }
 
+/** Un archivo de la carpeta de la pieza en Syncthing (Q3). */
+export type Archivo = { nombre: string; tamano: number; modificado: string }
+
+/**
+ * La carpeta de la pieza. Que falte no es un error (Q1): sin `motivo` y sin
+ * `carpeta`, la pieza aún no tiene la suya y se puede crear (S4).
+ */
+export type EstadoDeLaCarpeta = {
+  motivo: string | null
+  carpeta: string | null
+  archivos: Archivo[]
+}
+
 /** Un paso de la historia de la pieza (M1, M3). */
 export type Traspaso = {
   id: number

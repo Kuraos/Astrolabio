@@ -37,6 +37,7 @@ services:
       SEED_EDITOR_USER: ${SEED_EDITOR_USER}
       SEED_EDITOR_PASSWORD: ${SEED_EDITOR_PASSWORD}
       VAULT_VOZ_DEL_COSMOS_PATH: /vault
+      MATERIAL_PATH: /material
     volumes:
       # Solo `03-Negocios/Voz-del-Cosmos/`, nunca la raíz del vault: el §2.5
       # prohíbe el acceso al vault personal completo, donde está el diario.
@@ -56,6 +57,14 @@ services:
       # Docker crea las rutas que faltan como directorios, así que un vault
       # sin configurar acabaría con una carpeta llamada `MOC-VozDelCosmos.md`.
       - ${VAULT_HOST_PATH}/Investigacion:/vault/Investigacion:ro
+      # La carpeta que Syncthing comparte entre las dos máquinas (ADR 0010).
+      # En escritura porque la app crea ahí la carpeta de cada pieza, y es lo
+      # único que escribe: no crea, mueve, renombra ni borra archivos (Q5).
+      #
+      # Con valor por defecto porque la variable es opcional (Q1): un `.env`
+      # de antes de la Fase 3 no la tiene, y sin ella el montaje quedaría
+      # vacío y compose no arrancaría.
+      - ${SYNCTHING_HOST_PATH:-./material}:/material:rw
     depends_on:
       db:
         condition: service_healthy

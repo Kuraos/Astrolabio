@@ -36,5 +36,7 @@ Thumbs.db
 # Claude Code — config local por desarrollador, no compartida
 .claude/settings.local.json
 
-# punto de montaje por defecto del vault; el real se configura en .env
+# puntos de montaje por defecto del vault y de Syncthing; los reales se
+# configuran en .env
 vault/
+material/

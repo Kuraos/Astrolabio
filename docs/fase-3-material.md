@@ -30,9 +30,10 @@ app · imágenes dentro del guion (fase 4).
 
 No son suposiciones; están mirados en la máquina de Johan y en el código:
 
-- **Syncthing no está instalado en la máquina de Johan**: ni proceso, ni
-  ejecutable en el `PATH`, ni carpetas en los sitios habituales. Sin él no se
-  ve una sola imagen; instalarlo es el primer paso (§6).
+- **Syncthing no estaba instalado en la máquina de Johan** el 2026-09-21: ni
+  proceso, ni ejecutable en el `PATH`, ni carpetas en los sitios habituales.
+  Desde el 2026-09-23 corre en las dos máquinas, con la carpeta compartida
+  fuera del vault (§6, paso 1).
 - El ADR 0003 decidió Syncthing, con la ruta en la app y una miniatura, pero
   nada de eso está implementado: no hay montaje, ni variable, ni tabla.
 - El vault ya resolvió el mismo problema de otra carpeta montada:

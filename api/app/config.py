@@ -45,5 +45,10 @@ class Settings(BaseSettings):
     # día toda pieza escrita de noche, sin que nada avise.
     vault_zona_horaria: str = "America/Bogota"
 
+    # La carpeta que Syncthing comparte entre las dos máquinas, dentro del
+    # contenedor (ADR 0010). Opcional, como el vault: sin ella el panel de
+    # material dice por qué no hay imágenes y los enlaces funcionan igual (Q1).
+    material_path: str | None = None
+
 
 settings = Settings()

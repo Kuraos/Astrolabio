@@ -1,24 +1,43 @@
-"""El material de la pieza (criterios P1–P4 de la Fase 3).
+"""El material de la pieza (criterios P y Q de la Fase 3).
 
 Lo que Johan le pasa al editor para hacer la pieza, y que hoy va por chat. Los
-enlaces viven aquí; las imágenes, en la carpeta de la pieza en Syncthing
-(ADR 0010), que llega con los criterios Q y R.
+enlaces viven en la base. Las imágenes, en la carpeta de la pieza en Syncthing
+y en su calidad original (ADR 0010): el editor las necesita en sus programas
+de diseño, y los binarios no entran a la aplicación (§2.2).
 
 Los dos roles añaden y quitan material: es justo lo que se comparte. Sin
 sesión, 401, como todo lo demás (C5).
+
+En la carpeta compartida, este módulo escribe una sola cosa: el `mkdir` de la
+carpeta de cada pieza (Q5). No crea, mueve, renombra ni borra archivos, y una
+prueba recorre su árbol sintáctico para que siga así.
 """
 
-from datetime import datetime
+import re
+from datetime import UTC, datetime
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, HttpUrl
 from sqlalchemy.orm import Session
 
 from .auth import usuario_actual
+from .config import settings
 from .db import get_db
 from .models import Enlace, Pieza, Usuario
+from .respaldo import dentro_de
 
 router = APIRouter(prefix="/api/piezas", tags=["material"])
+
+# Syncthing la pone en la raíz de cada carpeta que comparte. Si falta, la ruta
+# configurada no es la compartida —una errata en el `.env`, que Docker
+# convierte en una carpeta vacía— y lo que la app creara ahí no le llegaría a
+# nadie.
+MARCA_DE_SYNCTHING = ".stfolder"
+
+# Lo que Windows no admite en un nombre (ADR 0010), más los caracteres de
+# control. La carpeta se crea en la máquina de Johan y se abre en la del editor.
+_PROHIBIDOS = re.compile(r'[\\/:*?"<>|\x00-\x1f]')
 
 
 class EnlaceNuevo(BaseModel):
@@ -103,3 +122,135 @@ def quitar_enlace(
 
     db.delete(enlace)
     db.commit()
+
+
+# --- Q: la carpeta de la pieza en Syncthing ---
+
+
+class Archivo(BaseModel):
+    nombre: str
+    tamano: int
+    modificado: datetime
+
+
+class EstadoDeLaCarpeta(BaseModel):
+    """Como el respaldo (G4): que no haya carpeta no es un error, y el panel
+    dice por qué. Sin `motivo` y sin `carpeta`, la pieza aún no tiene la suya
+    y el panel ofrece crearla (Q3).
+    """
+
+    motivo: str | None = None
+    carpeta: str | None = None
+    archivos: list[Archivo] = []
+
+
+def carpeta_compartida() -> Path | None:
+    """La ruta del entorno, o `None` si no se configuró (Q1)."""
+    ruta = settings.material_path
+    return Path(ruta) if ruta else None
+
+
+def nombre_de_carpeta(pieza: Pieza) -> str:
+    """`<id> - <título>`, sin lo que Windows no admite (ADR 0010).
+
+    Windows tampoco admite un nombre que acabe en punto o en espacio. Y si del
+    título no queda nada, el nombre sigue empezando por `<id> - `, que es por
+    donde la app lo encuentra.
+    """
+    titulo = _PROHIBIDOS.sub("", pieza.titulo).strip(". ")
+    return f"{pieza.id} - {titulo or 'sin título'}"
+
+
+def _carpetas_de_la_pieza(base: Path, pieza_id: int) -> list[Path]:
+    """Por el número y no por el nombre: el título cambia, la carpeta no (Q2).
+
+    El separador va en el prefijo para que la pieza 1 no se quede con la
+    carpeta de la 12.
+    """
+    prefijo = f"{pieza_id} - "
+    return sorted(
+        c
+        for c in base.iterdir()
+        if c.name.startswith(prefijo) and c.is_dir() and dentro_de(base, c)
+    )
+
+
+def _archivos(carpeta: Path) -> list[Archivo]:
+    """Q3, en el orden del explorador. Q4: un enlace simbólico que se salga
+    de la carpeta de la pieza no se lee, ni siquiera su tamaño.
+    """
+    archivos = []
+    for archivo in sorted(carpeta.iterdir(), key=lambda a: a.name.casefold()):
+        if not archivo.is_file() or not dentro_de(carpeta, archivo):
+            continue
+        datos = archivo.stat()
+        archivos.append(
+            Archivo(
+                nombre=archivo.name,
+                tamano=datos.st_size,
+                modificado=datetime.fromtimestamp(datos.st_mtime, UTC),
+            )
+        )
+    return archivos
+
+
+def estado_de_la_carpeta(base: Path | None, pieza_id: int) -> EstadoDeLaCarpeta:
+    if base is None:
+        return EstadoDeLaCarpeta(
+            motivo="Syncthing no está configurado en este despliegue."
+        )
+
+    if not (base / MARCA_DE_SYNCTHING).exists():
+        return EstadoDeLaCarpeta(
+            motivo="La ruta configurada no es la carpeta de Syncthing: le falta "
+            f"«{MARCA_DE_SYNCTHING}». Revisa SYNCTHING_HOST_PATH en el .env."
+        )
+
+    carpetas = _carpetas_de_la_pieza(base, pieza_id)
+
+    if len(carpetas) > 1:
+        # ADR 0010: la app no adivina cuál es la buena.
+        nombres = ", ".join(f"«{c.name}»" for c in carpetas)
+        return EstadoDeLaCarpeta(
+            motivo=f"Hay {len(carpetas)} carpetas con el número {pieza_id}: "
+            f"{nombres}. Deja una y la app la encuentra."
+        )
+
+    if not carpetas:
+        return EstadoDeLaCarpeta()
+
+    return EstadoDeLaCarpeta(
+        carpeta=carpetas[0].name, archivos=_archivos(carpetas[0])
+    )
+
+
+@router.get("/{pieza_id}/carpeta", response_model=EstadoDeLaCarpeta)
+def ver_carpeta(
+    pieza_id: int,
+    _: Usuario = Depends(usuario_actual),
+    db: Session = Depends(get_db),
+) -> EstadoDeLaCarpeta:
+    _pieza(db, pieza_id)
+    return estado_de_la_carpeta(carpeta_compartida(), pieza_id)
+
+
+@router.post("/{pieza_id}/carpeta", response_model=EstadoDeLaCarpeta)
+def crear_carpeta(
+    pieza_id: int,
+    _: Usuario = Depends(usuario_actual),
+    db: Session = Depends(get_db),
+) -> EstadoDeLaCarpeta:
+    """Q5: lo único que la app escribe en la carpeta compartida. La crea
+    cualquiera de los dos (decisión 5).
+
+    Solo si la pieza no tiene ya la suya, aunque lleve un título viejo: dos
+    carpetas para una pieza es justo lo que el ADR 0010 no sabe resolver.
+    """
+    pieza = _pieza(db, pieza_id)
+    base = carpeta_compartida()
+    estado = estado_de_la_carpeta(base, pieza_id)
+    if base is None or estado.motivo or estado.carpeta:
+        return estado
+
+    (base / nombre_de_carpeta(pieza)).mkdir(exist_ok=True)
+    return estado_de_la_carpeta(base, pieza_id)

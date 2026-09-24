@@ -9,6 +9,7 @@ import {
   ErrorDeApi,
   pedir,
   type Enlace,
+  type EstadoDeLaCarpeta,
   type EstadoDelRespaldo,
   type Pieza,
   type Traspaso,
@@ -331,7 +332,7 @@ function PanelTraspaso({
 /**
  * El material de la pieza (S1, S2): lo que Johan le pasa al editor para
  * hacerla, y que antes iba por chat. Es para los dos roles, a diferencia del
- * respaldo. Las imágenes llegan con la carpeta de Syncthing (criterios Q y R).
+ * respaldo. Debajo de los enlaces, la carpeta de la pieza en Syncthing (S4).
  */
 function PanelMaterial({ pieza }: { pieza: Pieza }) {
   const [enlaces, setEnlaces] = useState<Enlace[] | null>(null)
@@ -461,9 +462,119 @@ function PanelMaterial({ pieza }: { pieza: Pieza }) {
             {error}
           </p>
         )}
+
+        <Carpeta pieza={pieza} />
       </div>
     </section>
   )
+}
+
+/**
+ * La carpeta de la pieza en Syncthing (Q3, S4). Lo que se lista es la copia de
+ * la máquina donde corre la app; cada uno abre los archivos desde la suya.
+ */
+function Carpeta({ pieza }: { pieza: Pieza }) {
+  const [estado, setEstado] = useState<EstadoDeLaCarpeta | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [ocupado, setOcupado] = useState(false)
+
+  const ruta = `/api/piezas/${pieza.id}/carpeta`
+
+  // El mismo camino para mirar, volver a mirar y crear: las dos rutas
+  // responden con el estado de la carpeta.
+  const pedirCarpeta = useCallback(
+    async (init?: RequestInit) => {
+      setOcupado(true)
+      setError(null)
+      try {
+        setEstado(await pedir<EstadoDeLaCarpeta>(ruta, init))
+      } catch (causa) {
+        setError(causa instanceof ErrorDeApi ? causa.message : 'No se pudo leer la carpeta')
+      } finally {
+        setOcupado(false)
+      }
+    },
+    [ruta],
+  )
+
+  useEffect(() => {
+    void pedirCarpeta()
+  }, [pedirCarpeta])
+
+  return (
+    <div className="space-y-2 border-t border-slate-800 pt-3">
+      <div className="flex items-baseline justify-between gap-3">
+        <h4 className="min-w-0 break-words text-xs text-slate-400">
+          Carpeta en Syncthing
+          {estado?.carpeta && <span className="text-slate-200"> · {estado.carpeta}</span>}
+        </h4>
+        {/* La app no se entera sola de lo que llega a la carpeta. */}
+        {estado && (
+          <button
+            type="button"
+            onClick={() => void pedirCarpeta()}
+            disabled={ocupado}
+            className="shrink-0 text-xs text-slate-500 hover:text-slate-300 disabled:opacity-40"
+          >
+            Actualizar
+          </button>
+        )}
+      </div>
+
+      {estado === null ? (
+        !error && <p className="text-xs text-slate-600">Cargando…</p>
+      ) : estado.motivo ? (
+        <p className="text-xs text-slate-500">{estado.motivo}</p>
+      ) : estado.carpeta === null ? (
+        <button
+          type="button"
+          onClick={() => void pedirCarpeta({ method: 'POST' })}
+          disabled={ocupado}
+          className="rounded-md border border-slate-700 px-3 py-1.5 text-xs text-slate-300 disabled:opacity-40"
+        >
+          {ocupado ? 'Creando…' : 'Crear la carpeta de la pieza'}
+        </button>
+      ) : estado.archivos.length === 0 ? (
+        <p className="text-xs text-slate-600">
+          Vacía. Lo que pongas en esta carpeta, dentro de tu carpeta de Syncthing, aparece
+          aquí.
+        </p>
+      ) : (
+        <ul className="space-y-1">
+          {estado.archivos.map((archivo) => (
+            <li key={archivo.nombre} className="flex items-baseline justify-between gap-3 text-xs">
+              <span className="min-w-0 break-words text-slate-200">{archivo.nombre}</span>
+              <span className="shrink-0 text-slate-500">
+                {enBytes(archivo.tamano)} ·{' '}
+                {new Date(archivo.modificado).toLocaleString('es-CO', {
+                  day: 'numeric',
+                  month: 'short',
+                  hour: 'numeric',
+                  minute: '2-digit',
+                })}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {error && (
+        <p
+          role="alert"
+          className="rounded-md border border-rose-900/60 bg-rose-950/40 px-3 py-2 text-xs text-rose-200"
+        >
+          {error}
+        </p>
+      )}
+    </div>
+  )
+}
+
+/** En las unidades del explorador de Windows, que cuenta de 1024 en 1024. */
+function enBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 ** 2) return `${Math.round(bytes / 1024)} KB`
+  return `${(bytes / 1024 ** 2).toLocaleString('es-CO', { maximumFractionDigits: 1 })} MB`
 }
 
 /** `pinterest.com` en vez de la URL entera: basta para saber qué se va a abrir. */
