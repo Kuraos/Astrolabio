@@ -28,7 +28,11 @@ export default function App() {
 
   return (
     <main className="min-h-screen bg-slate-950 p-6 text-slate-100">
-      <div className="mx-auto w-full max-w-lg space-y-6">
+      {/* X1: con una pieza abierta la columna pasa de 512 a 1024 px, para
+          escribir el guion con la vista previa al lado. Lo decide el CSS con
+          `:has()` y la marca `data-pieza` de la vista, sin subir hasta aquí
+          el estado de qué pieza está abierta. */}
+      <div className="mx-auto w-full max-w-lg space-y-6 has-[[data-pieza]]:max-w-5xl">
         <header className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">Astrolabio</h1>
           <p className="text-sm text-slate-400">Taller de Voz del Cosmos</p>

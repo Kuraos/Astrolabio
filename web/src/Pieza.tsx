@@ -60,7 +60,8 @@ export default function VistaPieza({
   }
 
   return (
-    <div className="space-y-4">
+    // `data-pieza`: la marca con la que App ensancha la columna (X1).
+    <div data-pieza className="space-y-4">
       <div className="relative flex items-center justify-between gap-3">
         <button
           type="button"
@@ -571,9 +572,10 @@ function Carpeta({ pieza }: { pieza: Pieza }) {
       ) : (
         <>
           {/* S3: las imágenes, en miniatura. `contain` y no `cover`: de una
-              referencia importa la imagen entera, no un recorte. */}
+              referencia importa la imagen entera, no un recorte. Seis por
+              fila en la vista ancha (X1), para que no crezcan con ella. */}
           {imagenes.length > 0 && (
-            <ul className="grid grid-cols-3 gap-2">
+            <ul className="grid grid-cols-3 gap-2 md:grid-cols-6">
               {imagenes.map((archivo) => (
                 <li key={archivo.nombre} className="min-w-0 space-y-1 text-[11px]">
                   <img

@@ -106,7 +106,7 @@ Los de referencia viven en `web/src/App.tsx`: `Panel`, `Campo`, `Aviso` y
 | Insignia de rol | `rounded bg-slate-800 px-2 py-0.5 text-xs text-slate-300` | Sesión |
 | Fila de la lista | `rounded-md px-2 py-2.5 hover:bg-slate-800/60`, dentro de `divide-y divide-slate-800` | Lista de piezas |
 | Enlace externo | `underline decoration-slate-600 underline-offset-2 hover:decoration-slate-300`, con `target="_blank" rel="noopener noreferrer"` | Material |
-| Miniatura | `aspect-square w-full rounded-md bg-slate-950 object-contain`, en una rejilla `grid grid-cols-3 gap-2`, con el nombre, el tamaño y la fecha debajo en `text-[11px]` | Material |
+| Miniatura | `aspect-square w-full rounded-md bg-slate-950 object-contain`, en una rejilla `grid grid-cols-3 gap-2 md:grid-cols-6`, con el nombre, el tamaño y la fecha debajo en `text-[11px]` | Material |
 | Editor del guion | `textarea` en `font-mono text-xs leading-relaxed`, con la vista previa `.prosa` al lado | Vista de la pieza |
 
 - **Hacia adelante y hacia atrás.** Entre los botones de transición, los que
@@ -137,12 +137,15 @@ Los de referencia viven en `web/src/App.tsx`: `Panel`, `Campo`, `Aviso` y
 
 ## 8. Tamaños de pantalla
 
-- Todo vive en una columna centrada de `max-w-lg` (512 px), con `p-6`,
-  incluida la vista de la pieza.
-- El guion y su vista previa se ponen lado a lado desde `md` (768 px); dentro
-  de esa columna, cada uno mide 250 px. Es estrecho para escribir: la Fase 4
-  (escribir con herramientas) es el momento de decidir si la vista de la
-  pieza se ensancha.
+- La entrada y la lista de piezas viven en una columna centrada de `max-w-lg`
+  (512 px), con `p-6`.
+- Con una pieza abierta, la columna pasa a `max-w-5xl` (1024 px). El
+  contenedor de `App` se ensancha cuando contiene la marca `data-pieza` de la
+  vista: `has-[[data-pieza]]:max-w-5xl`.
+- El guion y su vista previa se ponen lado a lado desde `md` (768 px); en
+  escritorio, cada uno mide unos 500 px.
+- La rejilla de miniaturas pasa de tres columnas a seis desde `md`, para que
+  el ancho no las agrande.
 - Lo largo —URLs, nombres de archivo, rutas— lleva `break-words` o
   `break-all`, y su contenedor `min-w-0`, para no desbordar.
 
