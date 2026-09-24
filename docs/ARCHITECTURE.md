@@ -57,7 +57,7 @@ las imágenes de `compose.yaml` y los `Dockerfile`; aquí solo qué es cada cosa
 | Proxy | nginx: sirve el build y reenvía `/api` |
 | API | Python 3.12, FastAPI y uvicorn. SQLAlchemy 2.0 con psycopg 3, Alembic, pydantic-settings, argon2-cffi, PyYAML y Pillow |
 | Base de datos | Postgres 18 |
-| Pruebas | pytest y el `TestClient` de FastAPI, contra Postgres real |
+| Pruebas | pytest y el `TestClient` de FastAPI, contra Postgres real; vitest para las funciones del cliente |
 | Verificación | GitHub Actions, en cada push |
 | Fuera de la app | Tailscale (red), Syncthing (archivos entre las dos máquinas), Obsidian con obsidian-git (el vault) |
 
@@ -93,6 +93,7 @@ analítica, ni almacenamiento en la nube.
 │   │   ├── App.tsx           sesión, lista de piezas y pieza nueva
 │   │   ├── Pieza.tsx         la vista de una pieza y sus paneles
 │   │   ├── api.ts            pedir(), ErrorDeApi y los tipos de la API
+│   │   ├── barra.ts          las acciones de la barra del guion, puras
 │   │   ├── flujo.ts          las palabras de estados y transiciones
 │   │   └── index.css         Tailwind y el estilo del guion renderizado
 │   ├── nginx.conf.template   el proxy de /api y la caché de los assets
@@ -191,8 +192,8 @@ ruta del `.env` no es la compartida y la app no crea nada en ella.
 - **Caché.** Los assets llevan un hash en el nombre y se cachean para
   siempre; `index.html` no se cachea, para que un despliegue llegue al
   navegador.
-- **Verificación.** En cada push, GitHub Actions levanta compose, corre las
-  migraciones y pytest, y compila el cliente (`tsc` y `vite build`).
+- **Verificación.** En cada push, GitHub Actions levanta compose y corre las
+  migraciones y pytest; en el cliente corre `tsc`, vitest y `vite build`.
 
 ## 8. Escala y operación
 

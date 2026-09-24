@@ -182,7 +182,7 @@ está en [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 docker compose up --build     # levanta web + api + db (migra al arrancar)
 docker compose run api pytest # pruebas del backend
 npm --prefix web ci           # dependencias del cliente, las del lockfile
-npm --prefix web run check    # tsc + build
+npm --prefix web run check    # tsc + vitest + build
 ```
 
 Los dos usuarios se crean una vez, con las contraseñas del entorno:
@@ -202,9 +202,14 @@ docker compose run --rm api alembic upgrade head
 arriba son para generar una migración nueva o aplicarlas a mano. **El esquema
 no se crea con `create_all` en ningún sitio**, y hay una prueba que lo vigila.
 
-`check` todavía no corre vitest: el criterio E2 pide «tsc + build» y no hay
-una sola prueba de frontend que justifique la dependencia. Se añade cuando
-haya algo que probar en el cliente, no antes.
+`check` corre `tsc`, vitest y `vite build`, y la CI corre ese mismo `check`.
+Vitest llegó con la Fase 4 (W1), con la primera lógica del cliente que
+merecía prueba: las acciones de la barra del guion, que son funciones puras y
+se prueban sin navegador ni jsdom. Para correr solo esas pruebas:
+
+```bash
+npm --prefix web exec -- vitest run
+```
 
 (Mantener este bloque al día es parte del trabajo, no un extra.)
 
