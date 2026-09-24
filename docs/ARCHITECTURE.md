@@ -92,6 +92,7 @@ analítica, ni almacenamiento en la nube.
 │   │   ├── main.tsx          punto de entrada
 │   │   ├── App.tsx           sesión, lista de piezas y pieza nueva
 │   │   ├── Pieza.tsx         la vista de una pieza y sus paneles
+│   │   ├── Guion.tsx         el guion: barra, campo y vista previa
 │   │   ├── api.ts            pedir(), ErrorDeApi y los tipos de la API
 │   │   ├── barra.ts          las acciones de la barra del guion, puras
 │   │   ├── flujo.ts          las palabras de estados y transiciones

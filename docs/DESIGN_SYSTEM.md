@@ -108,10 +108,15 @@ Los de referencia viven en `web/src/App.tsx`: `Panel`, `Campo`, `Aviso` y
 | Enlace externo | `underline decoration-slate-600 underline-offset-2 hover:decoration-slate-300`, con `target="_blank" rel="noopener noreferrer"` | Material |
 | Miniatura | `aspect-square w-full rounded-md bg-slate-950 object-contain`, en una rejilla `grid grid-cols-3 gap-2 md:grid-cols-6`, con el nombre, el tamaño y la fecha debajo en `text-[11px]` | Material |
 | Editor del guion | `textarea` en `font-mono text-xs leading-relaxed`, con la vista previa `.prosa` al lado | Vista de la pieza |
+| Botón de la barra | `rounded-md border border-slate-700 px-2 py-1 text-xs text-slate-300 hover:border-slate-500 hover:text-slate-100`; negrita y cursiva, en su propio estilo | Barra del guion |
 
 - **Hacia adelante y hacia atrás.** Entre los botones de transición, los que
   avanzan son primarios y los que vuelven atrás (`devolver`, `reformular`)
   son secundarios y van después. Lo decide `vuelveAtras` en `flujo.ts`.
+- **La barra del guion** va encima de las dos columnas, en una fila
+  `flex flex-wrap gap-1` con `role="toolbar"`. No le quita el foco al guion:
+  sus botones cancelan el `mousedown`, y cada acción lo devuelve al campo.
+  El `title` de cada botón repite su nombre y añade el atajo, si lo hay.
 - **Confirmar** es `window.confirm`, nativo, con la consecuencia escrita en la
   pregunta (`CONFIRMACIONES` en `flujo.ts`). Solo para lo que no se deshace:
   hoy, aprobar el diseño y publicar.

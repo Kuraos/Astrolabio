@@ -1,9 +1,4 @@
 import { useCallback, useEffect, useState } from 'react'
-import Markdown from 'react-markdown'
-import rehypeKatex from 'rehype-katex'
-import remarkMath from 'remark-math'
-
-import 'katex/dist/katex.min.css'
 
 import {
   ErrorDeApi,
@@ -17,14 +12,11 @@ import {
   type Usuario,
 } from './api'
 import { aQuienLeToca, confirmacion, enPalabras, vuelveAtras } from './flujo'
+import Guion from './Guion'
 
 /**
- * Vista de una pieza: arriba el traspaso (N2, N3), y debajo el guion a la
- * izquierda y lo que se verá a la derecha (criterios J1 y J2).
- *
- * `react-markdown` construye elementos de React en vez de inyectar HTML, así
- * que no hace falta sanitizador ni `dangerouslySetInnerHTML`. Con dos usuarios
- * de confianza el riesgo sería bajo igualmente, pero no cuesta nada.
+ * Vista de una pieza: arriba el traspaso (N2, N3) y el material, y debajo el
+ * guion con su barra y su vista previa (J1, J2 y la Fase 4).
  */
 export default function VistaPieza({
   pieza: inicial,
@@ -117,30 +109,15 @@ export default function VistaPieza({
         </p>
       )}
 
-      {/* J1: se escribe a la izquierda y se ve a la derecha. Sin alternar
-          pestañas: la fórmula hay que mirarla mientras se escribe, que para
-          eso el §2 del CLAUDE.md global insiste en LaTeX real. */}
-      <div className="grid gap-3 md:grid-cols-2">
-        <textarea
-          value={guion}
-          onChange={(e) => setGuion(e.target.value)}
-          spellCheck={false}
-          placeholder="El guion, en markdown. Las fórmulas van entre $…$ o $$…$$."
-          className="min-h-80 w-full resize-y rounded-lg border border-slate-800 bg-slate-900/60 p-3 font-mono text-xs leading-relaxed text-slate-100 outline-none focus:border-slate-600"
-        />
-
-        <div className="min-h-80 overflow-x-auto rounded-lg border border-slate-800 bg-slate-900/30 p-3">
-          {guion.trim() ? (
-            <div className="prosa text-sm text-slate-200">
-              <Markdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
-                {guion}
-              </Markdown>
-            </div>
-          ) : (
-            <p className="text-xs text-slate-600">La vista previa aparece aquí.</p>
-          )}
-        </div>
-      </div>
+      {/* U4: Ctrl+S hace lo mismo que el botón, y nada si no hay cambios o
+          ya se está guardando. */}
+      <Guion
+        valor={guion}
+        alCambiar={setGuion}
+        alGuardar={() => {
+          if (sinGuardar && !guardando) void guardar()
+        }}
+      />
 
       {/* J2: solo para el investigador. El ADR 0001 le da `literature` a él, y
           la API ya devuelve 403 al editor — esto no lo esconde, lo acompaña. */}
