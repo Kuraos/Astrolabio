@@ -233,7 +233,7 @@ haya algo que probar en el cliente, no antes.
 - Sistema de diseño: [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md)
 - Estados del flujo (§2.8): `docs/estados-del-flujo.md`
 - Hoja de ruta, fases 3 a 6: `docs/hoja-de-ruta.md`
-- **Alcance vigente: `docs/fase-3-material.md`**
+- **Alcance vigente: `docs/fase-4-escritura.md`**
 
 Registros de decisión:
 

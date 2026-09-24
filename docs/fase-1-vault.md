@@ -1,7 +1,7 @@
 # Fase 1 — La fuente de verdad dividida
 
-**Propuesta de alcance.** Implementa el [ADR 0001](adr/0001-fuente-de-verdad-por-type.md).
-Nada entra aquí hasta que este documento esté acordado, igual que en la Fase 0.
+**Ya no es el alcance vigente**, que está en [`AGENTS.md`](../AGENTS.md) §7.
+Implementa el [ADR 0001](adr/0001-fuente-de-verdad-por-type.md).
 
 ## 1. Objetivo
 

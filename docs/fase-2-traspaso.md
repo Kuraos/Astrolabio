@@ -1,8 +1,9 @@
 # Fase 2 — El traspaso
 
-**Alcance vigente**, acordado el 2026-09-21 con las decisiones de §7.
-Implementa [estados-del-flujo.md](estados-del-flujo.md), el resultado del
-§2.8. Ninguna otra funcionalidad entra hasta que esto esté terminado según §5.
+**Cerrada el 2026-09-21**, con las decisiones de §7; su prueba con el editor
+(§5) se hace en el uso. Implementa [estados-del-flujo.md](estados-del-flujo.md),
+el resultado del §2.8. El alcance vigente está en [`AGENTS.md`](../AGENTS.md)
+§7.
 
 ## 1. Objetivo
 

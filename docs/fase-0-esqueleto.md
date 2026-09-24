@@ -1,7 +1,6 @@
 # Fase 0 — Esqueleto que camina
 
-**Alcance vigente.** Ninguna otra funcionalidad entra hasta que esto esté
-terminado según §4.
+**Ya no es el alcance vigente**, que está en [`AGENTS.md`](../AGENTS.md) §7.
 
 ## 1. Objetivo
 

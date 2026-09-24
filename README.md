@@ -19,7 +19,8 @@ de las piezas. Todo lo demás es infraestructura alrededor de eso.
 
 ## Estado
 
-Las fases 0 a 2 están cerradas; la 3 está en curso.
+Las fases 0 a 2 están cerradas. La 3 tiene el código terminado y falta
+probarla con el editor; la 4 es el alcance vigente.
 
 - **Fase 0, el esqueleto**: sesión con cookie, dos roles y autorización
   comprobada en el servidor.
@@ -28,10 +29,12 @@ Las fases 0 a 2 están cerradas; la 3 está en curso.
   él.
 - **Fase 2, el traspaso**: seis estados con las palabras del editor, reglas
   de quién mueve la pieza y una historia que no se puede reescribir.
-- **Fase 3, el material** (en curso): enlaces de referencia y la carpeta de
-  cada pieza en Syncthing, con las miniaturas de sus imágenes. Falta
-  probarla con el editor desde su máquina. Alcance:
-  [`docs/fase-3-material.md`](docs/fase-3-material.md).
+- **Fase 3, el material**: enlaces de referencia y la carpeta de cada pieza
+  en Syncthing, con las miniaturas de sus imágenes. Falta probarla con el
+  editor desde su máquina.
+- **Fase 4, escribir con herramientas** (alcance vigente): una barra y
+  atajos para el guion, tablas en la vista previa y más espacio para
+  escribir. Alcance: [`docs/fase-4-escritura.md`](docs/fase-4-escritura.md).
 
 Lo que viene está en la [hoja de ruta](docs/hoja-de-ruta.md).
 

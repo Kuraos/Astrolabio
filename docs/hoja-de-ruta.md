@@ -113,6 +113,12 @@ Latex Suite.
    se usen de verdad. Si hay atajos de Latex Suite que Johan tenga en los
    dedos, este es el momento de nombrarlos.
 
+**Decidido el 2026-09-23.** Las imágenes entran al guion solo por URL
+pública; la barra lleva los diez botones; además de Ctrl+B, Ctrl+I y Ctrl+K,
+Ctrl+S guarda y `mk` y `dm` abren fórmula, como en Latex Suite; y la vista de
+la pieza se ensancha a 1024 px. El alcance completo está en
+[fase-4-escritura.md](fase-4-escritura.md).
+
 **Terminada cuando** Johan escribe un guion con una tabla, una fórmula en
 bloque y un enlace sin teclear la sintaxis a mano, y se ve igual en la vista
 previa y en Obsidian después de exportar.

@@ -1,8 +1,9 @@
 # Fase 3 — El material viaja con la pieza
 
-**Alcance vigente**, acordado el 2026-09-21 con las decisiones de §7. Resuelve
-el problema 1 de la [hoja de ruta](hoja-de-ruta.md). Ninguna otra funcionalidad
-entra hasta que esto esté terminado según §5.
+**Código terminado el 2026-09-23**, con las decisiones de §7; queda la prueba
+con el editor (§5), que se hace en el uso. Resuelve el problema 1 de la
+[hoja de ruta](hoja-de-ruta.md). El alcance vigente está en
+[`AGENTS.md`](../AGENTS.md) §7.
 
 ## 1. Objetivo
 
