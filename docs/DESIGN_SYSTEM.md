@@ -99,13 +99,14 @@ Los de referencia viven en `web/src/App.tsx`: `Panel`, `Campo`, `Aviso` y
 | Botón primario | `rounded-md bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-900 disabled:opacity-40` | Guardar, transiciones hacia adelante |
 | Botón primario de formulario | `w-full rounded-md bg-slate-100 px-3 py-2.5 text-sm font-medium text-slate-900` | Entrar, Crear pieza |
 | Botón secundario | `rounded-md border border-slate-700 px-3 py-1.5 text-xs text-slate-300 disabled:opacity-40` | Devolver, Reformular, Salir, Añadir enlace, Crear la carpeta |
-| Botón de texto | `text-xs text-slate-500 hover:text-slate-300` | Quitar, Actualizar |
+| Botón de texto | `text-xs text-slate-400 hover:text-slate-200` | ← Piezas, Quitar, Actualizar, Copiar ruta |
 | Aviso de error | `rounded-md border border-rose-900/60 bg-rose-950/40 px-3 py-2 text-xs text-rose-200`, con `role="alert"` | `Aviso` |
 | Aviso que no bloquea | `text-xs text-amber-300/80` | «sin guardar», «Guarda el guion antes de moverla» |
 | Insignia de turno | `rounded px-2 py-0.5 text-[11px]`, con `bg-amber-400/15 text-amber-200` si te toca y `text-slate-500` si no | `Turno` |
 | Insignia de rol | `rounded bg-slate-800 px-2 py-0.5 text-xs text-slate-300` | Sesión |
 | Fila de la lista | `rounded-md px-2 py-2.5 hover:bg-slate-800/60`, dentro de `divide-y divide-slate-800` | Lista de piezas |
 | Enlace externo | `underline decoration-slate-600 underline-offset-2 hover:decoration-slate-300`, con `target="_blank" rel="noopener noreferrer"` | Material |
+| Miniatura | `aspect-square w-full rounded-md bg-slate-950 object-contain`, en una rejilla `grid grid-cols-3 gap-2`, con el nombre, el tamaño y la fecha debajo en `text-[11px]` | Material |
 | Editor del guion | `textarea` en `font-mono text-xs leading-relaxed`, con la vista previa `.prosa` al lado | Vista de la pieza |
 
 - **Hacia adelante y hacia atrás.** Entre los botones de transición, los que
@@ -117,8 +118,8 @@ Los de referencia viven en `web/src/App.tsx`: `Panel`, `Campo`, `Aviso` y
 
 ## 7. Estados
 
-- **Hover**: el texto gris pasa a uno más claro (`slate-500` → `slate-300`);
-  las filas, a `bg-slate-800/60`.
+- **Hover**: un botón de texto pasa a un gris más claro (`slate-400` →
+  `slate-200`); las filas, a `bg-slate-800/60`.
 - **Foco**: los campos quitan el contorno y aclaran el borde
   (`outline-none focus:border-slate-500`); los botones conservan el anillo
   del navegador.
@@ -127,6 +128,8 @@ Los de referencia viven en `web/src/App.tsx`: `Panel`, `Campo`, `Aviso` y
   «Añadiendo…», «Creando…»—. No hay spinners.
 - **Vacío**: una frase que dice qué falta o qué hacer: «Todavía no hay
   enlaces.», «Vacía. Lo que pongas en esta carpeta…».
+- **Hecho**: la acción lo dice en su propio texto durante dos segundos:
+  «Copiar ruta» pasa a «Copiada».
 - **Error**: el aviso rosa, debajo de lo que falló.
 - **Sin configurar** (el vault, Syncthing): una frase gris con el motivo. No
   es un error y no se pinta como tal.
@@ -150,8 +153,8 @@ Los de referencia viven en `web/src/App.tsx`: `Panel`, `Campo`, `Aviso` y
   del navegador y funcionan con teclado.
 - **Contraste.** De `slate-100` a `slate-400` todo cumple AA. **`text-slate-500`
   da 4.0:1 sobre el panel y `text-slate-600`, 2.5:1: no llegan al 4.5:1 que
-  pide el texto de 12 px.** Hoy los usan los metadatos, los títulos de panel,
-  los motivos y los estados vacíos.
+  pide el texto de 12 px.** Hoy los usan los títulos de panel y, fuera del
+  panel Material, los metadatos, los motivos y los estados vacíos.
 - **Regla para lo nuevo**: el texto que hay que leer va en `text-slate-400` o
   más claro. `slate-500` y `slate-600`, solo para lo que puede no leerse,
   como la flecha de la lista.
@@ -176,7 +179,8 @@ Los de referencia viven en `web/src/App.tsx`: `Panel`, `Campo`, `Aviso` y
 
 Se arregla al tocar cada sitio, no de golpe:
 
-1. El contraste de `slate-500` y `slate-600` en texto que se lee (§9).
+1. El contraste de `slate-500` y `slate-600` en texto que se lee (§9). El
+   panel Material ya cumple.
 2. Los bordes de campo, por debajo de 3:1 (§9).
 3. Los campos sin `<label>` dentro de los paneles (§9).
 4. `disabled:opacity-50` en los dos botones de formulario de `App.tsx`; el

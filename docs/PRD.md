@@ -47,7 +47,7 @@ sirve en pantalla sigue abierto ([estados §6](estados-del-flujo.md)).
 | 0 — Esqueleto | Sesión con cookie, dos roles sembrados desde el entorno, autorización comprobada en el servidor | A–E · [fase 0](fase-0-esqueleto.md) |
 | 1 — Fuente de verdad dividida | Piezas con guion en markdown y LaTeX, con vista previa. El respaldo científico del vault, en solo lectura y solo para Johan. Exportar la pieza al vault | F–J · [fase 1](fase-1-vault.md) |
 | 2 — El traspaso | Seis estados, transiciones con reglas por rol, historia de solo inserción, de quién es cada pieza, el estado en el vault | K–O · [fase 2](fase-2-traspaso.md) |
-| 3 — El material, **en curso** | Enlaces de referencia en la pieza y la carpeta de cada pieza en Syncthing, con sus archivos. Faltan las miniaturas y copiar la ruta de cada archivo | P–S · [fase 3](fase-3-material.md) |
+| 3 — El material, **en curso** | Enlaces de referencia en la pieza, y la carpeta de cada pieza en Syncthing con sus archivos, las miniaturas de las imágenes y la ruta de cada uno para copiarla. Falta la prueba con el editor desde su máquina | P–S · [fase 3](fase-3-material.md) |
 
 Quién puede qué, hoy:
 
@@ -115,8 +115,9 @@ es reconstruir la pieza con otro formato, idea o medio.
 2. Cualquiera de los dos crea con un botón la carpeta de la pieza en
    Syncthing, `<id> - <título>`. Lo que uno ponga en ella llega a la máquina
    del otro, y la app lo lista con su tamaño y su fecha.
-3. Pendiente (criterios R y S3): la miniatura de cada imagen y un botón que
-   copia su ruta, para abrir el original desde la copia propia.
+3. Las imágenes se ven en miniatura. «Copiar ruta» da la ruta del archivo
+   dentro de la carpeta compartida, para encontrar el original en la copia
+   propia y arrastrarlo al programa de diseño.
 
 ## 7. Requisitos
 

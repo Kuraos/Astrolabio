@@ -8,6 +8,7 @@ import 'katex/dist/katex.min.css'
 import {
   ErrorDeApi,
   pedir,
+  type Archivo,
   type Enlace,
   type EstadoDeLaCarpeta,
   type EstadoDelRespaldo,
@@ -396,9 +397,9 @@ function PanelMaterial({ pieza }: { pieza: Pieza }) {
 
       <div className="mt-3 space-y-3">
         {enlaces === null ? (
-          <p className="text-xs text-slate-600">Cargando…</p>
+          <p className="text-xs text-slate-400">Cargando…</p>
         ) : enlaces.length === 0 ? (
-          <p className="text-xs text-slate-600">Todavía no hay enlaces.</p>
+          <p className="text-xs text-slate-400">Todavía no hay enlaces.</p>
         ) : (
           <ul className="space-y-2">
             {enlaces.map((enlace) => (
@@ -414,14 +415,14 @@ function PanelMaterial({ pieza }: { pieza: Pieza }) {
                   >
                     {enlace.nota || enlace.url}
                   </a>
-                  <span className="block text-slate-500">
+                  <span className="block text-slate-400">
                     {dominio(enlace.url)} · {enlace.creado_por}
                   </span>
                 </span>
                 <button
                   type="button"
                   onClick={() => void quitar(enlace)}
-                  className="shrink-0 text-slate-500 hover:text-slate-300"
+                  className="shrink-0 text-slate-400 hover:text-slate-200"
                 >
                   Quitar
                 </button>
@@ -470,13 +471,15 @@ function PanelMaterial({ pieza }: { pieza: Pieza }) {
 }
 
 /**
- * La carpeta de la pieza en Syncthing (Q3, S4). Lo que se lista es la copia de
- * la máquina donde corre la app; cada uno abre los archivos desde la suya.
+ * La carpeta de la pieza en Syncthing (Q3, S3, S4). Lo que se lista es la copia
+ * de la máquina donde corre la app; cada uno abre los originales desde la
+ * suya, y para encontrarlos está «Copiar ruta».
  */
 function Carpeta({ pieza }: { pieza: Pieza }) {
   const [estado, setEstado] = useState<EstadoDeLaCarpeta | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [ocupado, setOcupado] = useState(false)
+  const [copiada, setCopiada] = useState<string | null>(null)
 
   const ruta = `/api/piezas/${pieza.id}/carpeta`
 
@@ -501,6 +504,32 @@ function Carpeta({ pieza }: { pieza: Pieza }) {
     void pedirCarpeta()
   }, [pedirCarpeta])
 
+  // S3: la ruta dentro de la carpeta compartida, que es la misma en las dos
+  // máquinas. Si no se puede copiar, al menos se ve.
+  async function copiarRuta(archivo: Archivo) {
+    const ruta = `${estado?.carpeta}/${archivo.nombre}`
+    setError(null)
+    if (await copiar(ruta)) {
+      setCopiada(archivo.nombre)
+      setTimeout(() => setCopiada((actual) => (actual === archivo.nombre ? null : actual)), 2000)
+    } else {
+      setError(`No se pudo copiar. La ruta es: ${ruta}`)
+    }
+  }
+
+  const botonCopiar = (archivo: Archivo) => (
+    <button
+      type="button"
+      onClick={() => void copiarRuta(archivo)}
+      className="shrink-0 text-slate-400 hover:text-slate-200"
+    >
+      {copiada === archivo.nombre ? 'Copiada' : 'Copiar ruta'}
+    </button>
+  )
+
+  const imagenes = estado?.archivos.filter((a) => a.miniatura) ?? []
+  const otros = estado?.archivos.filter((a) => !a.miniatura) ?? []
+
   return (
     <div className="space-y-2 border-t border-slate-800 pt-3">
       <div className="flex items-baseline justify-between gap-3">
@@ -514,7 +543,7 @@ function Carpeta({ pieza }: { pieza: Pieza }) {
             type="button"
             onClick={() => void pedirCarpeta()}
             disabled={ocupado}
-            className="shrink-0 text-xs text-slate-500 hover:text-slate-300 disabled:opacity-40"
+            className="shrink-0 text-xs text-slate-400 hover:text-slate-200 disabled:opacity-40"
           >
             Actualizar
           </button>
@@ -522,9 +551,9 @@ function Carpeta({ pieza }: { pieza: Pieza }) {
       </div>
 
       {estado === null ? (
-        !error && <p className="text-xs text-slate-600">Cargando…</p>
+        !error && <p className="text-xs text-slate-400">Cargando…</p>
       ) : estado.motivo ? (
-        <p className="text-xs text-slate-500">{estado.motivo}</p>
+        <p className="text-xs text-slate-400">{estado.motivo}</p>
       ) : estado.carpeta === null ? (
         <button
           type="button"
@@ -535,27 +564,50 @@ function Carpeta({ pieza }: { pieza: Pieza }) {
           {ocupado ? 'Creando…' : 'Crear la carpeta de la pieza'}
         </button>
       ) : estado.archivos.length === 0 ? (
-        <p className="text-xs text-slate-600">
+        <p className="text-xs text-slate-400">
           Vacía. Lo que pongas en esta carpeta, dentro de tu carpeta de Syncthing, aparece
           aquí.
         </p>
       ) : (
-        <ul className="space-y-1">
-          {estado.archivos.map((archivo) => (
-            <li key={archivo.nombre} className="flex items-baseline justify-between gap-3 text-xs">
-              <span className="min-w-0 break-words text-slate-200">{archivo.nombre}</span>
-              <span className="shrink-0 text-slate-500">
-                {enBytes(archivo.tamano)} ·{' '}
-                {new Date(archivo.modificado).toLocaleString('es-CO', {
-                  day: 'numeric',
-                  month: 'short',
-                  hour: 'numeric',
-                  minute: '2-digit',
-                })}
-              </span>
-            </li>
-          ))}
-        </ul>
+        <>
+          {/* S3: las imágenes, en miniatura. `contain` y no `cover`: de una
+              referencia importa la imagen entera, no un recorte. */}
+          {imagenes.length > 0 && (
+            <ul className="grid grid-cols-3 gap-2">
+              {imagenes.map((archivo) => (
+                <li key={archivo.nombre} className="min-w-0 space-y-1 text-[11px]">
+                  <img
+                    src={archivo.miniatura ?? undefined}
+                    alt={archivo.nombre}
+                    loading="lazy"
+                    className="aspect-square w-full rounded-md bg-slate-950 object-contain"
+                  />
+                  <p className="break-all text-slate-200">{archivo.nombre}</p>
+                  <p className="text-slate-400">{detalles(archivo)}</p>
+                  {botonCopiar(archivo)}
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {/* R4: lo demás, sin miniatura. */}
+          {otros.length > 0 && (
+            <ul className="space-y-1">
+              {otros.map((archivo) => (
+                <li
+                  key={archivo.nombre}
+                  className="flex items-baseline justify-between gap-3 text-xs"
+                >
+                  <span className="min-w-0 break-words text-slate-200">{archivo.nombre}</span>
+                  <span className="flex shrink-0 gap-3 text-slate-400">
+                    {detalles(archivo)}
+                    {botonCopiar(archivo)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
       )}
 
       {error && (
@@ -568,6 +620,50 @@ function Carpeta({ pieza }: { pieza: Pieza }) {
       )}
     </div>
   )
+}
+
+/** Q3: el tamaño y la fecha, como los da el explorador. */
+function detalles(archivo: Archivo): string {
+  const fecha = new Date(archivo.modificado).toLocaleString('es-CO', {
+    day: 'numeric',
+    month: 'short',
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+  return `${enBytes(archivo.tamano)} · ${fecha}`
+}
+
+/**
+ * Copia al portapapeles también sin HTTPS. El editor entra por Tailscale en
+ * HTTP, y ahí el navegador no ofrece `navigator.clipboard`: queda la vía
+ * antigua, un campo de texto temporal y `execCommand('copy')`.
+ */
+async function copiar(texto: string): Promise<boolean> {
+  if (window.isSecureContext && navigator.clipboard) {
+    try {
+      await navigator.clipboard.writeText(texto)
+      return true
+    } catch {
+      // Sin permiso: se prueba la vía antigua.
+    }
+  }
+
+  const anterior = document.activeElement
+  const campo = document.createElement('textarea')
+  campo.value = texto
+  campo.setAttribute('readonly', '')
+  campo.style.position = 'fixed'
+  campo.style.opacity = '0'
+  document.body.append(campo)
+  campo.focus()
+  campo.select()
+  try {
+    return document.execCommand('copy')
+  } finally {
+    campo.remove()
+    // El foco vuelve al botón, para quien usa el teclado.
+    if (anterior instanceof HTMLElement) anterior.focus()
+  }
 }
 
 /** En las unidades del explorador de Windows, que cuenta de 1024 en 1024. */

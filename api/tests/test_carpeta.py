@@ -1,4 +1,5 @@
-"""Criterios Q1–Q5 — la carpeta de la pieza en Syncthing (ADR 0010).
+"""Criterios Q1–Q5 y R1–R4 — la carpeta de la pieza en Syncthing y sus
+miniaturas (ADR 0010).
 
 Como las del respaldo, las pruebas usan una carpeta de mentira en `tmp_path`,
 con su `.stfolder`, y no la de Johan: lo que hay ahí se sincroniza con la
@@ -6,11 +7,14 @@ máquina del editor.
 """
 
 import ast
+import io
+import os
 from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
+from PIL import Image
 from sqlalchemy.orm import Session
 
 from app import main, material
@@ -68,6 +72,18 @@ def _crear(cliente: TestClient, pieza: Pieza) -> dict:
     respuesta = cliente.post(f"/api/piezas/{pieza.id}/carpeta")
     assert respuesta.status_code == 200, respuesta.text
     return respuesta.json()
+
+
+def _miniatura(cliente: TestClient, pieza: Pieza, nombre: str):
+    return cliente.get(
+        f"/api/piezas/{pieza.id}/carpeta/miniatura", params={"nombre": nombre}
+    )
+
+
+def _carpeta_de(compartida: Path, pieza: Pieza) -> Path:
+    carpeta = compartida / f"{pieza.id} - Las Pléyades"
+    carpeta.mkdir()
+    return carpeta
 
 
 # --- Q1: la carpeta compartida es opcional ---
@@ -293,6 +309,8 @@ def test_la_unica_escritura_del_modulo_es_el_mkdir_de_la_carpeta():
         if isinstance(nodo, ast.Call)
         and isinstance(nodo.func, ast.Attribute)
         and nodo.func.attr in escrituras
+        # El `open` de Pillow lee la imagen de la miniatura (R1); no escribe.
+        and ast.unparse(nodo.func) != "Image.open"
     ]
 
     assert llamadas == ["mkdir"]
@@ -301,22 +319,186 @@ def test_la_unica_escritura_del_modulo_es_el_mkdir_de_la_carpeta():
 def test_ver_y_crear_no_tocan_ningun_archivo(
     cliente: TestClient, pieza: Pieza, compartida: Path, sesion_db: Session
 ):
-    """Q5 en el comportamiento: con archivos de verdad dentro, ver y crear solo
-    añaden la carpeta de la pieza que no la tenía.
+    """Q5 en el comportamiento: con archivos de verdad dentro, ver, crear y
+    pedir miniaturas solo añade la carpeta de la pieza que no la tenía. R2:
+    la miniatura no se guarda en ninguna parte.
     """
     otra = Pieza(titulo="Otra pieza", creada_por="johan")
     sesion_db.add(otra)
     sesion_db.flush()
     suya = compartida / f"{otra.id} - Otra pieza"
     suya.mkdir()
-    (suya / "diseño final.png").write_bytes(bytes(50))
+    Image.new("RGB", (800, 600), (30, 60, 90)).save(suya / "diseño final.png")
     antes = {p: p.stat().st_mtime_ns for p in compartida.rglob("*")}
     _entrar_como(cliente)
 
     for una in (otra, pieza):
         _ver(cliente, una)
         _crear(cliente, una)
+    assert _miniatura(cliente, otra, "diseño final.png").status_code == 200
 
     despues = {p: p.stat().st_mtime_ns for p in compartida.rglob("*")}
     assert set(despues) - set(antes) == {compartida / f"{pieza.id} - Las Pléyades"}
     assert {p: despues[p] for p in antes} == antes
+
+
+# --- R: miniaturas ---
+
+
+@pytest.mark.parametrize(
+    ("nombre", "formato"),
+    [
+        ("foto.jpg", "JPEG"),
+        ("CAMARA.JPEG", "JPEG"),
+        ("logo.png", "PNG"),
+        ("pin.webp", "WEBP"),
+    ],
+)
+def test_jpg_png_y_webp_tienen_miniatura(
+    cliente: TestClient, pieza: Pieza, compartida: Path, nombre: str, formato: str
+):
+    """R1, siguiendo la URL que da el listado, como hará el navegador."""
+    carpeta = _carpeta_de(compartida, pieza)
+    Image.new("RGB", (1600, 1200), (40, 90, 160)).save(carpeta / nombre, formato)
+    _entrar_como(cliente)
+
+    (archivo,) = _ver(cliente, pieza)["archivos"]
+    respuesta = cliente.get(archivo["miniatura"])
+
+    assert respuesta.status_code == 200
+    assert respuesta.headers["content-type"] == "image/webp"
+    assert Image.open(io.BytesIO(respuesta.content)).size == (400, 300)
+
+
+def test_una_imagen_grande_de_verdad_cabe_en_el_tope(
+    cliente: TestClient, pieza: Pieza, compartida: Path
+):
+    """R3. Ruido con transparencia, lo que peor se comprime: a la calidad de
+    partida su miniatura pesaría 245 kB, así que la prueba obliga a bajarla.
+    """
+    carpeta = _carpeta_de(compartida, pieza)
+    lado = 2000
+    ruido = Image.frombytes("RGBA", (lado, lado), os.urandom(lado * lado * 4))
+    ruido.save(carpeta / "ruido.png", compress_level=1)
+    assert (carpeta / "ruido.png").stat().st_size > 15_000_000
+    _entrar_como(cliente)
+
+    respuesta = _miniatura(cliente, pieza, "ruido.png")
+
+    assert respuesta.status_code == 200
+    assert len(respuesta.content) < material.TOPE_DE_MINIATURA
+    assert Image.open(io.BytesIO(respuesta.content)).size == (400, 400)
+
+
+def test_la_miniatura_se_guarda_mientras_el_archivo_no_cambie(
+    cliente: TestClient, pieza: Pieza, compartida: Path
+):
+    """R2: la caché del navegador es eterna porque la URL cambia con el
+    archivo. `private`, porque la miniatura pide sesión.
+    """
+    carpeta = _carpeta_de(compartida, pieza)
+    Image.new("RGB", (800, 600)).save(carpeta / "foto.png")
+    _entrar_como(cliente)
+    antes = _ver(cliente, pieza)["archivos"][0]["miniatura"]
+
+    respuesta = cliente.get(antes)
+    os.utime(carpeta / "foto.png", ns=(1_700_000_000_000_000_000,) * 2)
+    despues = _ver(cliente, pieza)["archivos"][0]["miniatura"]
+
+    assert "immutable" in respuesta.headers["cache-control"]
+    assert "private" in respuesta.headers["cache-control"]
+    assert despues != antes
+
+
+def test_los_demas_archivos_no_tienen_miniatura(
+    cliente: TestClient, pieza: Pieza, compartida: Path
+):
+    """R4: se listan, con su tamaño y su fecha, pero sin miniatura."""
+    carpeta = _carpeta_de(compartida, pieza)
+    (carpeta / "boceto.psd").write_bytes(bytes(10))
+    _entrar_como(cliente)
+
+    assert _ver(cliente, pieza)["archivos"][0]["miniatura"] is None
+    assert _miniatura(cliente, pieza, "boceto.psd").status_code == 404
+
+
+def test_la_foto_del_movil_no_sale_tumbada(
+    cliente: TestClient, pieza: Pieza, compartida: Path
+):
+    """El móvil guarda la foto de lado y apunta en el EXIF cómo girarla."""
+    carpeta = _carpeta_de(compartida, pieza)
+    exif = Image.Exif()
+    exif[0x0112] = 6  # Orientation: girar 90° para verla
+    Image.new("RGB", (1200, 600)).save(carpeta / "movil.jpg", exif=exif)
+    _entrar_como(cliente)
+
+    respuesta = _miniatura(cliente, pieza, "movil.jpg")
+
+    ancho, alto = Image.open(io.BytesIO(respuesta.content)).size
+    assert alto > ancho
+
+
+def test_un_png_de_16_bits_no_sale_blanco(
+    cliente: TestClient, pieza: Pieza, compartida: Path
+):
+    """Pillow recorta a 255 al pasar 16 bits a 8, y un degradado de 0 a 65535
+    saldría blanco casi entero. Se reescala entre su mínimo y su máximo.
+    """
+    carpeta = _carpeta_de(compartida, pieza)
+    degradado = Image.new("I;16", (1000, 10))
+    degradado.putdata([(x * 65535) // 999 for _ in range(10) for x in range(1000)])
+    degradado.save(carpeta / "nebulosa.png")
+    _entrar_como(cliente)
+
+    respuesta = _miniatura(cliente, pieza, "nebulosa.png")
+
+    gris = Image.open(io.BytesIO(respuesta.content)).convert("L")
+    izquierda, derecha = gris.getpixel((2, 2)), gris.getpixel((397, 2))
+    assert izquierda < 30 and derecha > 225
+
+
+def test_una_imagen_que_no_se_puede_leer_es_404(
+    cliente: TestClient, pieza: Pieza, compartida: Path
+):
+    """Un archivo a medio copiar, o que no es lo que dice su extensión."""
+    carpeta = _carpeta_de(compartida, pieza)
+    (carpeta / "roto.png").write_bytes(b"no soy un png")
+    _entrar_como(cliente)
+
+    assert _miniatura(cliente, pieza, "roto.png").status_code == 404
+
+
+def test_sin_carpeta_de_la_pieza_no_hay_miniatura(cliente: TestClient, pieza: Pieza):
+    _entrar_como(cliente)
+
+    assert _miniatura(cliente, pieza, "foto.png").status_code == 404
+
+
+@pytest.mark.parametrize("nombre", ["../fuera.png", "../../fuera.png", "a/../../fuera.png"])
+def test_la_miniatura_no_sale_de_la_carpeta_de_la_pieza(
+    cliente: TestClient, pieza: Pieza, compartida: Path, tmp_path: Path, nombre: str
+):
+    """Q4 con un nombre que llega en la URL. `../fuera.png` sigue dentro de la
+    carpeta compartida, pero no de la de esta pieza.
+    """
+    _carpeta_de(compartida, pieza)
+    Image.new("RGB", (100, 100)).save(compartida / "fuera.png")
+    Image.new("RGB", (100, 100)).save(tmp_path / "fuera.png")
+    _entrar_como(cliente)
+
+    assert _miniatura(cliente, pieza, nombre).status_code == 404
+
+
+def test_la_miniatura_no_sigue_un_enlace_que_apunte_fuera(
+    cliente: TestClient, pieza: Pieza, compartida: Path, tmp_path: Path
+):
+    secreto = tmp_path / "secreto.png"
+    Image.new("RGB", (100, 100)).save(secreto)
+    carpeta = _carpeta_de(compartida, pieza)
+    try:
+        (carpeta / "atajo.png").symlink_to(secreto)
+    except (OSError, NotImplementedError):
+        pytest.skip("el sistema de archivos no permite enlaces simbólicos")
+    _entrar_como(cliente)
+
+    assert _miniatura(cliente, pieza, "atajo.png").status_code == 404

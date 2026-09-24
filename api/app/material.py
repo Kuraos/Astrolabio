@@ -1,4 +1,4 @@
-"""El material de la pieza (criterios P y Q de la Fase 3).
+"""El material de la pieza (criterios P, Q y R de la Fase 3).
 
 Lo que Johan le pasa al editor para hacer la pieza, y que hoy va por chat. Los
 enlaces viven en la base. Las imágenes, en la carpeta de la pieza en Syncthing
@@ -13,11 +13,14 @@ carpeta de cada pieza (Q5). No crea, mueve, renombra ni borra archivos, y una
 prueba recorre su árbol sintáctico para que siga así.
 """
 
+import io
 import re
 from datetime import UTC, datetime
 from pathlib import Path
+from urllib.parse import urlencode
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
+from PIL import Image, ImageOps
 from pydantic import BaseModel, HttpUrl
 from sqlalchemy.orm import Session
 
@@ -38,6 +41,18 @@ MARCA_DE_SYNCTHING = ".stfolder"
 # Lo que Windows no admite en un nombre (ADR 0010), más los caracteres de
 # control. La carpeta se crea en la máquina de Johan y se abre en la del editor.
 _PROHIBIDOS = re.compile(r'[\\/:*?"<>|\x00-\x1f]')
+
+# R1: tienen miniatura estas extensiones y ninguna más (R4).
+IMAGENES = {".jpg", ".jpeg", ".png", ".webp"}
+
+# Los decodificadores que Pillow puede probar. Un archivo que se llama `.png`
+# y no lo es no llega a los formatos raros, que son los menos revisados.
+_FORMATOS = ("JPEG", "PNG", "WEBP")
+
+# 400 px de lado alcanzan para una rejilla de miniaturas en una pantalla de
+# doble densidad. El tope es la excepción del §2.2: menos de 200 kB.
+LADO_DE_MINIATURA = 400
+TOPE_DE_MINIATURA = 200_000
 
 
 class EnlaceNuevo(BaseModel):
@@ -131,6 +146,10 @@ class Archivo(BaseModel):
     nombre: str
     tamano: int
     modificado: datetime
+    # R2: la URL lleva la fecha de modificación, así que cambia cuando cambia
+    # el archivo, y mientras tanto el navegador la guarda. `None` si el
+    # archivo no es una imagen (R4).
+    miniatura: str | None = None
 
 
 class EstadoDeLaCarpeta(BaseModel):
@@ -175,7 +194,7 @@ def _carpetas_de_la_pieza(base: Path, pieza_id: int) -> list[Path]:
     )
 
 
-def _archivos(carpeta: Path) -> list[Archivo]:
+def _archivos(carpeta: Path, pieza_id: int) -> list[Archivo]:
     """Q3, en el orden del explorador. Q4: un enlace simbólico que se salga
     de la carpeta de la pieza no se lee, ni siquiera su tamaño.
     """
@@ -184,11 +203,16 @@ def _archivos(carpeta: Path) -> list[Archivo]:
         if not archivo.is_file() or not dentro_de(carpeta, archivo):
             continue
         datos = archivo.stat()
+        miniatura = None
+        if archivo.suffix.lower() in IMAGENES:
+            consulta = urlencode({"nombre": archivo.name, "v": datos.st_mtime_ns})
+            miniatura = f"/api/piezas/{pieza_id}/carpeta/miniatura?{consulta}"
         archivos.append(
             Archivo(
                 nombre=archivo.name,
                 tamano=datos.st_size,
                 modificado=datetime.fromtimestamp(datos.st_mtime, UTC),
+                miniatura=miniatura,
             )
         )
     return archivos
@@ -220,7 +244,7 @@ def estado_de_la_carpeta(base: Path | None, pieza_id: int) -> EstadoDeLaCarpeta:
         return EstadoDeLaCarpeta()
 
     return EstadoDeLaCarpeta(
-        carpeta=carpetas[0].name, archivos=_archivos(carpetas[0])
+        carpeta=carpetas[0].name, archivos=_archivos(carpetas[0], pieza_id)
     )
 
 
@@ -254,3 +278,89 @@ def crear_carpeta(
 
     (base / nombre_de_carpeta(pieza)).mkdir(exist_ok=True)
     return estado_de_la_carpeta(base, pieza_id)
+
+
+# --- R: miniaturas ---
+
+
+def miniatura(archivo: Path) -> bytes:
+    """R1 y R2: un WebP de 400 px como mucho, hecho al vuelo y sin guardarlo.
+
+    WebP y no JPEG, para no perder la transparencia de un logo. La calidad
+    solo baja si hace falta para caber en el tope. Medido con ruido puro, lo
+    que peor se comprime: a calidad 80 y con transparencia pesa 245 kB, a 60
+    ya cabe (168 kB) y a 0 se queda en 45 kB. Una foto real cabe a la primera.
+    """
+    with Image.open(archivo, formats=_FORMATOS) as imagen:
+        # Primero reducir: un JPEG se decodifica ya a escala, sin cargarlo
+        # entero en memoria.
+        imagen.thumbnail((LADO_DE_MINIATURA, LADO_DE_MINIATURA))
+        # El móvil guarda la foto de lado y apunta en el EXIF cómo girarla.
+        imagen = ImageOps.exif_transpose(imagen)
+
+        if imagen.mode.startswith("I"):
+            # Un PNG de 16 bits, como los de un procesado astronómico. Pillow
+            # los recorta a 255 al pasarlos a 8 bits y la miniatura sale
+            # blanca: se reescala entre el mínimo y el máximo.
+            imagen = imagen.convert("I")
+            bajo, alto = imagen.getextrema()
+            escala = 255 / max(alto - bajo, 1)
+            imagen = imagen.point(lambda v: (v - bajo) * escala).convert("L")
+
+        if imagen.mode not in ("RGB", "RGBA"):
+            imagen = imagen.convert("RGBA" if imagen.has_transparency_data else "RGB")
+
+        for calidad in (80, 60, 40, 20, 0):
+            salida = io.BytesIO()
+            imagen.save(salida, "WEBP", quality=calidad, alpha_quality=calidad)
+            if salida.tell() < TOPE_DE_MINIATURA:
+                return salida.getvalue()
+
+    raise RuntimeError("La miniatura no cabe en el tope del §2.2")
+
+
+@router.get("/{pieza_id}/carpeta/miniatura")
+def ver_miniatura(
+    pieza_id: int,
+    nombre: str,
+    _: Usuario = Depends(usuario_actual),
+    db: Session = Depends(get_db),
+) -> Response:
+    """La miniatura de una imagen de la carpeta de la pieza.
+
+    `nombre` es un nombre de archivo, no una ruta: con un `../` o un enlace
+    simbólico que se salga de la carpeta de la pieza, 404 (Q4). La `v` de la
+    URL no se lee; está para que la URL cambie cuando cambia el archivo (R2).
+    """
+    _pieza(db, pieza_id)
+    base = carpeta_compartida()
+    estado = estado_de_la_carpeta(base, pieza_id)
+    if base is None or estado.carpeta is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    carpeta = base / estado.carpeta
+    archivo = carpeta / nombre
+    if (
+        Path(nombre).name != nombre
+        or archivo.suffix.lower() not in IMAGENES
+        or not archivo.is_file()
+        or not dentro_de(carpeta, archivo)
+    ):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    try:
+        datos = miniatura(archivo)
+    except (OSError, ValueError, Image.DecompressionBombError) as exc:
+        # Un archivo a medio llegar, o que no es la imagen que dice ser.
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No se pudo leer la imagen.",
+        ) from exc
+
+    # `private`: la miniatura pide sesión y no la guarda nadie más que el
+    # navegador de quien la pidió. Con la fecha en la URL, puede ser eterna.
+    return Response(
+        content=datos,
+        media_type="image/webp",
+        headers={"Cache-Control": "private, max-age=31536000, immutable"},
+    )

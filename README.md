@@ -29,7 +29,8 @@ Las fases 0 a 2 están cerradas; la 3 está en curso.
 - **Fase 2, el traspaso**: seis estados con las palabras del editor, reglas
   de quién mueve la pieza y una historia que no se puede reescribir.
 - **Fase 3, el material** (en curso): enlaces de referencia y la carpeta de
-  cada pieza en Syncthing; faltan las miniaturas. Alcance:
+  cada pieza en Syncthing, con las miniaturas de sus imágenes. Falta
+  probarla con el editor desde su máquina. Alcance:
   [`docs/fase-3-material.md`](docs/fase-3-material.md).
 
 Lo que viene está en la [hoja de ruta](docs/hoja-de-ruta.md).

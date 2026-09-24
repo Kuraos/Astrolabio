@@ -45,8 +45,16 @@ export type Enlace = {
   creado_en: string
 }
 
-/** Un archivo de la carpeta de la pieza en Syncthing (Q3). */
-export type Archivo = { nombre: string; tamano: number; modificado: string }
+/**
+ * Un archivo de la carpeta de la pieza en Syncthing (Q3). `miniatura` es la
+ * URL de la suya si es una imagen, y `null` si no (R4).
+ */
+export type Archivo = {
+  nombre: string
+  tamano: number
+  modificado: string
+  miniatura: string | null
+}
 
 /**
  * La carpeta de la pieza. Que falte no es un error (Q1): sin `motivo` y sin

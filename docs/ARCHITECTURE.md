@@ -55,7 +55,7 @@ las imágenes de `compose.yaml` y los `Dockerfile`; aquí solo qué es cada cosa
 |---|---|
 | Cliente | React 18, TypeScript, Vite y Tailwind 4. El guion se pinta con `react-markdown`, `remark-math` y `rehype-katex` |
 | Proxy | nginx: sirve el build y reenvía `/api` |
-| API | Python 3.12, FastAPI y uvicorn. SQLAlchemy 2.0 con psycopg 3, Alembic, pydantic-settings, argon2-cffi y PyYAML |
+| API | Python 3.12, FastAPI y uvicorn. SQLAlchemy 2.0 con psycopg 3, Alembic, pydantic-settings, argon2-cffi, PyYAML y Pillow |
 | Base de datos | Postgres 18 |
 | Pruebas | pytest y el `TestClient` de FastAPI, contra Postgres real |
 | Verificación | GitHub Actions, en cada push |
@@ -154,7 +154,7 @@ hay nada.
 | Variable (host) | En el contenedor | Qué hace la app |
 |---|---|---|
 | `VAULT_HOST_PATH` → `03-Negocios/Voz-del-Cosmos/` | `/vault` | Lee las notas de `Investigacion/Recursos`; `Investigacion/` se monta aparte, en solo lectura. Al exportar, escribe en `Contenido/` y en el MOC ([ADR 0007](adr/0007-como-escribe-astrolabio-en-el-vault.md)) |
-| `SYNCTHING_HOST_PATH` → la carpeta compartida | `/material` | Busca la carpeta de cada pieza por su número, lista sus archivos y crea la que falta. No escribe nada más ([ADR 0010](adr/0010-la-carpeta-de-cada-pieza.md)) |
+| `SYNCTHING_HOST_PATH` → la carpeta compartida | `/material` | Busca la carpeta de cada pieza por su número, lista sus archivos y crea la que falta. De cada imagen hace al vuelo una miniatura WebP de menos de 200 kB, que no guarda. No escribe nada más ([ADR 0010](adr/0010-la-carpeta-de-cada-pieza.md)) |
 
 La carpeta de Syncthing tiene que tener su `.stfolder`: si no lo tiene, la
 ruta del `.env` no es la compartida y la app no crea nada en ella.

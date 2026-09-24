@@ -22,6 +22,12 @@ argon2-cffi==25.1.0
 # uvicorn dejara de arrastrarla, la API no arrancaría.
 pyyaml==6.0.3
 
+# Criterio R1: las miniaturas de las imágenes de la carpeta de la pieza, la
+# única excepción del §2.2. Dependencia anunciada en el alcance de la Fase 3.
+# Sus wheels traen libjpeg y libwebp: la imagen no necesita paquetes del
+# sistema.
+pillow==12.3.0
+
 # `docker compose run api pytest` está documentado en CLAUDE.md §5, así que
 # las pruebas corren dentro de esta misma imagen y sus dependencias viven aquí.
 pytest==9.1.1
