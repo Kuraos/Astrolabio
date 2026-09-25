@@ -136,6 +136,13 @@ class Pieza(Base):
         ARRAY(String(200)), server_default="{}", default=list
     )
 
+    # Y2: etiquetas libres, para saber de qué se ha hablado. Llegan
+    # normalizadas por la API (ADR 0011), así que aquí solo se guardan.
+    # `Text` como el guion: un tope inventado se descubriría con un 500.
+    etiquetas: Mapped[list[str]] = mapped_column(
+        ARRAY(Text), server_default="{}", default=list
+    )
+
     # Toda pieza nace en la etapa de Johan, con el nombre que le puso él (K1).
     estado: Mapped[str] = mapped_column(
         String(30), server_default="investigacion", default="investigacion"

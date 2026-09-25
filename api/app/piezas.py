@@ -1,4 +1,4 @@
-"""Piezas y su autorización (criterios C1–C5, H1–H3 y K4).
+"""Piezas y su autorización (criterios C1–C5, H1–H3, K4 e Y1–Y4).
 
 El §2.3 no admite matices: cada endpoint comprueba el rol **en el servidor**.
 Que la aplicación viva en una red privada no cambia nada — los dos roles del
@@ -6,11 +6,13 @@ Que la aplicación viva en una red privada no cambia nada — los dos roles del
 mitad del valor del producto.
 """
 
+import re
+import unicodedata
 from datetime import datetime
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from sqlalchemy.orm import Session
 
 from .auth import usuario_actual
@@ -24,11 +26,42 @@ router = APIRouter(prefix="/api/piezas", tags=["piezas"])
 # dejaría que un dedazo llegara al frontmatter de una nota generada.
 Formato = Literal["reel", "carrusel", "video", "post"]
 
+# Y1: los cuatro temas de la Fase 5 (§7.1). El ADR 0004 pide pocos y fijos
+# para que las celdas tema × formato × plataforma junten `n`: un tema nuevo
+# por un dedazo partiría las métricas.
+Tema = Literal["Sistema Solar", "Estrellas", "Galaxias y cosmología", "Exploración espacial"]
+
+_TILDES = str.maketrans("áéíóúü", "aeiouu")
+_SEPARADORES = re.compile(r"[\s/]+")
+_NO_ADMITIDO = re.compile(r"[^\w-]")
+_GUIONES = re.compile(r"-{2,}")
+
+
+def normalizar_etiqueta(texto: str) -> str:
+    """Y3: una etiqueta que Obsidian reconozca como tag (ADR 0011).
+
+    Primero se compone (NFC): hay teclados que escriben la ñ como una n más una
+    tilde combinante, y sin componerla la tilde se perdería con el resto de lo
+    que no es letra. Después, minúsculas; espacios y `/` a guiones, porque la
+    jerarquía la pone el exportador; sin tildes pero con ñ, para que
+    «cosmología» y «cosmologia» sean la misma; y fuera lo que no sea letra,
+    número, `_` o `-`.
+
+    `ValueError` si queda vacía o es solo números: Obsidian no la reconocería.
+    """
+    etiqueta = unicodedata.normalize("NFC", texto).strip().lower().translate(_TILDES)
+    etiqueta = _SEPARADORES.sub("-", etiqueta)
+    etiqueta = _NO_ADMITIDO.sub("", etiqueta)
+    etiqueta = _GUIONES.sub("-", etiqueta).strip("-")
+    if not etiqueta or etiqueta.isdigit():
+        raise ValueError("una etiqueta necesita al menos una letra")
+    return etiqueta
+
 
 class PiezaNueva(BaseModel):
     titulo: str
     formato: Formato | None = None
-    tema: str | None = None
+    tema: Tema | None = None
     plataforma: str | None = None
 
 
@@ -43,9 +76,20 @@ class PiezaEditada(BaseModel):
     titulo: str | None = None
     guion: str | None = None
     formato: Formato | None = None
-    tema: str | None = None
+    tema: Tema | None = None
     plataforma: str | None = None
     respaldo: list[str] | None = None
+    # Sin etiquetas es `[]`, nunca `null`: la columna no admite nulos, y un
+    # `null` explícito sería un 500 de la base en vez de un 422.
+    etiquetas: list[str] = []
+
+    @field_validator("etiquetas")
+    @classmethod
+    def _normalizar(cls, etiquetas: list[str]) -> list[str]:
+        """Y3: en el servidor, no en el formulario. Sin repetidas, en el orden
+        en que llegaron.
+        """
+        return list(dict.fromkeys(normalizar_etiqueta(e) for e in etiquetas))
 
 
 class PiezaPublica(BaseModel):
@@ -67,6 +111,7 @@ class PiezaPublica(BaseModel):
     tema: str | None
     plataforma: str | None
     respaldo: list[str]
+    etiquetas: list[str]
     estado: str
     de_quien_es: str | None
     # La rellena `_publica`: depende de quién pregunta, y la pieza no lo sabe.

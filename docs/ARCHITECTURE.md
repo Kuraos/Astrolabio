@@ -138,7 +138,7 @@ o se está dentro, y dentro se ve la lista o una pieza.
 |---|---|---|
 | `usuario` | Nombre, hash Argon2id y rol (`investigador` o `editor`) | Se siembran desde el entorno |
 | `sesion` | El testigo de la cookie, su usuario y su caducidad | Cerrar sesión borra la fila ([ADR 0006](adr/0006-sesiones-con-estado-en-postgres.md)) |
-| `pieza` | Título, guion, formato, tema, plataforma, respaldo y estado | Un `CHECK` admite solo los seis estados |
+| `pieza` | Título, guion, formato, tema, plataforma, respaldo, etiquetas y estado | Un `CHECK` admite solo los seis estados. La API admite solo los cuatro temas y guarda las etiquetas normalizadas ([ADR 0011](adr/0011-las-etiquetas-viajan-al-vault.md)) |
 | `traspaso` | Transición, estado de origen y de destino, quién, cuándo y una nota | Solo inserción: un trigger rechaza `UPDATE`, `DELETE` y `TRUNCATE` ([ADR 0008](adr/0008-traspaso-append-only-en-la-base.md)) |
 | `enlace` | URL, nota, quién y cuándo | Solo `http` y `https`, validado en el servidor |
 
