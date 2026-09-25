@@ -24,27 +24,39 @@ import {
 
 type Accion = (texto: string, seleccion: Seleccion) => Cambio
 
-/**
- * T1: los diez botones. `titulo` es la ayuda al pasar el ratón: repite el
- * nombre, porque hay herramientas que la leen como tal, y añade el atajo.
- */
-const BOTONES: {
+type Boton = {
   etiqueta: string
   accion: Accion
   titulo?: string
   atajo?: string
   estilo?: string
-}[] = [
-  { etiqueta: 'Negrita', accion: negrita, titulo: 'Negrita (Ctrl+B)', atajo: 'Control+B', estilo: 'font-semibold' },
-  { etiqueta: 'Cursiva', accion: cursiva, titulo: 'Cursiva (Ctrl+I)', atajo: 'Control+I', estilo: 'italic' },
-  { etiqueta: 'Título', accion: titulo, titulo: 'Título de nivel 3' },
-  { etiqueta: 'Lista', accion: lista },
-  { etiqueta: 'Cita', accion: cita },
-  { etiqueta: 'Enlace', accion: enlace, titulo: 'Enlace (Ctrl+K)', atajo: 'Control+K' },
-  { etiqueta: 'Imagen', accion: imagen, titulo: 'Imagen por URL' },
-  { etiqueta: 'Tabla', accion: tabla },
-  { etiqueta: 'Fórmula', accion: formulaEnLinea, titulo: 'Fórmula en línea (o escribe mk)' },
-  { etiqueta: 'Fórmula en bloque', accion: formulaEnBloque, titulo: 'Fórmula en bloque (o escribe dm)' },
+}
+
+/**
+ * T1: los diez botones, en cuatro grupos desde la Fase 7 (AK1): el énfasis,
+ * los bloques, lo que trae algo de fuera y las fórmulas. `titulo` es la ayuda
+ * al pasar el ratón: repite el nombre, porque hay herramientas que la leen
+ * como tal, y añade el atajo.
+ */
+const GRUPOS: Boton[][] = [
+  [
+    { etiqueta: 'Negrita', accion: negrita, titulo: 'Negrita (Ctrl+B)', atajo: 'Control+B', estilo: 'font-bold' },
+    { etiqueta: 'Cursiva', accion: cursiva, titulo: 'Cursiva (Ctrl+I)', atajo: 'Control+I', estilo: 'italic' },
+  ],
+  [
+    { etiqueta: 'Título', accion: titulo, titulo: 'Título de nivel 3' },
+    { etiqueta: 'Lista', accion: lista },
+    { etiqueta: 'Cita', accion: cita },
+  ],
+  [
+    { etiqueta: 'Enlace', accion: enlace, titulo: 'Enlace (Ctrl+K)', atajo: 'Control+K' },
+    { etiqueta: 'Imagen', accion: imagen, titulo: 'Imagen por URL' },
+    { etiqueta: 'Tabla', accion: tabla },
+  ],
+  [
+    { etiqueta: 'Fórmula', accion: formulaEnLinea, titulo: 'Fórmula en línea (o escribe mk)' },
+    { etiqueta: 'Fórmula en bloque', accion: formulaEnBloque, titulo: 'Fórmula en bloque (o escribe dm)' },
+  ],
 ]
 
 /** U1: solo con el foco en el guion. */
@@ -92,7 +104,7 @@ const NOTAS_AL_PIE = {
  */
 export function VistaPrevia({ texto }: { texto: string }) {
   return (
-    <div className="prosa text-sm text-slate-200">
+    <div className="prosa text-[15px] leading-[1.65] text-prose">
       <Markdown
         remarkPlugins={[[remarkGfm, { singleTilde: false }], remarkMath]}
         rehypePlugins={[rehypeKatex]}
@@ -166,58 +178,73 @@ export default function Guion({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="flex flex-col gap-3.5">
       {/* `preventDefault` en el `mousedown`: al hacer clic en un botón, el
           foco y la selección se quedan en el guion. */}
-      <div role="toolbar" aria-label="Formato del guion" className="flex flex-wrap gap-1">
-        {BOTONES.map((boton) => (
-          <button
-            key={boton.etiqueta}
-            type="button"
-            title={boton.titulo}
-            aria-keyshortcuts={boton.atajo}
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => pulsar(boton.accion)}
-            className={`rounded-md border border-slate-700 px-2 py-1 text-xs text-slate-300 hover:border-slate-500 hover:text-slate-100 ${boton.estilo ?? ''}`}
-          >
-            {boton.etiqueta}
-          </button>
+      <div
+        role="toolbar"
+        aria-label="Formato del guion"
+        className="flex flex-wrap items-center gap-2.5"
+      >
+        {GRUPOS.map((grupo) => (
+          <div key={grupo[0].etiqueta} className="flex border border-line-strong">
+            {grupo.map((boton) => (
+              <button
+                key={boton.etiqueta}
+                type="button"
+                title={boton.titulo}
+                aria-keyshortcuts={boton.atajo}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => pulsar(boton.accion)}
+                className={`border-l border-line-strong px-3 py-1.5 text-[13px] text-prose first:border-l-0 hover:bg-raised hover:text-ink ${boton.estilo ?? ''}`}
+              >
+                {boton.etiqueta}
+              </button>
+            ))}
+          </div>
         ))}
       </div>
 
       {/* J1: se escribe a la izquierda y se ve a la derecha. Sin alternar
-          pestañas: la fórmula hay que mirarla mientras se escribe. */}
-      <div className="grid gap-3 md:grid-cols-2">
-        <textarea
-          ref={campo}
-          value={valor}
-          onChange={(e) => {
-            alCambiar(e.target.value)
-            // U5: solo lo tecleado. Ni lo pegado, ni lo que inserta la barra,
-            // ni un Ctrl+Z, que tiene que poder devolver el `mk` escrito.
-            const tecleado = (e.nativeEvent as InputEvent).inputType === 'insertText'
-            if (insertando.current || !tecleado) return
-            const cambio = disparador(e.target.value, e.target.selectionStart)
-            // Después del evento en curso, para no anidar otro `input` dentro.
-            if (cambio) queueMicrotask(() => ejecutar(cambio))
-          }}
-          onKeyDown={(e) => {
-            const accion = ATAJOS[conControl(e) ?? '']
-            if (!accion) return
-            e.preventDefault()
-            pulsar(accion)
-          }}
-          spellCheck={false}
-          placeholder="El guion, en markdown. Las fórmulas van entre $…$ o $$…$$."
-          className="min-h-80 w-full resize-y rounded-lg border border-slate-800 bg-slate-900/60 p-3 font-mono text-xs leading-relaxed text-slate-100 outline-none focus:border-slate-600"
-        />
+          pestañas: la fórmula hay que mirarla mientras se escribe. AK2: cada
+          mitad con su rótulo, que además da nombre al campo. */}
+      <div className="grid border border-line md:grid-cols-2">
+        <label className="flex min-w-0 flex-col md:border-r md:border-line">
+          <span className="mono-label border-b border-line px-4 py-2.5 text-ink-2">Markdown</span>
+          <textarea
+            ref={campo}
+            value={valor}
+            onChange={(e) => {
+              alCambiar(e.target.value)
+              // U5: solo lo tecleado. Ni lo pegado, ni lo que inserta la barra,
+              // ni un Ctrl+Z, que tiene que poder devolver el `mk` escrito.
+              const tecleado = (e.nativeEvent as InputEvent).inputType === 'insertText'
+              if (insertando.current || !tecleado) return
+              const cambio = disparador(e.target.value, e.target.selectionStart)
+              // Después del evento en curso, para no anidar otro `input` dentro.
+              if (cambio) queueMicrotask(() => ejecutar(cambio))
+            }}
+            onKeyDown={(e) => {
+              const accion = ATAJOS[conControl(e) ?? '']
+              if (!accion) return
+              e.preventDefault()
+              pulsar(accion)
+            }}
+            spellCheck={false}
+            placeholder="El guion, en markdown. Las fórmulas van entre $…$ o $$…$$."
+            className="min-h-[29rem] w-full resize-y bg-surface p-4 font-mono text-[12.5px] leading-[1.75] text-ink outline-offset-[-2px] font-stretch-condensed placeholder:text-ink-3"
+          />
+        </label>
 
-        <div className="min-h-80 overflow-x-auto rounded-lg border border-slate-800 bg-slate-900/30 p-3">
-          {valor.trim() ? (
-            <VistaPrevia texto={valor} />
-          ) : (
-            <p className="text-xs text-slate-400">La vista previa aparece aquí.</p>
-          )}
+        <div className="flex min-w-0 flex-col max-md:border-t max-md:border-line">
+          <span className="mono-label border-b border-line px-4 py-2.5 text-ink-2">Vista previa</span>
+          <div className="min-h-[29rem] overflow-x-auto px-7 pt-5 pb-7">
+            {valor.trim() ? (
+              <VistaPrevia texto={valor} />
+            ) : (
+              <p className="text-sm text-ink-2">La vista previa aparece aquí.</p>
+            )}
+          </div>
         </div>
       </div>
     </div>

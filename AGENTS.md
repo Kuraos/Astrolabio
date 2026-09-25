@@ -262,8 +262,10 @@ sesiones en `.claude/worktrees/`.
 - Sistema de diseño: [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md)
 - Estados del flujo (§2.8): `docs/estados-del-flujo.md`
 - Hoja de ruta, fases 3 a 6: `docs/hoja-de-ruta.md`
-- **Alcance vigente: `docs/fase-6-tablero.md`**, con el código terminado:
-  falta su prueba en el uso, y la fase siguiente todavía no tiene alcance.
+- Fase 6, `docs/fase-6-tablero.md`: el código está terminado y falta su
+  prueba en el uso.
+- **Alcance vigente: `docs/fase-7-identidad.md`**, la identidad «Control»,
+  con el código terminado: falta que el editor la vea en su máquina.
 
 Registros de decisión:
 
@@ -280,3 +282,4 @@ Registros de decisión:
 - `docs/adr/0011-las-etiquetas-viajan-al-vault.md`
 - `docs/adr/0012-la-fecha-de-publicacion-viaja-al-vault.md`
 - `docs/adr/0013-transitivas-e-imagenes-fijadas.md`
+- `docs/adr/0014-identidad-con-tokens-y-fuentes-propias.md`

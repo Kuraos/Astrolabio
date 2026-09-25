@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import { ErrorDeApi, pedir, type Tarea } from './api'
+import { Aviso, BOTON_SECUNDARIO, CONTROL } from './ui'
 
 /**
  * Cuántas le quedan, de cuántas (AD6, AD7): «quedan 2 de 5 tareas», o «5
@@ -81,30 +82,31 @@ export default function ListaDeTareas({
     })
 
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col gap-3.5">
       {tareas.length === 0 ? (
-        <p className="text-xs text-slate-400">Todavía no hay tareas.</p>
+        <p className="text-sm text-ink-2">Todavía no hay tareas.</p>
       ) : (
-        <ul className="space-y-2">
+        <ul className="flex flex-col">
           {tareas.map((tarea) => (
-            <li key={tarea.id} className="flex items-start gap-2 text-xs">
-              <label className="flex min-w-0 flex-1 cursor-pointer items-start gap-2">
+            <li
+              key={tarea.id}
+              className="flex items-start gap-2.5 border-b border-line-faint py-2.5"
+            >
+              <label className="flex min-w-0 flex-1 cursor-pointer items-start gap-2.5">
                 <input
                   type="checkbox"
                   checked={tarea.hecha}
                   onChange={() => marcar(tarea)}
                   disabled={guardando}
-                  className="mt-0.5 accent-slate-300"
+                  className="mt-0.5 size-4 shrink-0 accent-ink"
                 />
-                <span className="min-w-0 break-words">
-                  <span className={tarea.hecha ? 'text-slate-400 line-through' : 'text-slate-200'}>
+                <span className="flex min-w-0 flex-col gap-0.5 break-words">
+                  <span className={tarea.hecha ? 'text-sm text-ink-2 line-through' : 'text-sm'}>
                     {tarea.texto}
                   </span>
                   {/* AD4: quién la marcó, para no tener que preguntarlo. */}
                   {tarea.hecha && (
-                    <span className="block text-[11px] text-slate-400">
-                      hecha por {tarea.marcada_por}
-                    </span>
+                    <span className="mono-data text-ink-3">hecha por {tarea.marcada_por}</span>
                   )}
                 </span>
               </label>
@@ -113,7 +115,7 @@ export default function ListaDeTareas({
                 aria-label={`Quitar la tarea ${tarea.texto}`}
                 onClick={() => quitar(tarea)}
                 disabled={guardando}
-                className="px-1 text-slate-400 hover:text-slate-100 disabled:opacity-40"
+                className="px-1 text-base leading-none text-ink-2 hover:text-ink disabled:opacity-40"
               >
                 ×
               </button>
@@ -128,25 +130,14 @@ export default function ListaDeTareas({
           onChange={(e) => setNueva(e.target.value)}
           aria-label="Nueva tarea"
           placeholder={piezaId === null ? 'Comprar el micrófono' : 'Buscar la imagen del Hubble'}
-          className="min-w-0 flex-1 rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-100 outline-none focus:border-slate-500"
+          className={`${CONTROL} min-w-0 flex-1`}
         />
-        <button
-          type="submit"
-          disabled={guardando || !nueva.trim()}
-          className="rounded-md border border-slate-700 px-3 py-1.5 text-xs text-slate-300 disabled:opacity-40"
-        >
+        <button type="submit" disabled={guardando || !nueva.trim()} className={BOTON_SECUNDARIO}>
           Añadir
         </button>
       </form>
 
-      {error && (
-        <p
-          role="alert"
-          className="rounded-md border border-rose-900/60 bg-rose-950/40 px-3 py-2 text-xs text-rose-200"
-        >
-          {error}
-        </p>
-      )}
+      {error && <Aviso mensaje={error} />}
     </div>
   )
 }

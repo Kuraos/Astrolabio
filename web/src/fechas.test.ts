@@ -6,7 +6,15 @@
 import { describe, expect, it } from 'vitest'
 
 import type { Pieza } from './api'
-import { diaDeLaSemana, diaYMes, lunesDe, semanas, type Semana } from './fechas'
+import {
+  diaDeLaSemana,
+  diaYMes,
+  lineaDeTiempo,
+  lunesDe,
+  semanas,
+  type Linea,
+  type Semana,
+} from './fechas'
 
 // El cliente no carga los tipos de Node, y por una línea no vale la pena una
 // dependencia: basta con decirle a TypeScript que `process` existe.
@@ -138,5 +146,84 @@ describe('AE1: lo que sigue pendiente, por semanas', () => {
 
   it('sin fechas pendientes no hay semanas', () => {
     expect(semanas([pieza(1, 'investigacion', {})], HOY)).toEqual([])
+  })
+})
+
+/** Las cinco fechas del canvas de la Fase 7: una atrasada y cuatro por venir. */
+const CANVAS = [
+  pieza(1, 'solicitud_entregada', { fecha_entrega: '2026-09-17' }),
+  pieza(2, 'diseno_aprobado', { fecha_publicacion_prevista: '2026-09-27' }),
+  pieza(3, 'finalizada', { fecha_publicacion_prevista: '2026-09-30' }),
+  pieza(4, 'material_aprobado', { fecha_entrega: '2026-10-02' }),
+  pieza(5, 'material_aprobado', { fecha_entrega: '2026-10-08' }),
+]
+
+/** [id de la pieza, primera columna, última columna, carril] de cada marca. */
+function marcas(linea: Linea): [number, number, number, number][] {
+  return linea.marcas.map((m) => [m.entrada.pieza.id, m.desde, m.hasta, m.carril])
+}
+
+describe('AI1: las semanas, en una línea de días', () => {
+  it('pone cada entrada en su día, y hoy en el suyo', () => {
+    const linea = lineaDeTiempo(semanas(CANVAS, HOY), HOY)
+
+    expect(linea.celdas).toHaveLength(28)
+    // Las columnas de la rejilla cuentan desde 1: el lunes 14 es la 1.
+    expect(linea.celdas.findIndex((c) => c.tipo === 'dia' && c.hoy) + 1).toBe(12)
+    expect(linea.marcas.map((m) => m.desde)).toEqual([4, 14, 17, 19, 20])
+    expect(linea.semanas.map((s) => [s.lunes, s.cuando, s.desde])).toEqual([
+      ['2026-09-14', 'pasada', 1],
+      ['2026-09-21', 'esta', 8],
+      ['2026-09-28', 'futura', 15],
+      ['2026-10-05', 'futura', 22],
+    ])
+  })
+
+  it('las etiquetas no se pisan: cada una va al primer carril libre', () => {
+    // 28 días: cada etiqueta ocupa seis, una quinta parte de la línea.
+    expect(marcas(lineaDeTiempo(semanas(CANVAS, HOY), HOY))).toEqual([
+      [1, 4, 9, 0],
+      [2, 14, 19, 0],
+      [3, 17, 22, 1],
+      [4, 19, 24, 2],
+      [5, 20, 25, 0],
+    ])
+  })
+
+  it('al final de la línea, la etiqueta acaba en su día en vez de salirse', () => {
+    const ultima = lineaDeTiempo(semanas(CANVAS, HOY), HOY).marcas.at(-1)
+
+    expect(ultima?.entrada.fecha).toBe('2026-10-08')
+    expect([ultima?.hasta, ultima?.ancla]).toEqual([25, 'fin'])
+  })
+
+  it('una semana sin nada entre dos que sí tienen es un salto, no siete días', () => {
+    const piezas = [
+      pieza(1, 'material_aprobado', { fecha_entrega: '2026-09-23' }),
+      pieza(2, 'material_aprobado', { fecha_entrega: '2026-10-08' }),
+    ]
+    const linea = lineaDeTiempo(semanas(piezas, HOY), HOY)
+
+    expect(linea.celdas.map((c) => c.tipo)).toEqual([
+      ...Array(7).fill('dia'),
+      'salto',
+      ...Array(7).fill('dia'),
+    ])
+    expect(linea.semanas.map((s) => s.desde)).toEqual([1, 9])
+  })
+
+  it('la semana de hoy sale aunque no tenga nada, para saber dónde se está', () => {
+    const piezas = [pieza(1, 'material_aprobado', { fecha_entrega: '2026-10-08' })]
+    const linea = lineaDeTiempo(semanas(piezas, HOY), HOY)
+
+    expect(linea.semanas.map((s) => [s.lunes, s.cuando])).toEqual([
+      ['2026-09-21', 'esta'],
+      ['2026-10-05', 'futura'],
+    ])
+    expect(linea.celdas.some((c) => c.tipo === 'dia' && c.hoy)).toBe(true)
+  })
+
+  it('sin semanas no hay línea', () => {
+    expect(lineaDeTiempo([], HOY)).toEqual({ celdas: [], semanas: [], marcas: [] })
   })
 })

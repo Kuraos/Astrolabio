@@ -5,7 +5,7 @@ import type { Pieza } from './api'
  * `api/app/models.py`. Si el servidor añade uno, sus piezas no desaparecen:
  * salen en su propia columna (AB2).
  */
-const ESTADOS = [
+export const ESTADOS = [
   'investigacion',
   'solicitud_entregada',
   'material_aprobado',
