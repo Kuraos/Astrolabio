@@ -1,9 +1,9 @@
 # Fase 4 — Escribir con herramientas
 
-**Alcance vigente**, acordado el 2026-09-23 con las decisiones de §7. Resuelve
-el problema 2 de la [hoja de ruta](hoja-de-ruta.md). Ninguna otra
-funcionalidad entra hasta que esto esté terminado según §5. La prueba de la
-Fase 3 con el editor se hace en el uso y no bloquea esta.
+**Código terminado el 2026-09-24**, con las decisiones de §7; queda su prueba
+de terminado (§5), que se hace en el uso. Resuelve el problema 2 de la
+[hoja de ruta](hoja-de-ruta.md). El alcance vigente está en
+[`AGENTS.md`](../AGENTS.md) §7.
 
 ## 1. Objetivo
 

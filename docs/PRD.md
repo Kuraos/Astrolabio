@@ -47,7 +47,9 @@ sirve en pantalla sigue abierto ([estados §6](estados-del-flujo.md)).
 | 0 — Esqueleto | Sesión con cookie, dos roles sembrados desde el entorno, autorización comprobada en el servidor | A–E · [fase 0](fase-0-esqueleto.md) |
 | 1 — Fuente de verdad dividida | Piezas con guion en markdown y LaTeX, con vista previa. El respaldo científico del vault, en solo lectura y solo para Johan. Exportar la pieza al vault | F–J · [fase 1](fase-1-vault.md) |
 | 2 — El traspaso | Seis estados, transiciones con reglas por rol, historia de solo inserción, de quién es cada pieza, el estado en el vault | K–O · [fase 2](fase-2-traspaso.md) |
-| 3 — El material, **en curso** | Enlaces de referencia en la pieza, y la carpeta de cada pieza en Syncthing con sus archivos, las miniaturas de las imágenes y la ruta de cada uno para copiarla. Falta la prueba con el editor desde su máquina | P–S · [fase 3](fase-3-material.md) |
+| 3 — El material | Enlaces de referencia en la pieza, y la carpeta de cada pieza en Syncthing con sus archivos, las miniaturas de las imágenes y la ruta de cada uno para copiarla. Falta la prueba con el editor desde su máquina | P–S · [fase 3](fase-3-material.md) |
+| 4 — Escribir con herramientas | Una barra de diez botones y atajos para el guion, que Ctrl+Z deshace de un paso; `mk` y `dm` abren fórmula; tablas y notas al pie en la vista previa; la pieza a 1024 px. Falta su prueba en el uso | T–X · [fase 4](fase-4-escritura.md) |
+| 5 — Temas y etiquetas, **alcance vigente** | Cuatro temas fijos, etiquetas libres y un catálogo de qué se ha hablado | Y–AA · [fase 5](fase-5-temas.md) |
 
 Quién puede qué, hoy:
 
@@ -191,10 +193,9 @@ Lo que se descartó dentro de cada fase está en su documento.
 
 ## 10. Lo que viene
 
-Las fases 4 a 6 —una barra de herramientas para el guion, temas y etiquetas,
-y un tablero con tareas y fechas— están ordenadas en la
-[hoja de ruta](hoja-de-ruta.md), con lo que hay que decidir antes de empezar
-cada una.
+Después de los temas y las etiquetas (fase 5), el tablero con tareas y fechas
+(fase 6). Las dos están ordenadas en la [hoja de ruta](hoja-de-ruta.md), con
+lo que hay que decidir antes de empezar cada una.
 
 ## 11. Preguntas abiertas
 

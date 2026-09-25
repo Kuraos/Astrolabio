@@ -159,6 +159,12 @@ las notas `literature`.
    lo que escribe el exportador, así que pide ADR.
 3. **¿Tildes?** Obsidian las admite; el vault usa hoy `voz-del-cosmos`.
 
+**Decidido el 2026-09-24.** Los temas son cuatro: Sistema Solar, Estrellas,
+Galaxias y cosmología, y Exploración espacial. Las etiquetas van al vault
+anidadas bajo `voz-del-cosmos` ([ADR 0011](adr/0011-las-etiquetas-viajan-al-vault.md)),
+sin tildes y con ñ. `formato` y `plataforma` siguen sin editarse en la pieza.
+El alcance completo está en [fase-5-temas.md](fase-5-temas.md).
+
 **Terminada cuando** al abrir el catálogo se ve de qué se ha hablado, con
 cuántas piezas publicadas y en curso por etiqueta, y las mismas etiquetas
 aparecen en Obsidian.

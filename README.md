@@ -19,8 +19,8 @@ de las piezas. Todo lo demás es infraestructura alrededor de eso.
 
 ## Estado
 
-Las fases 0 a 2 están cerradas. La 3 tiene el código terminado y falta
-probarla con el editor; la 4 es el alcance vigente.
+Las fases 0 a 2 están cerradas. La 3 y la 4 tienen el código terminado y
+falta su prueba en el uso; la 5 es el alcance vigente.
 
 - **Fase 0, el esqueleto**: sesión con cookie, dos roles y autorización
   comprobada en el servidor.
@@ -32,9 +32,12 @@ probarla con el editor; la 4 es el alcance vigente.
 - **Fase 3, el material**: enlaces de referencia y la carpeta de cada pieza
   en Syncthing, con las miniaturas de sus imágenes. Falta probarla con el
   editor desde su máquina.
-- **Fase 4, escribir con herramientas** (alcance vigente): una barra y
-  atajos para el guion, tablas en la vista previa y más espacio para
-  escribir. Alcance: [`docs/fase-4-escritura.md`](docs/fase-4-escritura.md).
+- **Fase 4, escribir con herramientas**: una barra y atajos para el guion,
+  tablas en la vista previa y más espacio para escribir. Falta escribir un
+  guion de verdad con ella y compararlo en Obsidian.
+- **Fase 5, temas y etiquetas** (alcance vigente): cuatro temas fijos, y
+  etiquetas libres con un catálogo de qué se ha hablado. Alcance:
+  [`docs/fase-5-temas.md`](docs/fase-5-temas.md).
 
 Lo que viene está en la [hoja de ruta](docs/hoja-de-ruta.md).
 
@@ -124,3 +127,4 @@ qué alternativas se descartaron.
 | [0008](docs/adr/0008-traspaso-append-only-en-la-base.md) | `traspaso` es de solo inserción en la base, no por disciplina |
 | [0009](docs/adr/0009-el-estado-viaja-al-vault.md) | El estado viaja al vault en `status` |
 | [0010](docs/adr/0010-la-carpeta-de-cada-pieza.md) | La carpeta de cada pieza en Syncthing |
+| [0011](docs/adr/0011-las-etiquetas-viajan-al-vault.md) | Las etiquetas viajan al vault como tags anidados |
