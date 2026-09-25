@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import { ErrorDeApi, pedir, type Pieza, type Usuario } from './api'
+import { ErrorDeApi, pedir, type Pieza, type Tarea, type Usuario } from './api'
 import { catalogo } from './catalogo'
 import { diaYMes } from './fechas'
 import { aQuienLeToca, enPalabras } from './flujo'
 import VistaPieza from './Pieza'
 import { tablero } from './tablero'
+import ListaDeTareas, { quedan } from './Tareas'
 
 /**
  * Fase 0, criterios D1–D4, y el tablero de la Fase 6 (AB), que reemplazó a
@@ -116,10 +117,18 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
   const [abierta, setAbierta] = useState<Pieza | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [filtro, setFiltro] = useState<string | null>(null)
+  const [tareas, setTareas] = useState<Tarea[]>([])
 
   const cargar = useCallback(async () => {
     try {
-      setPiezas(await pedir<Pieza[]>('/api/piezas'))
+      // AD2: las tareas, todas de una vez. El tablero cuenta las de cada
+      // pieza, la pieza abierta recibe las suyas y las sueltas tienen panel.
+      const [nuevas, todas] = await Promise.all([
+        pedir<Pieza[]>('/api/piezas'),
+        pedir<Tarea[]>('/api/tareas'),
+      ])
+      setPiezas(nuevas)
+      setTareas(todas)
       setError(null)
     } catch (causa) {
       setError(causa instanceof ErrorDeApi ? causa.message : 'No se pudo conectar')
@@ -171,6 +180,8 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
           pieza={abierta}
           usuario={usuario}
           sugerencias={entradas.map((e) => e.etiqueta)}
+          tareas={tareas.filter((tarea) => tarea.pieza_id === abierta.id)}
+          actualizarTareas={setTareas}
           alVolver={() => {
             setAbierta(null)
             void cargar()
@@ -216,10 +227,20 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
               (pieza) => activo === null || pieza.etiquetas.includes(activo),
             )}
             usuario={usuario}
+            tareas={tareas}
             alAbrir={setAbierta}
           />
           </>
         )}
+      </Panel>
+
+      {/* AD5: lo que no es de ninguna pieza. */}
+      <Panel titulo="Tareas sueltas · las que no son de ninguna pieza">
+        <ListaDeTareas
+          tareas={tareas.filter((tarea) => tarea.pieza_id === null)}
+          piezaId={null}
+          actualizar={setTareas}
+        />
       </Panel>
 
       {/* Z2: de qué se ha hablado. Pulsar una etiqueta filtra la lista de
@@ -273,10 +294,12 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
 function Tablero({
   piezas,
   usuario,
+  tareas,
   alAbrir,
 }: {
   piezas: Pieza[]
   usuario: Usuario
+  tareas: Tarea[]
   alAbrir: (pieza: Pieza) => void
 }) {
   return (
@@ -320,6 +343,9 @@ function Tablero({
                     {pieza.fecha_publicacion_prevista && (
                       <span>publicación {diaYMes(pieza.fecha_publicacion_prevista)}</span>
                     )}
+                    <Pendientes
+                      tareas={tareas.filter((tarea) => tarea.pieza_id === pieza.id)}
+                    />
                     {pieza.guion.trim() === '' && <span>sin guion</span>}
                   </span>
                 </button>
@@ -330,6 +356,15 @@ function Tablero({
       ))}
     </div>
   )
+}
+
+/**
+ * AD6: qué le falta a la pieza. Nada, y no un elemento vacío, si no tiene
+ * tareas: así la línea de la tarjeta se sigue ocultando cuando queda vacía.
+ */
+function Pendientes({ tareas }: { tareas: Tarea[] }) {
+  const texto = quedan(tareas)
+  return texto ? <span>{texto}</span> : null
 }
 
 /** El turno de cada pieza, resaltado cuando le toca a quien mira. */

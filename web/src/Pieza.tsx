@@ -8,28 +8,35 @@ import {
   type EstadoDeLaCarpeta,
   type EstadoDelRespaldo,
   type Pieza,
+  type Tarea,
   type Traspaso,
   type Usuario,
 } from './api'
 import { aQuienLeToca, confirmacion, enPalabras, vuelveAtras } from './flujo'
 import Guion from './Guion'
+import ListaDeTareas, { quedan } from './Tareas'
 import PanelTemas from './Temas'
 
 /**
- * Vista de una pieza: arriba el traspaso (N2, N3), las fechas (AC3), el
- * material y el tema con sus etiquetas, y debajo el guion con su barra y su
- * vista previa (J1, J2 y la Fase 4).
+ * Vista de una pieza: arriba el traspaso (N2, N3), las fechas (AC3), las
+ * tareas (AD4), el material y el tema con sus etiquetas, y debajo el guion
+ * con su barra y su vista previa (J1, J2 y la Fase 4).
  */
 export default function VistaPieza({
   pieza: inicial,
   usuario,
   sugerencias,
+  tareas,
+  actualizarTareas,
   alVolver,
 }: {
   pieza: Pieza
   usuario: Usuario
   /** Las etiquetas que ya existen en alguna pieza (Y5). */
   sugerencias: string[]
+  /** Las de esta pieza; la lista entera vive en la pantalla principal (AD2). */
+  tareas: Tarea[]
+  actualizarTareas: (cambio: (todas: Tarea[]) => Tarea[]) => void
   alVolver: () => void
 }) {
   const [pieza, setPieza] = useState(inicial)
@@ -99,10 +106,21 @@ export default function VistaPieza({
         pieza={pieza}
         usuario={usuario}
         haySinGuardar={sinGuardar}
+        tareas={tareas}
         alMover={setPieza}
       />
 
       <PanelFechas pieza={pieza} alCambiar={setPieza} />
+
+      {/* AD4: la checklist de la pieza. */}
+      <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
+        <h3 className="text-xs font-medium uppercase tracking-wider text-slate-500">
+          Tareas
+        </h3>
+        <div className="mt-3">
+          <ListaDeTareas tareas={tareas} piezaId={pieza.id} actualizar={actualizarTareas} />
+        </div>
+      </section>
 
       <PanelMaterial pieza={pieza} />
 
@@ -147,11 +165,13 @@ function PanelTraspaso({
   pieza,
   usuario,
   haySinGuardar,
+  tareas,
   alMover,
 }: {
   pieza: Pieza
   usuario: Usuario
   haySinGuardar: boolean
+  tareas: Tarea[]
   alMover: (p: Pieza) => void
 }) {
   const [historia, setHistoria] = useState<Traspaso[] | null>(null)
@@ -261,6 +281,13 @@ function PanelTraspaso({
             {haySinGuardar && (
               <p className="text-xs text-amber-300/80">
                 Guarda el guion antes de moverla: el otro vería la versión anterior.
+              </p>
+            )}
+            {/* AD7: la checklist informa y no bloquea (Fase 6, §7.2). Los
+                botones siguen activos, y el servidor tampoco mira las tareas. */}
+            {tareas.some((tarea) => !tarea.hecha) && (
+              <p className="text-xs text-amber-300/80">
+                Checklist: {quedan(tareas)}. Se puede mover igual.
               </p>
             )}
           </div>

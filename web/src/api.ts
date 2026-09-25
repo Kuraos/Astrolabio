@@ -49,6 +49,18 @@ export type Pieza = {
   transiciones: string[]
 }
 
+/** Una tarea (AD1): de la checklist de una pieza, o suelta si no tiene. */
+export type Tarea = {
+  id: number
+  pieza_id: number | null
+  texto: string
+  hecha: boolean
+  marcada_por: string | null
+  marcada_en: string | null
+  creada_por: string
+  creada_en: string
+}
+
 /** Un enlace de referencia de la pieza (criterio P1). */
 export type Enlace = {
   id: number

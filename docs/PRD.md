@@ -55,7 +55,8 @@ sirve en pantalla sigue abierto ([estados §6](estados-del-flujo.md)).
 Quién puede qué, hoy:
 
 - **Los dos**: ven todas las piezas, editan el guion y los datos de la pieza,
-  mueven la pieza cuando la transición es suya y añaden o quitan material.
+  mueven la pieza cuando la transición es suya, añaden o quitan material, y
+  crean, marcan y quitan tareas, de las piezas o sueltas.
 - **Solo Johan**: crea piezas, ve y enlaza el respaldo científico de su vault
   y exporta la pieza al vault.
 

@@ -95,6 +95,7 @@ analítica, ni almacenamiento en la nube.
 │   │   ├── Pieza.tsx         la vista de una pieza y sus paneles
 │   │   ├── Guion.tsx         el guion: barra, campo y vista previa
 │   │   ├── Temas.tsx         el tema y las etiquetas de la pieza
+│   │   ├── Tareas.tsx        la lista de tareas: la checklist y las sueltas
 │   │   ├── api.ts            pedir(), ErrorDeApi y los tipos de la API
 │   │   ├── barra.ts          las acciones de la barra del guion, puras
 │   │   ├── catalogo.ts       el catálogo de etiquetas, puro
