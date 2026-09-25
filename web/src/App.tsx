@@ -144,6 +144,10 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
   // Una etiqueta que ya no está en ninguna pieza deja de filtrar: si no, la
   // lista se quedaría vacía sin que su etiqueta apareciera en el catálogo.
   const activo = entradas.some((e) => e.etiqueta === filtro) ? filtro : null
+  // AB4: el filtro vale para el tablero y para las semanas.
+  const visibles = (piezas ?? []).filter(
+    (pieza) => activo === null || pieza.etiquetas.includes(activo),
+  )
 
   async function salir() {
     try {
@@ -208,24 +212,9 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
           </p>
         ) : (
           <>
-          {activo && (
-            <p className="mb-2 flex items-baseline justify-between gap-3 text-xs text-slate-400">
-              <span>
-                Solo las de <span className="text-slate-100">{activo}</span>
-              </span>
-              <button
-                type="button"
-                onClick={() => setFiltro(null)}
-                className="shrink-0 text-slate-400 hover:text-slate-200"
-              >
-                Ver todas
-              </button>
-            </p>
-          )}
+          {activo && <SoloLasDe etiqueta={activo} alQuitar={() => setFiltro(null)} />}
           <Tablero
-            piezas={piezas.filter(
-              (pieza) => activo === null || pieza.etiquetas.includes(activo),
-            )}
+            piezas={visibles}
             usuario={usuario}
             tareas={tareas}
             alAbrir={setAbierta}
@@ -236,7 +225,8 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
 
       {/* AE2: para cuándo, por semanas. */}
       <Panel titulo="Semanas · entregas y publicaciones pendientes">
-        <Semanas piezas={piezas ?? []} alAbrir={setAbierta} />
+        {activo && <SoloLasDe etiqueta={activo} alQuitar={() => setFiltro(null)} />}
+        <Semanas piezas={visibles} alAbrir={setAbierta} />
       </Panel>
 
       {/* AD5: lo que no es de ninguna pieza. */}
@@ -248,8 +238,8 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
         />
       </Panel>
 
-      {/* Z2: de qué se ha hablado. Pulsar una etiqueta filtra la lista de
-          arriba; pulsarla otra vez la devuelve entera. */}
+      {/* Z2: de qué se ha hablado. Pulsar una etiqueta filtra el tablero y
+          las semanas; pulsarla otra vez los devuelve enteros. */}
       <Panel titulo="Etiquetas · de qué hemos hablado">
         {entradas.length === 0 ? (
           <p className="text-sm text-slate-400">
@@ -363,6 +353,27 @@ function Tablero({
         </section>
       ))}
     </div>
+  )
+}
+
+/**
+ * La nota de un panel filtrado por etiqueta (AB4), con la salida del filtro.
+ * Sin ella, unas semanas vacías dirían que no hay nada pendiente.
+ */
+function SoloLasDe({ etiqueta, alQuitar }: { etiqueta: string; alQuitar: () => void }) {
+  return (
+    <p className="mb-2 flex items-baseline justify-between gap-3 text-xs text-slate-400">
+      <span>
+        Solo las de <span className="text-slate-100">{etiqueta}</span>
+      </span>
+      <button
+        type="button"
+        onClick={alQuitar}
+        className="shrink-0 text-slate-400 hover:text-slate-200"
+      >
+        Ver todas
+      </button>
+    </p>
   )
 }
 

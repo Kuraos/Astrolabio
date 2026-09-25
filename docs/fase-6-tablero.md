@@ -90,7 +90,8 @@ Las letras siguen después de la AA de la Fase 5.
 - **AB3** Cada tarjeta lleva el título, de quién es el turno —resaltado cuando
   le toca a quien mira, como hoy en la lista— y «sin guion» si no lo tiene. Al
   pulsarla se abre la pieza, donde están los botones para moverla.
-- **AB4** El filtro por etiqueta del catálogo (Z2) filtra el tablero.
+- **AB4** El filtro por etiqueta del catálogo (Z2) filtra el tablero, y también
+  las semanas (AE2) desde el 2026-09-25, a pedido de Johan.
 - **AB5** El tablero ocupa 1024 px, el ancho de la pieza abierta (X1). En una
   pantalla estrecha, las columnas se apilan en el orden del flujo.
 
