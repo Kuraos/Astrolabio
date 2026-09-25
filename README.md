@@ -19,8 +19,8 @@ de las piezas. Todo lo demás es infraestructura alrededor de eso.
 
 ## Estado
 
-Las fases 0 a 2 están cerradas. La 3, la 4 y la 5 tienen el código
-terminado y falta su prueba en el uso; la 6 es el alcance vigente.
+Las fases 0 a 2 están cerradas. De la 3 a la 6 el código está terminado y
+falta su prueba en el uso.
 
 - **Fase 0, el esqueleto**: sesión con cookie, dos roles y autorización
   comprobada en el servidor.
@@ -38,11 +38,12 @@ terminado y falta su prueba en el uso; la 6 es el alcance vigente.
 - **Fase 5, temas y etiquetas**: cuatro temas fijos, y etiquetas libres con
   un catálogo de qué se ha hablado, que llegan a Obsidian como tags
   anidados. Falta usarla con piezas de verdad y verlas en Obsidian.
-- **Fase 6, tablero, tareas y fechas** (alcance vigente): un tablero por
-  estado, tareas por pieza y sueltas, y fechas de entrega y de publicación.
-  Alcance: [`docs/fase-6-tablero.md`](docs/fase-6-tablero.md).
+- **Fase 6, tablero, tareas y fechas**: un tablero por estado en lugar de
+  la lista, tareas por pieza y sueltas, fechas de entrega y de publicación,
+  y lo pendiente por semanas. Falta que el editor lo use desde su máquina.
 
-Lo que viene está en la [hoja de ruta](docs/hoja-de-ruta.md).
+La [hoja de ruta](docs/hoja-de-ruta.md) terminaba en la Fase 6: lo que venga
+después saldrá del uso.
 
 ---
 

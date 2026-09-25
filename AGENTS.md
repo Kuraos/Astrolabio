@@ -242,7 +242,8 @@ sesiones en `.claude/worktrees/`.
 - Sistema de diseño: [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md)
 - Estados del flujo (§2.8): `docs/estados-del-flujo.md`
 - Hoja de ruta, fases 3 a 6: `docs/hoja-de-ruta.md`
-- **Alcance vigente: `docs/fase-6-tablero.md`**
+- **Alcance vigente: `docs/fase-6-tablero.md`**, con el código terminado:
+  falta su prueba en el uso, y la fase siguiente todavía no tiene alcance.
 
 Registros de decisión:
 

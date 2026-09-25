@@ -50,7 +50,7 @@ sirve en pantalla sigue abierto ([estados §6](estados-del-flujo.md)).
 | 3 — El material | Enlaces de referencia en la pieza, y la carpeta de cada pieza en Syncthing con sus archivos, las miniaturas de las imágenes y la ruta de cada uno para copiarla. Falta la prueba con el editor desde su máquina | P–S · [fase 3](fase-3-material.md) |
 | 4 — Escribir con herramientas | Una barra de diez botones y atajos para el guion, que Ctrl+Z deshace de un paso; `mk` y `dm` abren fórmula; tablas y notas al pie en la vista previa; la pieza a 1024 px. Falta su prueba en el uso | T–X · [fase 4](fase-4-escritura.md) |
 | 5 — Temas y etiquetas | Cuatro temas fijos, etiquetas libres con un catálogo de qué se ha hablado que filtra la lista, y las etiquetas en el vault como tags anidados bajo `voz-del-cosmos`. Falta su prueba en el uso | Y–AA · [fase 5](fase-5-temas.md) |
-| 6 — Tablero, tareas y fechas, **alcance vigente** | Un tablero por estado en lugar de la lista, tareas por pieza y sueltas, fechas de entrega y de publicación, y las semanas que vienen | AB–AF · [fase 6](fase-6-tablero.md) |
+| 6 — Tablero, tareas y fechas | Un tablero por estado en lugar de la lista; tareas por pieza y sueltas, con lo que falta en cada tarjeta; fechas de entrega y de publicación, lo pendiente por semanas y la fecha de publicación en el vault. Falta su prueba en el uso | AB–AF · [fase 6](fase-6-tablero.md) |
 
 Quién puede qué, hoy:
 
@@ -197,8 +197,8 @@ Lo que se descartó dentro de cada fase está en su documento.
 
 ## 10. Lo que viene
 
-El tablero con tareas y fechas (fase 6) es la última fase de la
-[hoja de ruta](hoja-de-ruta.md). Lo que venga después saldrá del uso; el
+Con la fase 6, la [hoja de ruta](hoja-de-ruta.md) está hecha en código; falta
+probar las fases 3 a 6 en el uso. Lo que venga después saldrá de ese uso; el
 panel de métricas de §8 todavía no tiene fase.
 
 ## 11. Preguntas abiertas
