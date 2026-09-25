@@ -1,7 +1,10 @@
-# ADR 0011 — Las transitivas y las imágenes base también se fijan
+# ADR 0013 — Las transitivas y las imágenes base también se fijan
 
 - **Fecha**: 2026-09-21
 - **Estado**: aceptada
+- **Número**: se escribió como 0011, y así lo nombra el commit que lo trajo.
+  Pasó a 0013 el 2026-09-25, porque en `main` el 0011 y el 0012 ya estaban
+  tomados: las etiquetas y la fecha de publicación en el vault.
 - **Contexto**: la reproducibilidad que `api/requirements.txt` promete desde la
   Fase 0 y que solo cumplía para las dependencias directas.
 

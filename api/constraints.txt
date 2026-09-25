@@ -1,4 +1,4 @@
-# Lock de la api: todas las versiones que instala la imagen (ADR 0011).
+# Lock de la api: todas las versiones que instala la imagen (ADR 0013).
 # Regenerar: docker build --no-cache --target lock --output api api
 alembic==1.19.1
 annotated-doc==0.0.5

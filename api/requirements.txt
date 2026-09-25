@@ -3,7 +3,7 @@
 # de la Fase 0.
 #
 # Aquí van solo las directas, con su porqué. Las transitivas las fija
-# constraints.txt, que se genera desde este archivo (ADR 0011): cambiar una
+# constraints.txt, que se genera desde este archivo (ADR 0013): cambiar una
 # línea de aquí obliga a regenerarlo, y una prueba lo vigila.
 
 fastapi==0.141.1

@@ -1,4 +1,4 @@
-# Por digest, como todas las imágenes base (ADR 0011): el tag dice qué línea se
+# Por digest, como todas las imágenes base (ADR 0013): el tag dice qué línea se
 # sigue y el digest, en qué punto de ella. Docker solo usa el digest.
 FROM python:3.12-slim@sha256:2f17fc044b579bab302c2e8054d3a686e2cb9a83de48e70534b94cd8ebbe06a9 AS base
 
@@ -7,7 +7,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Genera constraints.txt; la imagen de la api no pasa por aquí (ADR 0011):
+# Genera constraints.txt; la imagen de la api no pasa por aquí (ADR 0013):
 #
 #   docker build --no-cache --target lock --output api api
 #
@@ -17,7 +17,7 @@ WORKDIR /app
 FROM base AS resolucion
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt \
- && { echo '# Lock de la api: todas las versiones que instala la imagen (ADR 0011).'; \
+ && { echo '# Lock de la api: todas las versiones que instala la imagen (ADR 0013).'; \
       echo '# Regenerar: docker build --no-cache --target lock --output api api'; \
       pip freeze; } > constraints.txt
 

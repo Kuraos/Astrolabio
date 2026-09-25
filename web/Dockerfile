@@ -1,4 +1,4 @@
-# Las dos imágenes base van por digest (ADR 0011): el tag dice qué línea se
+# Las dos imágenes base van por digest (ADR 0013): el tag dice qué línea se
 # sigue y el digest, en qué punto de ella.
 
 # Etapa de build: compila el frontend con las versiones exactas del lockfile.

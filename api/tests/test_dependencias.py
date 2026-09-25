@@ -1,4 +1,4 @@
-"""ADR 0011 — la imagen instala exactamente el lock.
+"""ADR 0013 — la imagen instala exactamente el lock.
 
 `pip install -c constraints.txt` impide que una transitiva se mueva, pero no
 que entre una dependencia sin fijar: si `requirements.txt` gana un paquete y

@@ -170,7 +170,7 @@ desde cualquier shell.
 arriba son para generar una migración nueva o aplicarlas a mano. **El esquema
 no se crea con `create_all` en ningún sitio**, y hay una prueba que lo vigila.
 
-Dependencias de la api (ADR 0011). `requirements.txt` lo edita una persona;
+Dependencias de la api (ADR 0013). `requirements.txt` lo edita una persona;
 `constraints.txt` fija todo lo que instala la imagen, transitivas incluidas, y
 se regenera cuando cambia el primero:
 
@@ -219,7 +219,7 @@ haya algo que probar en el cliente, no antes.
 - `docs/adr/0008-traspaso-append-only-en-la-base.md`
 - `docs/adr/0009-el-estado-viaja-al-vault.md`
 - `docs/adr/0010-la-carpeta-de-cada-pieza.md`
-- `docs/adr/0011-transitivas-e-imagenes-fijadas.md`
+- `docs/adr/0013-transitivas-e-imagenes-fijadas.md`
 
 Estados del flujo (§2.8): `docs/estados-del-flujo.md`.
 
