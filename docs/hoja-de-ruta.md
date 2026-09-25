@@ -207,6 +207,13 @@ Notificaciones, tareas recurrentes, comentarios en las tareas.
 3. **¿La fecha de publicación del vault es la prevista o la real?** La real ya
    está en la historia: es la del traspaso `publicar`.
 
+**Decidido el 2026-09-24.** Hay tareas sueltas, en una lista aparte, y una
+tarea pendiente no impide mover la pieza. `fecha_publicacion` es la prevista
+hasta publicar y la real después
+([ADR 0012](adr/0012-la-fecha-de-publicacion-viaja-al-vault.md)). El tablero
+reemplaza la lista, y sus tarjetas abren la pieza. El alcance completo está en
+[fase-6-tablero.md](fase-6-tablero.md).
+
 **Terminada cuando** el editor abre el tablero y sabe qué le toca y para
 cuándo, y Johan ve qué le falta a cada pieza sin preguntar.
 

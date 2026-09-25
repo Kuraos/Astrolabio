@@ -242,7 +242,7 @@ sesiones en `.claude/worktrees/`.
 - Sistema de diseño: [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md)
 - Estados del flujo (§2.8): `docs/estados-del-flujo.md`
 - Hoja de ruta, fases 3 a 6: `docs/hoja-de-ruta.md`
-- **Alcance vigente: `docs/fase-5-temas.md`**
+- **Alcance vigente: `docs/fase-6-tablero.md`**
 
 Registros de decisión:
 
@@ -257,3 +257,4 @@ Registros de decisión:
 - `docs/adr/0009-el-estado-viaja-al-vault.md`
 - `docs/adr/0010-la-carpeta-de-cada-pieza.md`
 - `docs/adr/0011-las-etiquetas-viajan-al-vault.md`
+- `docs/adr/0012-la-fecha-de-publicacion-viaja-al-vault.md`

@@ -1,9 +1,9 @@
 # Fase 5 — Temas y etiquetas
 
-**Alcance vigente**, acordado el 2026-09-24 con las decisiones de §7. Resuelve
-el problema 3 de la [hoja de ruta](hoja-de-ruta.md). Ninguna otra
-funcionalidad entra hasta que esto esté terminado según §5. La prueba de
-terminado de la Fase 4 se hace en el uso y no bloquea esta.
+**Código terminado el 2026-09-24**, con las decisiones de §7; queda su prueba
+de terminado (§5), que se hace en el uso. Resuelve el problema 3 de la
+[hoja de ruta](hoja-de-ruta.md). El alcance vigente está en
+[`AGENTS.md`](../AGENTS.md) §7.
 
 ## 1. Objetivo
 

@@ -19,8 +19,8 @@ de las piezas. Todo lo demás es infraestructura alrededor de eso.
 
 ## Estado
 
-Las fases 0 a 2 están cerradas. La 3 y la 4 tienen el código terminado y
-falta su prueba en el uso; la 5 es el alcance vigente.
+Las fases 0 a 2 están cerradas. La 3, la 4 y la 5 tienen el código
+terminado y falta su prueba en el uso; la 6 es el alcance vigente.
 
 - **Fase 0, el esqueleto**: sesión con cookie, dos roles y autorización
   comprobada en el servidor.
@@ -35,9 +35,12 @@ falta su prueba en el uso; la 5 es el alcance vigente.
 - **Fase 4, escribir con herramientas**: una barra y atajos para el guion,
   tablas en la vista previa y más espacio para escribir. Falta escribir un
   guion de verdad con ella y compararlo en Obsidian.
-- **Fase 5, temas y etiquetas** (alcance vigente): cuatro temas fijos, y
-  etiquetas libres con un catálogo de qué se ha hablado. Alcance:
-  [`docs/fase-5-temas.md`](docs/fase-5-temas.md).
+- **Fase 5, temas y etiquetas**: cuatro temas fijos, y etiquetas libres con
+  un catálogo de qué se ha hablado, que llegan a Obsidian como tags
+  anidados. Falta usarla con piezas de verdad y verlas en Obsidian.
+- **Fase 6, tablero, tareas y fechas** (alcance vigente): un tablero por
+  estado, tareas por pieza y sueltas, y fechas de entrega y de publicación.
+  Alcance: [`docs/fase-6-tablero.md`](docs/fase-6-tablero.md).
 
 Lo que viene está en la [hoja de ruta](docs/hoja-de-ruta.md).
 
@@ -128,3 +131,4 @@ qué alternativas se descartaron.
 | [0009](docs/adr/0009-el-estado-viaja-al-vault.md) | El estado viaja al vault en `status` |
 | [0010](docs/adr/0010-la-carpeta-de-cada-pieza.md) | La carpeta de cada pieza en Syncthing |
 | [0011](docs/adr/0011-las-etiquetas-viajan-al-vault.md) | Las etiquetas viajan al vault como tags anidados |
+| [0012](docs/adr/0012-la-fecha-de-publicacion-viaja-al-vault.md) | La fecha de publicación viaja al vault: la prevista y, al publicar, la real |
