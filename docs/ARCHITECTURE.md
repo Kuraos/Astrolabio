@@ -96,6 +96,7 @@ analítica, ni almacenamiento en la nube.
 │   │   ├── Temas.tsx         el tema y las etiquetas de la pieza
 │   │   ├── api.ts            pedir(), ErrorDeApi y los tipos de la API
 │   │   ├── barra.ts          las acciones de la barra del guion, puras
+│   │   ├── catalogo.ts       el catálogo de etiquetas, puro
 │   │   ├── flujo.ts          las palabras de estados y transiciones
 │   │   └── index.css         Tailwind y el estilo del guion renderizado
 │   ├── nginx.conf.template   el proxy de /api y la caché de los assets

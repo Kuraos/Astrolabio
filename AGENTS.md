@@ -208,8 +208,12 @@ merecía prueba: las acciones de la barra del guion, que son funciones puras y
 se prueban sin navegador ni jsdom. Para correr solo esas pruebas:
 
 ```bash
-npm --prefix web exec -- vitest run
+npm --prefix web test
 ```
+
+Con `npm --prefix web exec -- vitest run` no: `exec` corre desde la raíz del
+repositorio, y vitest recorre también los espacios de trabajo de otras
+sesiones en `.claude/worktrees/`.
 
 (Mantener este bloque al día es parte del trabajo, no un extra.)
 

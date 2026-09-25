@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import { ErrorDeApi, pedir, type Pieza, type Usuario } from './api'
+import { catalogo } from './catalogo'
 import { aQuienLeToca, enPalabras } from './flujo'
 import VistaPieza from './Pieza'
 
@@ -112,6 +113,7 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
   const [piezas, setPiezas] = useState<Pieza[] | null>(null)
   const [abierta, setAbierta] = useState<Pieza | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [filtro, setFiltro] = useState<string | null>(null)
 
   const cargar = useCallback(async () => {
     try {
@@ -125,6 +127,12 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
   useEffect(() => {
     void cargar()
   }, [cargar])
+
+  // Z1: el catálogo sale de la lista que ya está cargada.
+  const entradas = catalogo(piezas ?? [])
+  // Una etiqueta que ya no está en ninguna pieza deja de filtrar: si no, la
+  // lista se quedaría vacía sin que su etiqueta apareciera en el catálogo.
+  const activo = entradas.some((e) => e.etiqueta === filtro) ? filtro : null
 
   async function salir() {
     try {
@@ -160,7 +168,7 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
         <VistaPieza
           pieza={abierta}
           usuario={usuario}
-          sugerencias={etiquetasExistentes(piezas ?? [])}
+          sugerencias={entradas.map((e) => e.etiqueta)}
           alVolver={() => {
             setAbierta(null)
             void cargar()
@@ -186,8 +194,25 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
             {usuario.rol === 'editor' && ' Johan crea la primera.'}
           </p>
         ) : (
+          <>
+          {activo && (
+            <p className="mb-2 flex items-baseline justify-between gap-3 text-xs text-slate-400">
+              <span>
+                Solo las de <span className="text-slate-100">{activo}</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setFiltro(null)}
+                className="shrink-0 text-slate-400 hover:text-slate-200"
+              >
+                Ver todas
+              </button>
+            </p>
+          )}
           <ul className="divide-y divide-slate-800">
-            {porTurno(piezas, usuario).map((pieza) => (
+            {porTurno(piezas, usuario)
+              .filter((pieza) => activo === null || pieza.etiquetas.includes(activo))
+              .map((pieza) => (
               <li key={pieza.id}>
                 {/* Los dos roles abren la pieza: el editor lee el guion y
                     puede corregirlo; lo que no ve es el respaldo. */}
@@ -225,17 +250,48 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
               </li>
             ))}
           </ul>
+          </>
+        )}
+      </Panel>
+
+      {/* Z2: de qué se ha hablado. Pulsar una etiqueta filtra la lista de
+          arriba; pulsarla otra vez la devuelve entera. */}
+      <Panel titulo="Etiquetas · de qué hemos hablado">
+        {entradas.length === 0 ? (
+          <p className="text-sm text-slate-400">
+            Todavía no hay etiquetas: se ponen en cada pieza.
+          </p>
+        ) : (
+          <ul className="divide-y divide-slate-800">
+            {entradas.map((entrada) => (
+              <li key={entrada.etiqueta}>
+                <button
+                  type="button"
+                  aria-pressed={activo === entrada.etiqueta}
+                  onClick={() =>
+                    setFiltro(activo === entrada.etiqueta ? null : entrada.etiqueta)
+                  }
+                  className={`-mx-2 flex w-[calc(100%+1rem)] items-baseline justify-between gap-3 rounded-md px-2 py-2 text-left hover:bg-slate-800/60 ${
+                    activo === entrada.etiqueta ? 'bg-slate-800/60' : ''
+                  }`}
+                >
+                  <span className="min-w-0 break-words text-sm text-slate-100">
+                    {entrada.etiqueta}
+                  </span>
+                  <span className="shrink-0 text-xs text-slate-400">
+                    {entrada.publicadas} {entrada.publicadas === 1 ? 'publicada' : 'publicadas'}{' '}
+                    · {entrada.enCurso} en curso
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
         )}
       </Panel>
         </>
       )}
     </div>
   )
-}
-
-/** Y5: las etiquetas en uso, sin repetir y en orden alfabético. */
-function etiquetasExistentes(piezas: Pieza[]): string[] {
-  return [...new Set(piezas.flatMap((p) => p.etiquetas))].sort((a, b) => a.localeCompare(b, 'es'))
 }
 
 /**
