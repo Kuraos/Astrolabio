@@ -14,13 +14,25 @@ import {
 } from './api'
 import { aQuienLeToca, confirmacion, enPalabras, vuelveAtras } from './flujo'
 import Guion from './Guion'
+import { ESTADOS } from './tablero'
 import ListaDeTareas, { quedan } from './Tareas'
 import PanelTemas from './Temas'
+import {
+  ANCHO,
+  Aviso,
+  BOTON,
+  BOTON_DE_TEXTO,
+  BOTON_SECUNDARIO,
+  CONTROL,
+  Campo,
+  Estacion,
+} from './ui'
 
 /**
  * Vista de una pieza: arriba el traspaso (N2, N3), las fechas (AC3), las
  * tareas (AD4), el material y el tema con sus etiquetas, y debajo el guion
- * con su barra y su vista previa (J1, J2 y la Fase 4).
+ * con su barra y su vista previa (J1, J2 y la Fase 4). Desde la Fase 7, en
+ * estaciones de dos columnas desde `lg` (AJ3).
  */
 export default function VistaPieza({
   pieza: inicial,
@@ -64,112 +76,173 @@ export default function VistaPieza({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="relative flex items-center justify-between gap-3">
-        <button
-          type="button"
-          onClick={alVolver}
-          className="text-xs text-slate-400 hover:text-slate-200"
+    <main className="flex flex-col pb-16">
+      {/* AJ1: volver, qué pieza es, y guardar o exportar. */}
+      <div className="border-b border-line">
+        <div
+          className={`${ANCHO} relative flex min-h-13 flex-wrap items-center justify-between gap-x-3 gap-y-2 py-2`}
         >
-          ← Piezas
-        </button>
-        <div className="flex items-center gap-2">
-          {sinGuardar && (
-            <span className="text-xs text-amber-300/80">sin guardar</span>
-          )}
-          <button
-            type="button"
-            onClick={() => void guardar()}
-            disabled={guardando || !sinGuardar}
-            className="rounded-md bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-900 disabled:opacity-40"
-          >
-            {guardando ? 'Guardando…' : 'Guardar'}
-          </button>
-          {/* J3: exportar es acción explícita, nunca automática al guardar —
-              escribiría en el vault de Johan sin que lo haya pedido. Solo él
-              exporta, acompañando al 403 del servidor. */}
-          {usuario.rol === 'investigador' && (
-            <Exportar pieza={pieza} haySinGuardar={sinGuardar} />
-          )}
+          <div className="flex items-center gap-5 whitespace-nowrap">
+            <button type="button" onClick={alVolver} className={BOTON_DE_TEXTO}>
+              ← Piezas
+            </button>
+            <span className="mono-label text-ink-3">Pieza {pieza.id}</span>
+          </div>
+          <div className="ml-auto flex items-center gap-2.5 whitespace-nowrap">
+            {sinGuardar && <span className="mono-label text-alert">Sin guardar</span>}
+            <button
+              type="button"
+              onClick={() => void guardar()}
+              disabled={guardando || !sinGuardar}
+              className={BOTON}
+            >
+              {guardando ? 'Guardando…' : 'Guardar'}
+            </button>
+            {/* J3: exportar es acción explícita, nunca automática al guardar —
+                escribiría en el vault de Johan sin que lo haya pedido. Solo él
+                exporta, acompañando al 403 del servidor. */}
+            {usuario.rol === 'investigador' && (
+              <Exportar pieza={pieza} haySinGuardar={sinGuardar} />
+            )}
+          </div>
         </div>
       </div>
 
-      <header>
-        <h2 className="text-lg font-semibold">{pieza.titulo}</h2>
-        <p className="text-xs text-slate-500">
-          {[pieza.formato, pieza.tema, pieza.plataforma].filter(Boolean).join(' · ') ||
-            'sin formato ni tema todavía'}
-        </p>
-      </header>
+      <div className={`${ANCHO} flex flex-col`}>
+        <header className="flex flex-col gap-3 pt-7 pb-6">
+          <h2 className="text-[clamp(2rem,4vw,3.25rem)] leading-none font-bold tracking-[-0.01em] break-words font-stretch-semi-condensed">
+            {pieza.titulo}
+          </h2>
+          <p className="mono-label text-ink-2">
+            {[pieza.formato, pieza.tema, pieza.plataforma].filter(Boolean).join(' · ') ||
+              'sin formato ni tema todavía'}
+          </p>
+        </header>
 
-      <PanelTraspaso
-        pieza={pieza}
-        usuario={usuario}
-        haySinGuardar={sinGuardar}
-        tareas={tareas}
-        alMover={setPieza}
-      />
+        <Pista pieza={pieza} usuario={usuario} />
 
-      <PanelFechas pieza={pieza} alCambiar={setPieza} />
+        <div className="mt-8 grid lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+          <PanelTraspaso
+            pieza={pieza}
+            haySinGuardar={sinGuardar}
+            tareas={tareas}
+            alMover={setPieza}
+          />
 
-      {/* AD4: la checklist de la pieza. */}
-      <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
-        <h3 className="text-xs font-medium uppercase tracking-wider text-slate-500">
-          Tareas
-        </h3>
-        <div className="mt-3">
-          <ListaDeTareas tareas={tareas} piezaId={pieza.id} actualizar={actualizarTareas} />
+          <div className="flex min-w-0 flex-col border-t border-line lg:border-l lg:pl-7">
+            <PanelFechas pieza={pieza} alCambiar={setPieza} />
+
+            {/* AD4: la checklist de la pieza. */}
+            <Estacion titulo="Tareas" className="border-t border-line pt-5 pb-7">
+              <ListaDeTareas tareas={tareas} piezaId={pieza.id} actualizar={actualizarTareas} />
+            </Estacion>
+          </div>
+
+          <PanelMaterial pieza={pieza} />
+
+          <div className="flex min-w-0 flex-col border-t border-line lg:border-l lg:pl-7">
+            <PanelTemas pieza={pieza} sugerencias={sugerencias} alCambiar={setPieza} />
+
+            {/* J2: solo para el investigador. El ADR 0001 le da `literature` a
+                él, y la API ya devuelve 403 al editor — esto no lo esconde, lo
+                acompaña. */}
+            {usuario.rol === 'investigador' && (
+              <PanelRespaldo pieza={pieza} alCambiar={setPieza} />
+            )}
+          </div>
+
+          <Estacion
+            titulo="Guion"
+            extra={
+              <span className="mono-data text-ink-3 max-md:hidden">
+                ctrl+s guarda · mk y dm abren una fórmula
+              </span>
+            }
+            className="col-span-full border-t border-line pt-5"
+          >
+            {error && <Aviso mensaje={error} />}
+
+            {/* U4: Ctrl+S hace lo mismo que el botón, y nada si no hay cambios
+                o ya se está guardando. */}
+            <Guion
+              valor={guion}
+              alCambiar={setGuion}
+              alGuardar={() => {
+                if (sinGuardar && !guardando) void guardar()
+              }}
+            />
+          </Estacion>
         </div>
-      </section>
-
-      <PanelMaterial pieza={pieza} />
-
-      <PanelTemas pieza={pieza} sugerencias={sugerencias} alCambiar={setPieza} />
-
-      {error && (
-        <p
-          role="alert"
-          className="rounded-md border border-rose-900/60 bg-rose-950/40 px-3 py-2 text-xs text-rose-200"
-        >
-          {error}
-        </p>
-      )}
-
-      {/* U4: Ctrl+S hace lo mismo que el botón, y nada si no hay cambios o
-          ya se está guardando. */}
-      <Guion
-        valor={guion}
-        alCambiar={setGuion}
-        alGuardar={() => {
-          if (sinGuardar && !guardando) void guardar()
-        }}
-      />
-
-      {/* J2: solo para el investigador. El ADR 0001 le da `literature` a él, y
-          la API ya devuelve 403 al editor — esto no lo esconde, lo acompaña. */}
-      {usuario.rol === 'investigador' && (
-        <PanelRespaldo pieza={pieza} alCambiar={setPieza} />
-      )}
-    </div>
+      </div>
+    </main>
   )
 }
 
 /**
- * El traspaso: de quién es la pieza, qué puede hacer quien mira y cómo llegó
- * aquí (N2, N3).
+ * AJ2: los seis estados en fila. Los que ya pasaron, el actual —naranja si le
+ * toca a quien mira, invertido si no— y los que faltan. Un estado que el
+ * cliente no conoce se añade al final, como en el tablero (AB2).
+ */
+function Pista({ pieza, usuario }: { pieza: Pieza; usuario: Usuario }) {
+  const estados = ESTADOS.includes(pieza.estado) ? ESTADOS : [...ESTADOS, pieza.estado]
+  const actual = estados.indexOf(pieza.estado)
+  const turno = aQuienLeToca(pieza, usuario)
+  const tuya = pieza.de_quien_es === usuario.rol
+
+  return (
+    <ol aria-label="Dónde está la pieza" className="grid grid-cols-2 gap-0.5 sm:grid-cols-3 lg:grid-cols-6">
+      {estados.map((estado, i) => (
+        <li
+          key={estado}
+          aria-current={i === actual ? 'step' : undefined}
+          className={`flex flex-col gap-1 border-t-[3px] px-3 pt-2.5 pb-3 ${
+            i === actual
+              ? tuya
+                ? 'border-signal bg-signal text-page'
+                : 'border-ink bg-ink text-page'
+              : i < actual
+                ? 'border-control text-ink-2'
+                : 'border-line text-ink-3'
+          }`}
+        >
+          <span className="mono-label">
+            {String(i + 1).padStart(2, '0')}
+            {i === actual && turno && ` · ${turno}`}
+          </span>
+          <span className={`text-sm ${i === actual ? 'font-bold' : 'font-medium'}`}>
+            {enPalabras(estado)}
+          </span>
+        </li>
+      ))}
+    </ol>
+  )
+}
+
+/** AJ5: «12 de sept, 16:30», en 24 h. */
+function fechaYHora(iso: string): string {
+  return new Date(iso).toLocaleString('es-CO', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  })
+}
+
+/**
+ * El traspaso: qué puede hacer quien mira y cómo llegó aquí (N2, N3). De quién
+ * es la pieza ya lo dice la pista de arriba.
  *
  * Los botones son los que la API dice que el usuario puede dar ahora (K4), y
  * acompañan al 403 del servidor, nunca lo sustituyen (D3).
  */
 function PanelTraspaso({
   pieza,
-  usuario,
   haySinGuardar,
   tareas,
   alMover,
 }: {
   pieza: Pieza
-  usuario: Usuario
   haySinGuardar: boolean
   tareas: Tarea[]
   alMover: (p: Pieza) => void
@@ -220,126 +293,96 @@ function PanelTraspaso({
     }
   }
 
-  const turno = aQuienLeToca(pieza, usuario)
   const botones = [...pieza.transiciones].sort(
     (a, b) => Number(vuelveAtras(a)) - Number(vuelveAtras(b)),
   )
 
   return (
-    <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
-      <h3 className="text-xs font-medium uppercase tracking-wider text-slate-500">
-        Traspaso
-      </h3>
-
-      <div className="mt-3 space-y-3">
-        <p className="text-sm">
-          <span className="text-slate-100">{enPalabras(pieza.estado)}</span>
-          {turno && (
-            <span
-              className={
-                pieza.de_quien_es === usuario.rol ? 'text-amber-200' : 'text-slate-500'
-              }
-            >
-              {' '}
-              · {turno}
-            </span>
-          )}
-        </p>
-
-        {botones.length > 0 && (
-          <div className="space-y-2">
+    <Estacion titulo="Traspaso" className="border-t border-line pt-5 pb-8 lg:pr-7">
+      {botones.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <Campo rotulo="Nota para el traspaso · opcional">
             <textarea
               value={nota}
               onChange={(e) => setNota(e.target.value)}
-              rows={2}
+              rows={3}
               placeholder={
                 pieza.transiciones.includes('devolver')
-                  ? 'Nota opcional. Si la devuelves, di qué ajustar.'
-                  : 'Nota opcional.'
+                  ? 'Si la devuelves, di qué ajustar.'
+                  : undefined
               }
-              className="w-full resize-y rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-100 outline-none focus:border-slate-500"
+              className={`${CONTROL} resize-y leading-normal`}
             />
-            <div className="flex flex-wrap gap-2">
-              {botones.map((transicion) => (
-                <button
-                  key={transicion}
-                  type="button"
-                  onClick={() => void mover(transicion)}
-                  disabled={moviendo || haySinGuardar}
-                  className={
-                    vuelveAtras(transicion)
-                      ? 'rounded-md border border-slate-700 px-3 py-1.5 text-xs text-slate-300 disabled:opacity-40'
-                      : 'rounded-md bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-900 disabled:opacity-40'
-                  }
-                >
-                  {enPalabras(transicion)}
-                </button>
-              ))}
-            </div>
-            {/* Mover la pieza con el guion a medias le pasaría al otro la
-                versión anterior. */}
-            {haySinGuardar && (
-              <p className="text-xs text-amber-300/80">
-                Guarda el guion antes de moverla: el otro vería la versión anterior.
-              </p>
-            )}
-            {/* AD7: la checklist informa y no bloquea (Fase 6, §7.2). Los
-                botones siguen activos, y el servidor tampoco mira las tareas. */}
-            {tareas.some((tarea) => !tarea.hecha) && (
-              <p className="text-xs text-amber-300/80">
-                Checklist: {quedan(tareas)}. Se puede mover igual.
-              </p>
-            )}
+          </Campo>
+          <div className="flex flex-wrap gap-2.5">
+            {botones.map((transicion) => (
+              <button
+                key={transicion}
+                type="button"
+                onClick={() => void mover(transicion)}
+                disabled={moviendo || haySinGuardar}
+                className={vuelveAtras(transicion) ? BOTON_SECUNDARIO : BOTON}
+              >
+                {enPalabras(transicion)}
+              </button>
+            ))}
           </div>
-        )}
+          {/* Mover la pieza con el guion a medias le pasaría al otro la
+              versión anterior. */}
+          {haySinGuardar && (
+            <p className="text-[13px] leading-snug text-alert">
+              Guarda el guion antes de moverla: el otro vería la versión anterior.
+            </p>
+          )}
+          {/* AD7: la checklist informa y no bloquea (Fase 6, §7.2). Los
+              botones siguen activos, y el servidor tampoco mira las tareas. */}
+          {tareas.some((tarea) => !tarea.hecha) && (
+            <p className="text-[13px] leading-snug text-alert">
+              Checklist: {quedan(tareas)}. Se puede mover igual.
+            </p>
+          )}
+        </div>
+      )}
 
-        {error && (
-          <p
-            role="alert"
-            className="rounded-md border border-rose-900/60 bg-rose-950/40 px-3 py-2 text-xs text-rose-200"
-          >
-            {error}
-          </p>
-        )}
+      {error && <Aviso mensaje={error} />}
 
-        <div className="border-t border-slate-800 pt-3">
-          <h4 className="text-xs text-slate-500">Historia</h4>
-          {historia === null ? (
-            <p className="mt-2 text-xs text-slate-600">Cargando…</p>
-          ) : historia.length === 0 ? (
-            <p className="mt-2 text-xs text-slate-600">Todavía no ha cambiado de manos.</p>
-          ) : (
-            // Lo último arriba: al abrir una pieza devuelta, lo primero que se
-            // lee es la nota que dice qué ajustar.
-            <ol className="mt-2 space-y-2">
-              {[...historia].reverse().map((paso) => (
-                <li key={paso.id} className="text-xs">
-                  <span className="text-slate-200">{enPalabras(paso.transicion)}</span>
-                  <span className="text-slate-500">
-                    {' '}
-                    · {enPalabras(paso.desde)} → {enPalabras(paso.hacia)}
-                  </span>
-                  <span className="block text-slate-500">
-                    {paso.creado_por} ·{' '}
-                    {new Date(paso.creado_en).toLocaleString('es-CO', {
-                      day: 'numeric',
-                      month: 'short',
-                      hour: 'numeric',
-                      minute: '2-digit',
-                    })}
+      <div className="border-t border-line pt-3.5">
+        <h3 className="mono-label text-ink-3">Historia</h3>
+        {historia === null ? (
+          <p className="mono-label mt-2 text-ink-3">Cargando…</p>
+        ) : historia.length === 0 ? (
+          <p className="mt-2 text-sm text-ink-2">Todavía no ha cambiado de manos.</p>
+        ) : (
+          // Lo último arriba: al abrir una pieza devuelta, lo primero que se
+          // lee es la nota que dice qué ajustar.
+          <ol className="mt-1 flex flex-col">
+            {[...historia].reverse().map((paso) => (
+              <li
+                key={paso.id}
+                className="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-x-4 gap-y-1 border-b border-line-faint py-3 last:border-b-0 max-sm:grid-cols-1"
+              >
+                <span className="mono-data leading-[22px] text-ink-3">
+                  {fechaYHora(paso.creado_en)}
+                </span>
+                <span className="flex min-w-0 flex-col gap-1">
+                  <span className="flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5">
+                    <span className="text-[15px] font-semibold">{enPalabras(paso.transicion)}</span>
+                    <span className="mono-data text-ink-3">
+                      {enPalabras(paso.desde)} → {enPalabras(paso.hacia)} · {paso.creado_por}
+                    </span>
                   </span>
                   {paso.nota && (
-                    <span className="mt-1 block whitespace-pre-wrap text-slate-300">
+                    <span className="text-sm leading-snug whitespace-pre-wrap text-prose">
                       {paso.nota}
                     </span>
                   )}
-                </li>
-              ))}
-            </ol>
-          )}
-        </div>
+                </span>
+              </li>
+            ))}
+          </ol>
+        )}
       </div>
-    </section>
+    </Estacion>
   )
 }
 
@@ -374,10 +417,8 @@ function PanelFechas({
   }
 
   return (
-    <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
-      <h3 className="text-xs font-medium uppercase tracking-wider text-slate-500">Fechas</h3>
-
-      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+    <Estacion titulo="Fechas" className="pt-5 pb-6">
+      <div className="grid gap-3 sm:grid-cols-2">
         {/* «Entrega del diseño» y no «Fecha de entrega», que es la palabra del
             editor: junto al botón «Entregar» de Johan, que es la otra
             entrega, se leería al revés (Fase 6, §7.7). */}
@@ -393,15 +434,8 @@ function PanelFechas({
         />
       </div>
 
-      {error && (
-        <p
-          role="alert"
-          className="mt-3 rounded-md border border-rose-900/60 bg-rose-950/40 px-3 py-2 text-xs text-rose-200"
-        >
-          {error}
-        </p>
-      )}
-    </section>
+      {error && <Aviso mensaje={error} />}
+    </Estacion>
   )
 }
 
@@ -430,10 +464,9 @@ function CampoFecha({
   }
 
   return (
-    <label className="block space-y-1.5">
-      <span className="text-xs text-slate-400">{etiqueta}</span>
-      {/* `scheme-dark`: sin él, el icono y el calendario del navegador salen
-          en claro, y el icono negro no se ve sobre el campo. */}
+    <Campo rotulo={etiqueta}>
+      {/* El `color-scheme: dark` de la página pone claro el icono del
+          calendario, que en negro no se vería sobre el campo. */}
       <input
         type="date"
         value={borrador}
@@ -444,9 +477,9 @@ function CampoFecha({
           pendiente.current = window.setTimeout(() => guardar(nuevo), 800)
         }}
         onBlur={() => guardar(borrador)}
-        className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-100 outline-none scheme-dark focus:border-slate-500"
+        className={CONTROL}
       />
-    </label>
+    </Campo>
   )
 }
 
@@ -510,83 +543,75 @@ function PanelMaterial({ pieza }: { pieza: Pieza }) {
   }
 
   return (
-    <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
-      <h3 className="text-xs font-medium uppercase tracking-wider text-slate-500">
-        Material
-      </h3>
-
-      <div className="mt-3 space-y-3">
-        {enlaces === null ? (
-          <p className="text-xs text-slate-400">Cargando…</p>
-        ) : enlaces.length === 0 ? (
-          <p className="text-xs text-slate-400">Todavía no hay enlaces.</p>
-        ) : (
-          <ul className="space-y-2">
-            {enlaces.map((enlace) => (
-              <li key={enlace.id} className="flex items-start justify-between gap-3 text-xs">
-                <span className="min-w-0">
-                  {/* S2: en otra pestaña, y sin darle a la página enlazada acceso
-                      a esta ni saber de dónde viene la visita. */}
-                  <a
-                    href={enlace.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="break-words text-slate-100 underline decoration-slate-600 underline-offset-2 hover:decoration-slate-300"
-                  >
-                    {enlace.nota || enlace.url}
-                  </a>
-                  <span className="block text-slate-400">
-                    {dominio(enlace.url)} · {enlace.creado_por}
-                  </span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => void quitar(enlace)}
-                  className="shrink-0 text-slate-400 hover:text-slate-200"
+    <Estacion titulo="Material" className="border-t border-line pt-5 pb-8 lg:pr-7">
+      {enlaces === null ? (
+        <p className="mono-label text-ink-3">Cargando…</p>
+      ) : enlaces.length === 0 ? (
+        <p className="text-sm text-ink-2">Todavía no hay enlaces.</p>
+      ) : (
+        <ul className="flex flex-col">
+          {enlaces.map((enlace) => (
+            <li
+              key={enlace.id}
+              className="flex items-start justify-between gap-4 border-b border-line-faint py-2.5"
+            >
+              <span className="flex min-w-0 flex-col gap-0.5">
+                {/* S2: en otra pestaña, y sin darle a la página enlazada acceso
+                    a esta ni saber de dónde viene la visita. */}
+                <a
+                  href={enlace.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[15px] break-words underline decoration-control underline-offset-[3px] hover:decoration-ink"
                 >
-                  Quitar
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+                  {enlace.nota || enlace.url}
+                </a>
+                <span className="mono-data text-ink-3">
+                  {dominio(enlace.url)} · {enlace.creado_por}
+                </span>
+              </span>
+              <button
+                type="button"
+                onClick={() => void quitar(enlace)}
+                className={`${BOTON_DE_TEXTO} shrink-0`}
+              >
+                Quitar
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
 
-        <form onSubmit={anadir} className="space-y-2">
+      <form
+        onSubmit={anadir}
+        className="grid items-end gap-2 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)_auto]"
+      >
+        <Campo rotulo="Enlace">
           <input
             type="url"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://… un pin, un vídeo, un artículo"
-            className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-100 outline-none focus:border-slate-500"
+            className={CONTROL}
           />
+        </Campo>
+        <Campo rotulo="Para qué sirve · opcional">
           <input
             type="text"
             value={nota}
             onChange={(e) => setNota(e.target.value)}
-            placeholder="Nota opcional: para qué sirve"
-            className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-100 outline-none focus:border-slate-500"
+            className={CONTROL}
           />
-          <button
-            type="submit"
-            disabled={enviando || !url.trim()}
-            className="rounded-md border border-slate-700 px-3 py-1.5 text-xs text-slate-300 disabled:opacity-40"
-          >
-            {enviando ? 'Añadiendo…' : 'Añadir enlace'}
-          </button>
-        </form>
+        </Campo>
+        <button type="submit" disabled={enviando || !url.trim()} className={BOTON_SECUNDARIO}>
+          {enviando ? 'Añadiendo…' : 'Añadir enlace'}
+        </button>
+      </form>
 
-        {error && (
-          <p
-            role="alert"
-            className="rounded-md border border-rose-900/60 bg-rose-950/40 px-3 py-2 text-xs text-rose-200"
-          >
-            {error}
-          </p>
-        )}
+      {error && <Aviso mensaje={error} />}
 
-        <Carpeta pieza={pieza} />
-      </div>
-    </section>
+      <Carpeta pieza={pieza} />
+    </Estacion>
   )
 }
 
@@ -641,7 +666,7 @@ function Carpeta({ pieza }: { pieza: Pieza }) {
     <button
       type="button"
       onClick={() => void copiarRuta(archivo)}
-      className="shrink-0 text-slate-400 hover:text-slate-200"
+      className={`${BOTON_DE_TEXTO} shrink-0 self-start`}
     >
       {copiada === archivo.nombre ? 'Copiada' : 'Copiar ruta'}
     </button>
@@ -651,19 +676,24 @@ function Carpeta({ pieza }: { pieza: Pieza }) {
   const otros = estado?.archivos.filter((a) => !a.miniatura) ?? []
 
   return (
-    <div className="space-y-2 border-t border-slate-800 pt-3">
+    <div className="flex flex-col gap-3.5 border-t border-line pt-3.5">
       <div className="flex items-baseline justify-between gap-3">
-        <h4 className="min-w-0 break-words text-xs text-slate-400">
+        <h3 className="mono-label min-w-0 break-words text-ink-3">
           Carpeta en Syncthing
-          {estado?.carpeta && <span className="text-slate-200"> · {estado.carpeta}</span>}
-        </h4>
+          {estado?.carpeta && (
+            <span className="font-sans text-[13px] tracking-normal normal-case text-ink font-stretch-normal">
+              {' '}
+              · {estado.carpeta}
+            </span>
+          )}
+        </h3>
         {/* La app no se entera sola de lo que llega a la carpeta. */}
         {estado && (
           <button
             type="button"
             onClick={() => void pedirCarpeta()}
             disabled={ocupado}
-            className="shrink-0 text-xs text-slate-400 hover:text-slate-200 disabled:opacity-40"
+            className={`${BOTON_DE_TEXTO} shrink-0`}
           >
             Actualizar
           </button>
@@ -671,40 +701,40 @@ function Carpeta({ pieza }: { pieza: Pieza }) {
       </div>
 
       {estado === null ? (
-        !error && <p className="text-xs text-slate-400">Cargando…</p>
+        !error && <p className="mono-label text-ink-3">Cargando…</p>
       ) : estado.motivo ? (
-        <p className="text-xs text-slate-400">{estado.motivo}</p>
+        <p className="text-sm text-ink-2">{estado.motivo}</p>
       ) : estado.carpeta === null ? (
         <button
           type="button"
           onClick={() => void pedirCarpeta({ method: 'POST' })}
           disabled={ocupado}
-          className="rounded-md border border-slate-700 px-3 py-1.5 text-xs text-slate-300 disabled:opacity-40"
+          className={`${BOTON_SECUNDARIO} self-start`}
         >
           {ocupado ? 'Creando…' : 'Crear la carpeta de la pieza'}
         </button>
       ) : estado.archivos.length === 0 ? (
-        <p className="text-xs text-slate-400">
+        <p className="text-sm text-ink-2">
           Vacía. Lo que pongas en esta carpeta, dentro de tu carpeta de Syncthing, aparece
           aquí.
         </p>
       ) : (
         <>
           {/* S3: las imágenes, en miniatura. `contain` y no `cover`: de una
-              referencia importa la imagen entera, no un recorte. Seis por
-              fila en la vista ancha (X1), para que no crezcan con ella. */}
+              referencia importa la imagen entera, no un recorte. Cinco por
+              fila en la vista ancha, para que no crezcan con ella. */}
           {imagenes.length > 0 && (
-            <ul className="grid grid-cols-3 gap-2 md:grid-cols-6">
+            <ul className="grid grid-cols-3 gap-3 md:grid-cols-5">
               {imagenes.map((archivo) => (
-                <li key={archivo.nombre} className="min-w-0 space-y-1 text-[11px]">
+                <li key={archivo.nombre} className="flex min-w-0 flex-col gap-1">
                   <img
                     src={archivo.miniatura ?? undefined}
                     alt={archivo.nombre}
                     loading="lazy"
-                    className="aspect-square w-full rounded-md bg-slate-950 object-contain"
+                    className="aspect-square w-full border border-line bg-surface object-contain"
                   />
-                  <p className="break-all text-slate-200">{archivo.nombre}</p>
-                  <p className="text-slate-400">{detalles(archivo)}</p>
+                  <p className="text-[12.5px] leading-snug break-all">{archivo.nombre}</p>
+                  <p className="mono-data text-ink-3">{detalles(archivo)}</p>
                   {botonCopiar(archivo)}
                 </li>
               ))}
@@ -713,15 +743,15 @@ function Carpeta({ pieza }: { pieza: Pieza }) {
 
           {/* R4: lo demás, sin miniatura. */}
           {otros.length > 0 && (
-            <ul className="space-y-1">
+            <ul className="flex flex-col">
               {otros.map((archivo) => (
                 <li
                   key={archivo.nombre}
-                  className="flex items-baseline justify-between gap-3 text-xs"
+                  className="flex items-baseline justify-between gap-3 border-t border-line-faint py-2"
                 >
-                  <span className="min-w-0 break-words text-slate-200">{archivo.nombre}</span>
-                  <span className="flex shrink-0 gap-3 text-slate-400">
-                    {detalles(archivo)}
+                  <span className="min-w-0 text-[13px] break-words">{archivo.nombre}</span>
+                  <span className="flex shrink-0 items-baseline gap-4">
+                    <span className="mono-data text-ink-3">{detalles(archivo)}</span>
                     {botonCopiar(archivo)}
                   </span>
                 </li>
@@ -731,27 +761,14 @@ function Carpeta({ pieza }: { pieza: Pieza }) {
         </>
       )}
 
-      {error && (
-        <p
-          role="alert"
-          className="rounded-md border border-rose-900/60 bg-rose-950/40 px-3 py-2 text-xs text-rose-200"
-        >
-          {error}
-        </p>
-      )}
+      {error && <Aviso mensaje={error} />}
     </div>
   )
 }
 
-/** Q3: el tamaño y la fecha, como los da el explorador. */
+/** Q3: el tamaño y la fecha, como los da el explorador; la hora, en 24 h (AJ5). */
 function detalles(archivo: Archivo): string {
-  const fecha = new Date(archivo.modificado).toLocaleString('es-CO', {
-    day: 'numeric',
-    month: 'short',
-    hour: 'numeric',
-    minute: '2-digit',
-  })
-  return `${enBytes(archivo.tamano)} · ${fecha}`
+  return `${enBytes(archivo.tamano)} · ${fechaYHora(archivo.modificado)}`
 }
 
 /**
@@ -837,23 +854,23 @@ function Exportar({ pieza, haySinGuardar }: { pieza: Pieza; haySinGuardar: boole
             ? 'Se exportará lo último guardado, no lo que tienes sin guardar'
             : undefined
         }
-        className="rounded-md border border-slate-700 px-3 py-1.5 text-xs text-slate-300 disabled:opacity-40"
+        className={BOTON_SECUNDARIO}
       >
         {enviando ? 'Exportando…' : 'Exportar al vault'}
       </button>
 
       {(resultado || error) && (
-        <div className="absolute inset-x-0 top-full z-10 mt-2">
-          <p
-            role="status"
-            className={`rounded-md border px-3 py-2 font-mono text-[11px] break-all ${
-              error
-                ? 'border-rose-900/60 bg-rose-950/40 text-rose-200'
-                : 'border-emerald-900/60 bg-emerald-950/30 text-emerald-200'
-            }`}
-          >
-            {error ?? `Escrito en ${resultado}`}
-          </p>
+        <div className="absolute top-full right-4 left-4 z-10 mt-2 flex justify-end sm:right-6 lg:right-10">
+          <div className="w-full max-w-xl bg-page">
+            {error ? (
+              <Aviso mensaje={error} />
+            ) : (
+              <p role="status" className="flex flex-col gap-1 border border-control px-3 py-2.5">
+                <span className="mono-label text-ink-2">Escrito en</span>
+                <span className="mono-data break-all text-ink">{resultado}</span>
+              </p>
+            )}
+          </div>
         </div>
       )}
     </>
@@ -899,49 +916,40 @@ function PanelRespaldo({
   )
 
   return (
-    <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
-      <h3 className="text-xs font-medium uppercase tracking-wider text-slate-500">
-        Respaldo científico
-      </h3>
+    <Estacion titulo="Respaldo científico" className="border-t border-line pt-5 pb-7">
+      {error && <Aviso mensaje={error} />}
 
-      <div className="mt-3 space-y-2">
-        {error && <p className="text-xs text-rose-300/80">{error}</p>}
+      {/* G4, la mitad de interfaz: si el vault no está montado la aplicación
+          funciona igual y dice por qué, en vez de fingir que no hay notas. */}
+      {estado && !estado.disponible && <p className="text-sm text-ink-2">{estado.motivo}</p>}
 
-        {/* G4, la mitad de interfaz: si el vault no está montado la aplicación
-            funciona igual y dice por qué, en vez de fingir que no hay notas. */}
-        {estado && !estado.disponible && (
-          <p className="text-xs text-slate-500">{estado.motivo}</p>
-        )}
-
-        {estado?.disponible &&
-          (estado.notas.length === 0 ? (
-            <p className="text-xs text-slate-500">
-              No hay notas de respaldo en el vault todavía.
-            </p>
-          ) : (
-            estado.notas.map((nota) => (
-              <label
-                key={nota.archivo}
-                className="flex cursor-pointer items-start gap-2 text-xs"
-              >
-                <input
-                  type="checkbox"
-                  checked={pieza.respaldo.includes(nota.archivo)}
-                  onChange={() => void alternar(nota.archivo)}
-                  className="mt-0.5 accent-slate-300"
-                />
-                <span>
-                  <span className="text-slate-200">{nota.fuente_titulo}</span>
-                  {(nota.autor || nota.fecha) && (
-                    <span className="block text-slate-500">
-                      {[nota.autor, nota.fecha].filter(Boolean).join(' · ')}
-                    </span>
-                  )}
-                </span>
-              </label>
-            ))
-          ))}
-      </div>
-    </section>
+      {estado?.disponible &&
+        (estado.notas.length === 0 ? (
+          <p className="text-sm text-ink-2">No hay notas de respaldo en el vault todavía.</p>
+        ) : (
+          <ul className="flex flex-col gap-3.5">
+            {estado.notas.map((nota) => (
+              <li key={nota.archivo}>
+                <label className="flex cursor-pointer items-start gap-2.5">
+                  <input
+                    type="checkbox"
+                    checked={pieza.respaldo.includes(nota.archivo)}
+                    onChange={() => void alternar(nota.archivo)}
+                    className="mt-0.5 size-4 shrink-0 accent-ink"
+                  />
+                  <span className="flex min-w-0 flex-col gap-1">
+                    <span className="text-sm leading-snug break-words">{nota.fuente_titulo}</span>
+                    {(nota.autor || nota.fecha) && (
+                      <span className="mono-data text-ink-3">
+                        {[nota.autor, nota.fecha].filter(Boolean).join(' · ')}
+                      </span>
+                    )}
+                  </span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        ))}
+    </Estacion>
   )
 }
