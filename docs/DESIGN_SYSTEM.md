@@ -106,7 +106,7 @@ Los de referencia viven en `web/src/App.tsx`: `Panel`, `Campo`, `Aviso` y
 | Botón secundario | `rounded-md border border-slate-700 px-3 py-1.5 text-xs text-slate-300 disabled:opacity-40` | Devolver, Reformular, Salir, Añadir enlace, Crear la carpeta |
 | Botón de texto | `text-xs text-slate-400 hover:text-slate-200` | ← Piezas, Quitar, Actualizar, Copiar ruta |
 | Aviso de error | `rounded-md border border-rose-900/60 bg-rose-950/40 px-3 py-2 text-xs text-rose-200`, con `role="alert"` | `Aviso` |
-| Aviso que no bloquea | `text-xs text-amber-300/80` | «sin guardar», «Guarda el guion antes de moverla», «Checklist: quedan 2 de 3 tareas. Se puede mover igual.» |
+| Aviso que no bloquea | `text-xs text-amber-300/80` | «sin guardar», «Guarda el guion antes de moverla», «Checklist: quedan 2 de 3 tareas. Se puede mover igual.», «atrasada» |
 | Insignia de turno | `rounded px-2 py-0.5 text-[11px]`, con `bg-amber-400/15 text-amber-200` si te toca y `text-slate-400` si no | `Turno` |
 | Insignia de rol | `rounded bg-slate-800 px-2 py-0.5 text-xs text-slate-300` | Sesión |
 | Fila de lista | `rounded-md px-2 py-2.5 hover:bg-slate-800/60`, dentro de `divide-y divide-slate-800`. Si filtra, la elegida lleva `bg-slate-800/60` y `aria-pressed` | Catálogo de etiquetas |
@@ -118,6 +118,7 @@ Los de referencia viven en `web/src/App.tsx`: `Panel`, `Campo`, `Aviso` y
 | Botón de la barra | `rounded-md border border-slate-700 px-2 py-1 text-xs text-slate-300 hover:border-slate-500 hover:text-slate-100`; negrita y cursiva, en su propio estilo | Barra del guion |
 | Selector | `<select>` con las clases del campo, en `text-xs`, dentro de un `<label>` con su nombre en `text-xs text-slate-400` | Tema de la pieza |
 | Campo de fecha | `<input type="date">` con las clases del campo, en `text-xs` y con `scheme-dark`, sin el cual el icono del calendario sale negro sobre el campo. Se guarda al salir de él o tras 800 ms sin cambios, no en cada tecla | Fechas de la pieza |
+| Semana | Su título en `text-xs font-medium text-slate-300` («Semana del 21 de sept»), con « · esta semana» en `text-slate-400` o « · atrasada» en `text-amber-300/80`. Debajo, una fila por entrada, `-mx-2 flex items-baseline gap-3 rounded-md px-2 py-1.5 text-xs hover:bg-slate-800/60`, con el día en `w-12` («lun 28»), el tipo en `w-20` y el título, que abre la pieza | Semanas |
 | Casilla | `<input type="checkbox">` con `mt-0.5 accent-slate-300`, dentro del `<label>` de su texto, en `flex cursor-pointer items-start gap-2 text-xs` | Respaldo, tareas |
 | Tarea | La casilla con el texto en `text-slate-200`; hecha, el texto en `text-slate-400 line-through` y «hecha por …» debajo en `text-[11px] text-slate-400`. Un `×` la quita, como a la ficha de etiqueta | Tareas de la pieza y sueltas |
 | Ficha de etiqueta | `rounded bg-slate-800 py-0.5 pl-2 pr-1 text-xs text-slate-200`, con un `×` que la quita y dice cuál en su `aria-label` | Etiquetas de la pieza |

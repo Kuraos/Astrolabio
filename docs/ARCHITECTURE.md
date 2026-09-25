@@ -99,7 +99,7 @@ analítica, ni almacenamiento en la nube.
 │   │   ├── api.ts            pedir(), ErrorDeApi y los tipos de la API
 │   │   ├── barra.ts          las acciones de la barra del guion, puras
 │   │   ├── catalogo.ts       el catálogo de etiquetas, puro
-│   │   ├── fechas.ts         las fechas de calendario, sin pasar por UTC
+│   │   ├── fechas.ts         fechas de calendario y semanas, sin pasar por UTC
 │   │   ├── flujo.ts          las palabras de estados y transiciones
 │   │   ├── tablero.ts        las piezas repartidas por estado, puro
 │   │   └── index.css         Tailwind y el estilo del guion renderizado

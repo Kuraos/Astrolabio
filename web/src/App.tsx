@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { ErrorDeApi, pedir, type Pieza, type Tarea, type Usuario } from './api'
 import { catalogo } from './catalogo'
-import { diaYMes } from './fechas'
+import { diaDeHoy, diaDeLaSemana, diaYMes, semanas } from './fechas'
 import { aQuienLeToca, enPalabras } from './flujo'
 import VistaPieza from './Pieza'
 import { tablero } from './tablero'
@@ -234,6 +234,11 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
         )}
       </Panel>
 
+      {/* AE2: para cuándo, por semanas. */}
+      <Panel titulo="Semanas · entregas y publicaciones pendientes">
+        <Semanas piezas={piezas ?? []} alAbrir={setAbierta} />
+      </Panel>
+
       {/* AD5: lo que no es de ninguna pieza. */}
       <Panel titulo="Tareas sueltas · las que no son de ninguna pieza">
         <ListaDeTareas
@@ -347,6 +352,60 @@ function Tablero({
                       tareas={tareas.filter((tarea) => tarea.pieza_id === pieza.id)}
                     />
                     {pieza.guion.trim() === '' && <span>sin guion</span>}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  )
+}
+
+/**
+ * AE2: lo pendiente con fecha, por semanas, porque el editor trabaja «por
+ * bloques semanales, quincenales o mensuales» (P1). Lo atrasado sale primero,
+ * y cada entrada abre su pieza.
+ */
+function Semanas({ piezas, alAbrir }: { piezas: Pieza[]; alAbrir: (pieza: Pieza) => void }) {
+  const lista = semanas(piezas, diaDeHoy())
+
+  if (lista.length === 0) {
+    return (
+      <p className="text-sm text-slate-400">
+        Nada pendiente con fecha. Las fechas se ponen en cada pieza.
+      </p>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      {lista.map((semana) => (
+        <section key={semana.lunes} className="space-y-1">
+          <h3 className="text-xs font-medium text-slate-300">
+            Semana del {diaYMes(semana.lunes)}
+            {semana.cuando === 'esta' && <span className="text-slate-400"> · esta semana</span>}
+            {semana.cuando === 'pasada' && (
+              <span className="text-amber-300/80"> · atrasada</span>
+            )}
+          </h3>
+          <ul>
+            {semana.entradas.map((entrada) => (
+              <li key={`${entrada.tipo}-${entrada.pieza.id}`}>
+                <button
+                  type="button"
+                  onClick={() => alAbrir(entrada.pieza)}
+                  className="-mx-2 flex w-[calc(100%+1rem)] items-baseline gap-3 rounded-md px-2 py-1.5 text-left text-xs hover:bg-slate-800/60"
+                >
+                  <span className="w-12 shrink-0 text-slate-400">
+                    {diaDeLaSemana(entrada.fecha)}
+                  </span>
+                  <span className="w-20 shrink-0 text-slate-400">
+                    {entrada.tipo === 'entrega' ? 'entrega' : 'publicación'}
+                  </span>
+                  <span className="min-w-0 break-words text-slate-100">
+                    {entrada.pieza.titulo}
                   </span>
                 </button>
               </li>
