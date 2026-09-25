@@ -17,6 +17,13 @@ export class ErrorDeApi extends Error {
 
 export type Rol = 'investigador' | 'editor'
 
+/**
+ * Y1: los mismos cuatro temas que acepta la API (`Tema`, en
+ * `api/app/piezas.py`). Si cambian allí, cambian aquí; si no, la API
+ * responde 422 y lo delata.
+ */
+export const TEMAS = ['Sistema Solar', 'Estrellas', 'Galaxias y cosmología', 'Exploración espacial']
+
 export type Usuario = { usuario: string; rol: Rol }
 
 export type Pieza = {
@@ -29,6 +36,8 @@ export type Pieza = {
   tema: string | null
   plataforma: string | null
   respaldo: string[]
+  // Y2 y Y3: ya normalizadas por el servidor.
+  etiquetas: string[]
   // K4: los tres los decide el servidor. `transiciones` son las que puede dar
   // quien pregunta, y el cliente pinta esas y no otras (N2).
   estado: string

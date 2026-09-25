@@ -13,18 +13,23 @@ import {
 } from './api'
 import { aQuienLeToca, confirmacion, enPalabras, vuelveAtras } from './flujo'
 import Guion from './Guion'
+import PanelTemas from './Temas'
 
 /**
- * Vista de una pieza: arriba el traspaso (N2, N3) y el material, y debajo el
- * guion con su barra y su vista previa (J1, J2 y la Fase 4).
+ * Vista de una pieza: arriba el traspaso (N2, N3), el material y el tema con
+ * sus etiquetas, y debajo el guion con su barra y su vista previa (J1, J2 y
+ * la Fase 4).
  */
 export default function VistaPieza({
   pieza: inicial,
   usuario,
+  sugerencias,
   alVolver,
 }: {
   pieza: Pieza
   usuario: Usuario
+  /** Las etiquetas que ya existen en alguna pieza (Y5). */
+  sugerencias: string[]
   alVolver: () => void
 }) {
   const [pieza, setPieza] = useState(inicial)
@@ -99,6 +104,8 @@ export default function VistaPieza({
       />
 
       <PanelMaterial pieza={pieza} />
+
+      <PanelTemas pieza={pieza} sugerencias={sugerencias} alCambiar={setPieza} />
 
       {error && (
         <p

@@ -160,6 +160,7 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
         <VistaPieza
           pieza={abierta}
           usuario={usuario}
+          sugerencias={etiquetasExistentes(piezas ?? [])}
           alVolver={() => {
             setAbierta(null)
             void cargar()
@@ -230,6 +231,11 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
       )}
     </div>
   )
+}
+
+/** Y5: las etiquetas en uso, sin repetir y en orden alfabético. */
+function etiquetasExistentes(piezas: Pieza[]): string[] {
+  return [...new Set(piezas.flatMap((p) => p.etiquetas))].sort((a, b) => a.localeCompare(b, 'es'))
 }
 
 /**

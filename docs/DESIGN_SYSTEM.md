@@ -113,6 +113,8 @@ Los de referencia viven en `web/src/App.tsx`: `Panel`, `Campo`, `Aviso` y
 | Miniatura | `aspect-square w-full rounded-md bg-slate-950 object-contain`, en una rejilla `grid grid-cols-3 gap-2 md:grid-cols-6`, con el nombre, el tamaño y la fecha debajo en `text-[11px]` | Material |
 | Editor del guion | `textarea` en `font-mono text-xs leading-relaxed`, con la vista previa `.prosa` al lado | Vista de la pieza |
 | Botón de la barra | `rounded-md border border-slate-700 px-2 py-1 text-xs text-slate-300 hover:border-slate-500 hover:text-slate-100`; negrita y cursiva, en su propio estilo | Barra del guion |
+| Selector | `<select>` con las clases del campo, en `text-xs`, dentro de un `<label>` con su nombre en `text-xs text-slate-400` | Tema de la pieza |
+| Ficha de etiqueta | `rounded bg-slate-800 py-0.5 pl-2 pr-1 text-xs text-slate-200`, con un `×` que la quita y dice cuál en su `aria-label` | Etiquetas de la pieza |
 
 - **Hacia adelante y hacia atrás.** Entre los botones de transición, los que
   avanzan son primarios y los que vuelven atrás (`devolver`, `reformular`)
