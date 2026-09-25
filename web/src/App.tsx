@@ -345,7 +345,9 @@ function Tablero({
                     {pieza.fecha_entrega && (
                       <span>entrega {diaYMes(pieza.fecha_entrega)}</span>
                     )}
-                    {pieza.fecha_publicacion_prevista && (
+                    {/* Publicada, la prevista ya no dice nada y se leería
+                        como la real, que es otra (ADR 0012). */}
+                    {pieza.fecha_publicacion_prevista && pieza.estado !== 'publicada' && (
                       <span>publicación {diaYMes(pieza.fecha_publicacion_prevista)}</span>
                     )}
                     <Pendientes

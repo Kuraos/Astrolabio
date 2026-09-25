@@ -105,7 +105,9 @@ Las letras siguen después de la AA de la Fase 5.
   del diseño» y «Publicación prevista» (§7.7), que se guardan al cambiarlos,
   sin pasar por «Guardar», como el tema (Y5).
 - **AC4** La tarjeta del tablero muestra las fechas que tenga la pieza, con día
-  y mes.
+  y mes. La publicación prevista, solo mientras no está publicada: después se
+  leería como la real, que es otra (cambiado el 2026-09-25, a pedido de
+  Johan).
 - **AC5** El cliente lee `AAAA-MM-DD` como un día del calendario, nunca con
   `new Date(texto)` (§3). Lo vigila una prueba en vitest que corre en la zona
   de Bogotá también en la CI, porque en UTC el error no se ve.
