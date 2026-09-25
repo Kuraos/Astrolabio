@@ -53,7 +53,7 @@ las imágenes de `compose.yaml` y los `Dockerfile`; aquí solo qué es cada cosa
 
 | Parte | Tecnología |
 |---|---|
-| Cliente | React 18, TypeScript, Vite y Tailwind 4. El guion se pinta con `react-markdown`, `remark-math` y `rehype-katex` |
+| Cliente | React 18, TypeScript, Vite y Tailwind 4. El guion se pinta con `react-markdown`, `remark-gfm`, `remark-math` y `rehype-katex` |
 | Proxy | nginx: sirve el build y reenvía `/api` |
 | API | Python 3.12, FastAPI y uvicorn. SQLAlchemy 2.0 con psycopg 3, Alembic, pydantic-settings, argon2-cffi, PyYAML y Pillow |
 | Base de datos | Postgres 18 |

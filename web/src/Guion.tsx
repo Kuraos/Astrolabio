@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
-import Markdown from 'react-markdown'
+import Markdown, { type Components } from 'react-markdown'
 import rehypeKatex from 'rehype-katex'
+import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 
 import 'katex/dist/katex.min.css'
@@ -56,6 +57,52 @@ const ATAJOS: Record<string, Accion> = { b: negrita, i: cursiva, k: enlace }
  */
 function conControl(e: Pick<KeyboardEvent, 'ctrlKey' | 'metaKey' | 'altKey' | 'shiftKey' | 'key'>) {
   return (e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey ? e.key.toLowerCase() : null
+}
+
+/**
+ * V2: un enlace de la vista previa se abre en otra pestaña, que en esta
+ * dejaría el guion sin guardar. Las anclas de la propia página —las notas al
+ * pie— se quedan en ella.
+ */
+const COMPONENTES: Components = {
+  a: ({ node: _node, ...props }) =>
+    props.href?.startsWith('#') ? (
+      <a {...props} />
+    ) : (
+      <a {...props} target="_blank" rel="noopener noreferrer" />
+    ),
+}
+
+/**
+ * Las notas al pie, en español: por defecto salen rotuladas «Footnotes». El
+ * rótulo queda oculto a la vista, como en GitHub, y la flecha de vuelta lleva
+ * el selector de texto (U+FE0E) para que Windows no la pinte como emoji.
+ */
+const NOTAS_AL_PIE = {
+  footnoteLabel: 'Notas',
+  footnoteBackLabel: 'Volver al texto',
+  footnoteBackContent: '↩︎',
+}
+
+/**
+ * El guion renderizado, como se verá (V1). `remark-gfm` pone las tablas, el
+ * tachado, las listas de tareas y las notas al pie que también pinta
+ * Obsidian. El tachado, solo con dos virgulillas, que es como lo documenta
+ * Obsidian: en un guion de física, `~10` es «aproximadamente diez».
+ */
+export function VistaPrevia({ texto }: { texto: string }) {
+  return (
+    <div className="prosa text-sm text-slate-200">
+      <Markdown
+        remarkPlugins={[[remarkGfm, { singleTilde: false }], remarkMath]}
+        rehypePlugins={[rehypeKatex]}
+        remarkRehypeOptions={NOTAS_AL_PIE}
+        components={COMPONENTES}
+      >
+        {texto}
+      </Markdown>
+    </div>
+  )
 }
 
 /**
@@ -167,11 +214,7 @@ export default function Guion({
 
         <div className="min-h-80 overflow-x-auto rounded-lg border border-slate-800 bg-slate-900/30 p-3">
           {valor.trim() ? (
-            <div className="prosa text-sm text-slate-200">
-              <Markdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
-                {valor}
-              </Markdown>
-            </div>
+            <VistaPrevia texto={valor} />
           ) : (
             <p className="text-xs text-slate-400">La vista previa aparece aquí.</p>
           )}

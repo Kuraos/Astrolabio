@@ -65,9 +65,13 @@ Los contrastes en negrita no llegan a AA: ver §9.
   text-slate-500`.
 - **Pesos**: `font-semibold` para títulos, `font-medium` para nombres,
   títulos de panel y el botón primario. Nada más grueso.
-- **Guion renderizado**: la clase `.prosa` de `index.css` —títulos de 1.125,
-  1 y 0.9 rem en `slate-100`, listas con sangría, código sobre `slate-800`,
-  citas con borde `slate-700`—, y KaTeX en bloque con scroll horizontal.
+- **Guion renderizado**: la clase `.prosa` de `index.css`, con estas reglas:
+  - títulos de 1.125, 1 y 0.9 rem en `slate-100`;
+  - listas con sangría; las de tareas, sin viñeta;
+  - código sobre `slate-800` y citas con borde `slate-700`;
+  - tablas con bordes `slate-700` y encabezado en `slate-100`;
+  - notas al pie bajo una línea `slate-800`, con el rótulo oculto a la vista;
+  - KaTeX en bloque con scroll horizontal.
 
 ## 4. Espaciado
 

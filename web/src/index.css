@@ -1,7 +1,11 @@
 @import "tailwindcss";
 
+/* `remark-gfm` rotula las notas al pie con `sr-only`. Tailwind solo genera las
+   clases que encuentra en nuestro código, y esta no aparece en él. */
+@source inline("sr-only");
+
 /* Estilos mínimos para el markdown renderizado del guion (J1).
-   Sin plugin de tipografía: son seis reglas y evitan una dependencia. */
+   Sin plugin de tipografía: son pocas reglas y evitan una dependencia. */
 .prosa > * + * {
   margin-top: 0.75rem;
 }
@@ -32,4 +36,31 @@
 .prosa .katex-display {
   overflow-x: auto;
   overflow-y: hidden;
+}
+/* V1: las tablas. El preflight de Tailwind les quita los bordes, y sin ellos
+   las celdas quedan pegadas. La alineación de `:---:` llega en el atributo
+   `style` de la celda y manda sobre el `text-align` de aquí. */
+.prosa table {
+  border-collapse: collapse;
+}
+.prosa th,
+.prosa td {
+  border: 1px solid var(--color-slate-700);
+  padding: 0.25rem 0.5rem;
+  text-align: left;
+}
+.prosa th {
+  font-weight: 600;
+  color: var(--color-slate-100);
+}
+/* Las notas al pie, separadas del texto por una línea, como en Obsidian. */
+.prosa .footnotes {
+  border-top: 1px solid var(--color-slate-800);
+  padding-top: 0.5rem;
+  font-size: 0.85em;
+}
+/* Las listas de tareas, con la casilla y sin viñeta, como en Obsidian. */
+.prosa .contains-task-list {
+  list-style: none;
+  padding-left: 0;
 }
