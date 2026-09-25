@@ -336,6 +336,22 @@ def test_no_duplica_el_enlace_al_reexportar(vault: Path, pieza: Pieza):
     assert moc.count("[[Las Pleyades]]") == 1
 
 
+def test_cada_enlace_del_moc_va_en_su_linea(vault: Path, sesion_db: Session):
+    """Un enlace por línea, el nuevo primero. Desde la tercera pieza, el
+    enlace nuevo se pegaba al de debajo en la misma línea.
+    """
+    for titulo in ("Primera", "Segunda", "Tercera"):
+        p = Pieza(titulo=titulo, creada_por="johan")
+        sesion_db.add(p)
+        sesion_db.flush()
+        exportador.exportar(p, vault)
+
+    moc = (vault / "MOC-VozDelCosmos.md").read_text(encoding="utf-8")
+    assert moc.endswith(
+        f"{exportador.SECCION_MOC}\n\n- [[Tercera]]\n- [[Segunda]]\n- [[Primera]]\n"
+    )
+
+
 def test_no_toca_las_secciones_escritas_a_mano(vault: Path, pieza: Pieza):
     """La sección de Astrolabio es suya; el resto del MOC es de Johan."""
     exportador.exportar(pieza, vault)

@@ -158,8 +158,9 @@ def _enlazar_en_moc(base: Path, nombre: str) -> None:
         return
 
     if SECCION_MOC in texto:
+        # El nuevo, primero, y cada enlace en su línea.
         cabeza, resto = texto.split(SECCION_MOC, 1)
-        texto = f"{cabeza}{SECCION_MOC}\n{enlace}{resto[len(chr(10)):] if resto.startswith(chr(10)) else resto}"
+        texto = f"{cabeza}{SECCION_MOC}\n\n{enlace}\n" + resto.lstrip("\n")
     else:
         texto = f"{texto.rstrip()}\n\n{SECCION_MOC}\n\n{enlace}\n"
 
