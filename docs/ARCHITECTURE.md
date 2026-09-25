@@ -48,8 +48,11 @@ flowchart LR
 
 ## 2. Tecnologías
 
-Las versiones exactas se fijan en `web/package.json`, `api/requirements.txt` y
-las imágenes de `compose.yaml` y los `Dockerfile`; aquí solo qué es cada cosa.
+Las versiones exactas se fijan en `web/package.json`, en `api/requirements.txt`
+y su lock, `api/constraints.txt`, que fija también las transitivas, y en las
+imágenes de `compose.yaml` y los `Dockerfile`, por digest
+([ADR 0013](adr/0013-transitivas-e-imagenes-fijadas.md)); aquí solo qué es
+cada cosa.
 
 | Parte | Tecnología |
 |---|---|

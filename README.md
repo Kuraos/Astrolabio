@@ -133,3 +133,4 @@ qué alternativas se descartaron.
 | [0010](docs/adr/0010-la-carpeta-de-cada-pieza.md) | La carpeta de cada pieza en Syncthing |
 | [0011](docs/adr/0011-las-etiquetas-viajan-al-vault.md) | Las etiquetas viajan al vault como tags anidados |
 | [0012](docs/adr/0012-la-fecha-de-publicacion-viaja-al-vault.md) | La fecha de publicación viaja al vault: la prevista y, al publicar, la real |
+| [0013](docs/adr/0013-transitivas-e-imagenes-fijadas.md) | Las transitivas y las imágenes base también se fijan |

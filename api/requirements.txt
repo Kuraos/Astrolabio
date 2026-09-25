@@ -1,6 +1,10 @@
 # Versiones fijadas: un esqueleto que no se puede reconstruir igual dentro de
 # seis meses no es reproducible, y la reproducibilidad es la mitad del punto
 # de la Fase 0.
+#
+# Aquí van solo las directas, con su porqué. Las transitivas las fija
+# constraints.txt, que se genera desde este archivo (ADR 0013): cambiar una
+# línea de aquí obliga a regenerarlo, y una prueba lo vigila.
 
 fastapi==0.141.1
 uvicorn[standard]==0.52.4

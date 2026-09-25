@@ -28,7 +28,8 @@ def test_las_migraciones_producen_el_esquema_de_los_modelos(
 
     assert diferencias == [], (
         "Los modelos y las migraciones divergen. Genera la migración que falta:\n"
-        "  docker compose run --rm api alembic revision --autogenerate -m '...'"
+        "  docker compose run --rm -v ./api/migrations://app/migrations"
+        " api alembic revision --autogenerate -m '...'"
     )
 
 

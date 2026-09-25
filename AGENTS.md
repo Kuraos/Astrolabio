@@ -194,13 +194,32 @@ docker compose run --rm api python -m app.seed
 Migraciones (Alembic, desde la Fase 1):
 
 ```bash
-docker compose run --rm api alembic revision --autogenerate -m "..."
+docker compose run --rm -v ./api/migrations://app/migrations api alembic revision --autogenerate -m "..."
 docker compose run --rm api alembic upgrade head
 ```
+
+El montaje de `revision` es lo que trae la migración al repositorio: sin él,
+nace dentro del contenedor y `--rm` la borra. La doble barra de `//app` no es
+una errata: Git Bash reescribe `/app` como una ruta de Windows y el montaje cae
+en otro sitio sin avisar. Con `//` la ruta llega intacta, y Docker la lee igual
+desde cualquier shell.
 
 `upgrade head` corre solo al arrancar el contenedor de `api`; los comandos de
 arriba son para generar una migración nueva o aplicarlas a mano. **El esquema
 no se crea con `create_all` en ningún sitio**, y hay una prueba que lo vigila.
+
+Dependencias de la api (ADR 0013). `requirements.txt` lo edita una persona;
+`constraints.txt` fija todo lo que instala la imagen, transitivas incluidas, y
+se regenera cuando cambia el primero:
+
+```bash
+docker build --no-cache --target lock --output api api
+```
+
+Al abrir cada fase, antes de regenerar, se suben los digests de las cuatro
+imágenes base (`api/Dockerfile`, `web/Dockerfile`, `compose.yaml`):
+`docker buildx imagetools inspect <imagen>` da el nuevo en su línea `Digest:`.
+Una prueba falla si la imagen y el lock se separan.
 
 `check` corre `tsc`, vitest y `vite build`, y la CI corre ese mismo `check`.
 Vitest llegó con la Fase 4 (W1), con la primera lógica del cliente que
@@ -259,3 +278,4 @@ Registros de decisión:
 - `docs/adr/0010-la-carpeta-de-cada-pieza.md`
 - `docs/adr/0011-las-etiquetas-viajan-al-vault.md`
 - `docs/adr/0012-la-fecha-de-publicacion-viaja-al-vault.md`
+- `docs/adr/0013-transitivas-e-imagenes-fijadas.md`
