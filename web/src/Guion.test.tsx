@@ -5,6 +5,7 @@
  * se comprueba es el marcado que sale, no cómo se ve.
  */
 
+import katex from 'katex'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
@@ -35,6 +36,21 @@ describe('V1: la vista previa pinta lo mismo que Obsidian', () => {
     // Obsidian documenta el tachado con dos. En un guion de física, `~10`
     // es «aproximadamente diez».
     expect(pintar('entre ~10~ y ~20 estrellas')).not.toContain('<del>')
+  })
+})
+
+describe('Las fórmulas se pintan con el KaTeX que trae el CSS', () => {
+  it('las clases de tamaño coinciden', () => {
+    // `rehype-katex` pinta con su KaTeX, y el CSS lo trae el paquete `katex`
+    // (Guion.tsx). Si las dos versiones se separan, las clases cambian de
+    // nombre y el CSS no las encuentra: con el HTML de 0.16, que dice
+    // `sizing`, y el CSS de 0.18, que dice `katex-sizing`, los subíndices
+    // salían a tamaño completo.
+    const claseDeTamano = (html: string) => html.match(/class="(\S+) reset-size/)?.[1]
+
+    expect(claseDeTamano(pintar('$m_1$'))).toBe(
+      claseDeTamano(katex.renderToString('m_1', { output: 'html' })),
+    )
   })
 })
 
