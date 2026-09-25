@@ -6,7 +6,7 @@
  * identificadores del código.
  */
 
-import type { Pieza, Usuario } from './api'
+import type { Pieza, Rol, Usuario } from './api'
 
 const PALABRAS: Record<string, string> = {
   investigacion: 'investigación',
@@ -41,6 +41,32 @@ export function aQuienLeToca(pieza: Pieza, usuario: Usuario): string | null {
   if (pieza.de_quien_es === null) return null
   if (pieza.de_quien_es === usuario.rol) return 'Te toca'
   return pieza.de_quien_es === 'investigador' ? 'Le toca a Johan' : 'Le toca al editor'
+}
+
+/**
+ * De quién es cada estado: el mismo `DE_QUIEN_ES` de `api/app/models.py`. El
+ * servidor lo dice pieza a pieza, y la franja del tablero lo necesita también
+ * en las columnas vacías (AH2). Si cambia allí, cambia aquí.
+ */
+const DE_QUIEN_ES: Record<string, Rol | null> = {
+  investigacion: 'investigador',
+  solicitud_entregada: 'investigador',
+  material_aprobado: 'editor',
+  finalizada: 'investigador',
+  diseno_aprobado: 'investigador',
+  publicada: null,
+}
+
+/**
+ * AH2: de quién es un estado, dicho desde quien mira: «tú», o el otro. `null`
+ * si no es de nadie o el cliente no lo conoce. Como en `aQuienLeToca`, el
+ * editor nunca lee «editor».
+ */
+export function duenoDelEstado(estado: string, usuario: Usuario): string | null {
+  const rol = DE_QUIEN_ES[estado]
+  if (!rol) return null
+  if (rol === usuario.rol) return 'tú'
+  return rol === 'investigador' ? 'Johan' : 'editor'
 }
 
 /**

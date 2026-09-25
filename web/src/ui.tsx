@@ -4,6 +4,9 @@
  * error. Cómo y cuándo se usa cada uno, en DESIGN_SYSTEM §6.
  */
 
+/** El ancho de las pantallas: hasta 1440 px (AH6), con su margen. */
+export const ANCHO = 'mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-10'
+
 /** Lo que avanza la pieza o guarda: tinta sobre negro. */
 export const BOTON =
   'mono-label bg-ink px-3.5 py-3 font-medium text-page disabled:opacity-40'

@@ -1,16 +1,17 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import { ErrorDeApi, pedir, type Pieza, type Tarea, type Usuario } from './api'
-import { catalogo } from './catalogo'
+import { catalogo, type Entrada } from './catalogo'
 import { diaDeHoy, diaDeLaSemana, diaYMes, entregaPendiente, semanas } from './fechas'
-import { aQuienLeToca, enPalabras } from './flujo'
+import { aQuienLeToca, duenoDelEstado, enPalabras } from './flujo'
 import VistaPieza from './Pieza'
-import { tablero } from './tablero'
+import { ESTADOS, tablero } from './tablero'
 import ListaDeTareas, { quedan } from './Tareas'
+import { ANCHO, Aviso, BOTON, BOTON_DE_TEXTO, CONTROL, Campo, Estacion } from './ui'
 
 /**
- * Fase 0, criterios D1–D4, y el tablero de la Fase 6 (AB), que reemplazó a
- * la lista de N1.
+ * Fase 0, criterios D1–D4; el tablero de la Fase 6 (AB), que reemplazó a la
+ * lista de N1; y la identidad «Control» de la Fase 7 (AH, AL).
  *
  * Dos pantallas y ningún enrutador: entrar o estar dentro. Una biblioteca de
  * rutas para dos estados sería infraestructura sin beneficio.
@@ -31,31 +32,19 @@ export default function App() {
       .finally(() => setComprobando(false))
   }, [])
 
-  return (
-    <main className="min-h-screen bg-slate-950 p-6 text-slate-100">
-      {/* Con sesión, la columna pasa de 512 a 1024 px: el tablero necesita
-          sus seis columnas (AB5), y la pieza, el guion con la vista previa al
-          lado (X1). La entrada se queda estrecha. */}
-      <div className={`mx-auto w-full space-y-6 ${usuario ? 'max-w-5xl' : 'max-w-lg'}`}>
-        <header className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">Astrolabio</h1>
-          <p className="text-sm text-slate-400">Taller de Voz del Cosmos</p>
-        </header>
+  if (comprobando) {
+    return <p className={`${ANCHO} mono-label py-6 text-ink-3`}>Comprobando sesión…</p>
+  }
 
-        {comprobando ? (
-          <p className="text-sm text-slate-400">Comprobando sesión…</p>
-        ) : usuario ? (
-          <Taller usuario={usuario} alSalir={() => setUsuario(null)} />
-        ) : (
-          <Login alEntrar={setUsuario} />
-        )}
-      </div>
-    </main>
+  return usuario ? (
+    <Taller usuario={usuario} alSalir={() => setUsuario(null)} />
+  ) : (
+    <Entrar alEntrar={setUsuario} />
   )
 }
 
-/** D1: contra el endpoint real. No hay ningún usuario simulado en el cliente. */
-function Login({ alEntrar }: { alEntrar: (u: Usuario) => void }) {
+/** D1 y AL1: contra el endpoint real. No hay ningún usuario simulado en el cliente. */
+function Entrar({ alEntrar }: { alEntrar: (u: Usuario) => void }) {
   const [usuario, setUsuario] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -82,33 +71,54 @@ function Login({ alEntrar }: { alEntrar: (u: Usuario) => void }) {
   }
 
   return (
-    <Panel titulo="Entrar">
-      <form onSubmit={entrar} className="space-y-3">
-        <Campo
-          etiqueta="Usuario"
-          valor={usuario}
-          alCambiar={setUsuario}
-          autoComplete="username"
-        />
-        <Campo
-          etiqueta="Contraseña"
-          valor={password}
-          alCambiar={setPassword}
-          tipo="password"
-          autoComplete="current-password"
-        />
+    <main className={`${ANCHO} flex min-h-screen flex-col`}>
+      <p className="mono-label flex h-14 shrink-0 items-center border-b border-line text-ink-3">
+        Voz del Cosmos / Taller
+      </p>
+
+      <h1 className="mt-16 text-[clamp(2rem,10vw,8rem)] leading-[0.85] font-black tracking-[-0.01em] uppercase font-stretch-expanded">
+        Astrolabio
+      </h1>
+      <p className="mono-label mt-4 text-ink-2">Taller de Voz del Cosmos</p>
+
+      <form onSubmit={entrar} className="mt-14 flex w-full max-w-[360px] flex-col gap-4">
+        <Campo rotulo="Usuario">
+          <input
+            value={usuario}
+            onChange={(e) => setUsuario(e.target.value)}
+            autoComplete="username"
+            className={CONTROL}
+          />
+        </Campo>
+        <Campo rotulo="Contraseña">
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
+            className={CONTROL}
+          />
+        </Campo>
 
         {error && <Aviso mensaje={error} />}
 
-        <button
-          type="submit"
-          disabled={enviando || !usuario || !password}
-          className="w-full rounded-md bg-slate-100 px-3 py-2.5 text-sm font-medium text-slate-900 disabled:opacity-50"
-        >
+        <button type="submit" disabled={enviando || !usuario || !password} className={`${BOTON} mt-1`}>
           {enviando ? 'Entrando…' : 'Entrar'}
         </button>
       </form>
-    </Panel>
+
+      {/* El flujo que se viene a mover, como adorno: por eso `aria-hidden`. */}
+      <ol
+        aria-hidden
+        className="mono-label mt-auto mb-10 grid grid-cols-6 gap-0.5 pt-16 text-ink-3 max-md:hidden"
+      >
+        {ESTADOS.map((estado, i) => (
+          <li key={estado} className="border-t-[3px] border-line pt-2.5">
+            {String(i + 1).padStart(2, '0')} {enPalabras(estado)}
+          </li>
+        ))}
+      </ol>
+    </main>
   )
 }
 
@@ -148,6 +158,8 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
   const visibles = (piezas ?? []).filter(
     (pieza) => activo === null || pieza.etiquetas.includes(activo),
   )
+  const alternarFiltro = (etiqueta: string) =>
+    setFiltro(activo === etiqueta ? null : etiqueta)
 
   async function salir() {
     try {
@@ -159,25 +171,31 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
   }
 
   return (
-    <div className="space-y-6">
-      {/* D2: nombre y rol del usuario que entró. */}
-      <Panel titulo="Sesión">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-sm">
-            <span className="font-medium">{usuario.usuario}</span>
-            <span className="ml-2 rounded bg-slate-800 px-2 py-0.5 text-xs text-slate-300">
-              {usuario.rol}
+    <>
+      {/* AH1 y D2: nombre y rol de quien entró, en la barra de arriba. */}
+      <header className="border-b border-line">
+        <div className={`${ANCHO} flex h-14 items-center justify-between gap-4`}>
+          <div className="flex items-baseline gap-4">
+            <h1 className="text-lg font-extrabold tracking-[0.02em] uppercase font-stretch-expanded sm:text-xl">
+              Astrolabio
+            </h1>
+            <span className="mono-label text-ink-3 max-md:hidden">Voz del Cosmos / Taller</span>
+          </div>
+          <div className="mono-label flex items-center gap-3 text-right text-ink-2 sm:gap-6">
+            <span className="max-md:hidden">{diaDeHoy().split('-').reverse().join('.')}</span>
+            <span>
+              {usuario.usuario} / {usuario.rol}
             </span>
-          </p>
-          <button
-            type="button"
-            onClick={() => void salir()}
-            className="rounded-md border border-slate-700 px-3 py-1.5 text-xs text-slate-300"
-          >
-            Salir
-          </button>
+            <button
+              type="button"
+              onClick={() => void salir()}
+              className="mono-label border border-control px-3 py-2 text-ink"
+            >
+              Salir
+            </button>
+          </div>
         </div>
-      </Panel>
+      </header>
 
       {abierta ? (
         <VistaPieza
@@ -192,97 +210,86 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
           }}
         />
       ) : (
-        <>
-      {/*
-        D3: al editor no se le enseña el botón. Es **además** del 403 del
-        servidor, nunca en su lugar: §2.3 dice que ocultar un botón no es
-        autorización, es decoración.
-      */}
-      {usuario.rol === 'investigador' && <NuevaPieza alCrear={cargar} />}
+        <main className={`${ANCHO} flex flex-col gap-12 pt-6 pb-16`}>
+          {error ? (
+            <Aviso mensaje={error} />
+          ) : piezas === null ? (
+            <p className="mono-label text-ink-3">Cargando…</p>
+          ) : (
+            <section aria-label="Tablero" className="flex flex-col gap-3">
+              {piezas.length === 0 && (
+                <p className="text-sm text-ink-2">
+                  Todavía no hay piezas.
+                  {usuario.rol === 'editor' && ' Johan crea la primera.'}
+                </p>
+              )}
+              {activo && <SoloLasDe etiqueta={activo} alQuitar={() => setFiltro(null)} />}
+              <div className="grid md:grid-cols-3 lg:grid-cols-[200px_repeat(6,minmax(0,1fr))]">
+                <div className="flex flex-col gap-8 pb-8 max-lg:col-span-full lg:pr-4">
+                  <TeToca
+                    cuantas={piezas.filter((p) => p.de_quien_es === usuario.rol).length}
+                    total={piezas.length}
+                  />
+                  {/*
+                    D3: al editor no se le enseña el formulario. Es **además**
+                    del 403 del servidor, nunca en su lugar: §2.3 dice que
+                    ocultar un botón no es autorización, es decoración.
+                  */}
+                  {usuario.rol === 'investigador' && <NuevaPieza alCrear={cargar} />}
+                  <Etiquetas entradas={entradas} activo={activo} alElegir={alternarFiltro} />
+                </div>
+                <Tablero piezas={visibles} usuario={usuario} tareas={tareas} alAbrir={setAbierta} />
+              </div>
+            </section>
+          )}
 
-      <Panel titulo="Piezas · abre una para escribir el guion">
-        {error ? (
-          <Aviso mensaje={error} />
-        ) : piezas === null ? (
-          <p className="text-sm text-slate-400">Cargando…</p>
-        ) : piezas.length === 0 ? (
-          <p className="text-sm text-slate-400">
-            Todavía no hay piezas.
-            {usuario.rol === 'editor' && ' Johan crea la primera.'}
-          </p>
-        ) : (
-          <>
-          {activo && <SoloLasDe etiqueta={activo} alQuitar={() => setFiltro(null)} />}
-          <Tablero
-            piezas={visibles}
-            usuario={usuario}
-            tareas={tareas}
-            alAbrir={setAbierta}
-          />
-          </>
-        )}
-      </Panel>
+          {/* AE2: para cuándo, por semanas. */}
+          <Estacion
+            titulo="Semanas"
+            extra={<span className="mono-label text-ink-3">Entregas y publicaciones</span>}
+          >
+            {activo && <SoloLasDe etiqueta={activo} alQuitar={() => setFiltro(null)} />}
+            <Semanas piezas={visibles} alAbrir={setAbierta} />
+          </Estacion>
 
-      {/* AE2: para cuándo, por semanas. */}
-      <Panel titulo="Semanas · entregas y publicaciones pendientes">
-        {activo && <SoloLasDe etiqueta={activo} alQuitar={() => setFiltro(null)} />}
-        <Semanas piezas={visibles} alAbrir={setAbierta} />
-      </Panel>
-
-      {/* AD5: lo que no es de ninguna pieza. */}
-      <Panel titulo="Tareas sueltas · las que no son de ninguna pieza">
-        <ListaDeTareas
-          tareas={tareas.filter((tarea) => tarea.pieza_id === null)}
-          piezaId={null}
-          actualizar={setTareas}
-        />
-      </Panel>
-
-      {/* Z2: de qué se ha hablado. Pulsar una etiqueta filtra el tablero y
-          las semanas; pulsarla otra vez los devuelve enteros. */}
-      <Panel titulo="Etiquetas · de qué hemos hablado">
-        {entradas.length === 0 ? (
-          <p className="text-sm text-slate-400">
-            Todavía no hay etiquetas: se ponen en cada pieza.
-          </p>
-        ) : (
-          <ul className="divide-y divide-slate-800">
-            {entradas.map((entrada) => (
-              <li key={entrada.etiqueta}>
-                <button
-                  type="button"
-                  aria-pressed={activo === entrada.etiqueta}
-                  onClick={() =>
-                    setFiltro(activo === entrada.etiqueta ? null : entrada.etiqueta)
-                  }
-                  className={`-mx-2 flex w-[calc(100%+1rem)] items-baseline justify-between gap-3 rounded-md px-2 py-2 text-left hover:bg-slate-800/60 ${
-                    activo === entrada.etiqueta ? 'bg-slate-800/60' : ''
-                  }`}
-                >
-                  <span className="min-w-0 break-words text-sm text-slate-100">
-                    {entrada.etiqueta}
-                  </span>
-                  <span className="shrink-0 text-xs text-slate-400">
-                    {entrada.publicadas} {entrada.publicadas === 1 ? 'publicada' : 'publicadas'}{' '}
-                    · {entrada.enCurso} en curso
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Panel>
-        </>
+          {/* AD5 y AH5: lo que no es de ninguna pieza. */}
+          <Estacion
+            titulo="Tareas sueltas"
+            extra={<span className="mono-label text-ink-3">De ninguna pieza</span>}
+            className="max-w-xl"
+          >
+            <ListaDeTareas
+              tareas={tareas.filter((tarea) => tarea.pieza_id === null)}
+              piezaId={null}
+              actualizar={setTareas}
+            />
+          </Estacion>
+        </main>
       )}
-    </div>
+    </>
+  )
+}
+
+/** AH2: cuántas piezas le tocan a quien mira, de cuántas. Lo único en naranja. */
+function TeToca({ cuantas, total }: { cuantas: number; total: number }) {
+  return (
+    <p className="flex h-44 flex-col justify-between bg-signal p-4 text-page max-lg:h-auto max-lg:flex-row max-lg:items-baseline max-lg:justify-start max-lg:gap-4">
+      <span className="mono-label font-medium">Te toca</span>
+      <span className="text-[120px] leading-[0.82] font-black font-stretch-extra-condensed max-lg:text-6xl">
+        {cuantas}
+      </span>
+      <span className="mono-label">
+        de {total} {total === 1 ? 'pieza' : 'piezas'}
+      </span>
+    </p>
   )
 }
 
 /**
- * AB1–AB3: una columna por estado, y en cada tarjeta de quién es y qué le
- * falta. Mover la pieza no se hace aquí: la tarjeta la abre, y ahí están sus
- * botones, la nota de «Devolver» y las confirmaciones (Fase 6, §7.4). Los dos
- * roles abren cualquier pieza; lo que el editor no ve dentro es el respaldo.
+ * AB1–AB3 y AH2–AH4: una columna por estado, con su celda en la franja —su
+ * número, cuántas piezas tiene y de quién es— y debajo sus tarjetas. Mover la
+ * pieza no se hace aquí: la tarjeta la abre, y ahí están sus botones, la nota
+ * de «Devolver» y las confirmaciones (Fase 6, §7.4).
  *
  * En pantalla estrecha, las columnas se apilan en el mismo orden (AB5).
  */
@@ -297,62 +304,167 @@ function Tablero({
   tareas: Tarea[]
   alAbrir: (pieza: Pieza) => void
 }) {
+  const hoy = diaDeHoy()
   return (
-    <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
-      {tablero(piezas).map((columna) => (
-        <section key={columna.estado} className="min-w-0 space-y-2">
-          <h3 className="flex items-baseline justify-between gap-2 text-xs font-medium uppercase tracking-wider text-slate-400">
-            <span className="min-w-0 break-words">{enPalabras(columna.estado)}</span>
-            <span>{columna.piezas.length}</span>
-          </h3>
-          <ul className="space-y-2">
-            {columna.piezas.map((pieza) => (
-              <li key={pieza.id}>
-                {/* Que se vea que se abre: fondo al pasar por encima y una
-                    flecha. Sin ellos, la lista de antes parecía de solo
-                    lectura, y pasó de verdad. `gap` y no `space-y`: la línea
-                    de abajo se oculta cuando queda vacía, y un hueco hecho
-                    con margen se quedaría. */}
+    <>
+      {tablero(piezas).map((columna, i) => {
+        const dueno = duenoDelEstado(columna.estado, usuario)
+        return (
+      <section
+        key={columna.estado}
+        className={`flex min-w-0 flex-col border-line ${i > 0 ? 'lg:border-l' : ''}`}
+      >
+        <header className="flex flex-col gap-1.5 border-b border-line px-3 pt-4 pb-3.5 max-lg:flex-row max-lg:items-baseline max-lg:gap-3 max-lg:px-0 lg:h-44">
+          <span className="mono-label text-ink-3">{String(i + 1).padStart(2, '0')}</span>
+          <h3 className="text-[15px] leading-tight font-semibold">{enPalabras(columna.estado)}</h3>
+          <span
+            className={`text-[76px] leading-[0.9] font-extrabold font-stretch-extra-condensed max-lg:ml-auto max-lg:text-3xl lg:mt-auto ${
+              columna.estado === 'publicada' ? 'text-ink-3' : ''
+            }`}
+          >
+            {columna.piezas.length}
+          </span>
+          <span className="mono-label text-ink-3 max-lg:hidden">{dueno ?? '—'}</span>
+        </header>
+        <ul className="flex flex-col px-3 max-lg:px-0">
+          {columna.piezas.map((pieza) => (
+            <li key={pieza.id}>
+              <Tarjeta
+                pieza={pieza}
+                usuario={usuario}
+                tareas={tareas.filter((tarea) => tarea.pieza_id === pieza.id)}
+                hoy={hoy}
+                alAbrir={() => alAbrir(pieza)}
+              />
+            </li>
+          ))}
+        </ul>
+      </section>
+        )
+      })}
+    </>
+  )
+}
+
+/**
+ * Que se vea que se abre: fondo al pasar por encima y una flecha. Sin ellos, la
+ * lista de antes parecía de solo lectura, y pasó de verdad. `gap` y no
+ * `space-y`: la línea de fechas se oculta cuando queda vacía, y un hueco hecho
+ * con margen se quedaría.
+ */
+function Tarjeta({
+  pieza,
+  usuario,
+  tareas,
+  hoy,
+  alAbrir,
+}: {
+  pieza: Pieza
+  usuario: Usuario
+  tareas: Tarea[]
+  hoy: string
+  alAbrir: () => void
+}) {
+  const turno = aQuienLeToca(pieza, usuario)
+
+  return (
+    <button
+      type="button"
+      onClick={alAbrir}
+      className="group -mx-2 flex w-[calc(100%+1rem)] flex-col gap-2 border-b border-line px-2 py-3.5 text-left hover:bg-raised"
+    >
+      {turno &&
+        (pieza.de_quien_es === usuario.rol ? (
+          <span className="mono-label flex items-center gap-1.5 font-medium text-signal">
+            <span aria-hidden className="size-2 bg-signal" />
+            {turno}
+          </span>
+        ) : (
+          <span className="mono-label text-ink-3">{turno}</span>
+        ))}
+      <span className="flex items-baseline justify-between gap-2">
+        <span
+          className={`min-w-0 text-base leading-tight break-words ${
+            pieza.estado === 'publicada' ? 'text-ink-2' : 'font-medium'
+          }`}
+        >
+          {pieza.titulo}
+        </span>
+        <span aria-hidden className="text-sm leading-none text-ink-3 group-hover:text-ink">
+          →
+        </span>
+      </span>
+      <span className="mono-data flex flex-col text-ink-2 empty:hidden">
+        {/* AC4: para cuándo, mientras siga pendiente. Entregado el diseño, su
+            fecha ya no dice nada; publicada la pieza, la prevista se leería
+            como la real, que es otra (ADR 0012). Vencida, en rosa (§7.4). */}
+        {pieza.fecha_entrega && entregaPendiente(pieza) && (
+          <span className={pieza.fecha_entrega < hoy ? 'text-alert' : ''}>
+            entrega <span className="whitespace-nowrap">{diaYMes(pieza.fecha_entrega)}</span>
+          </span>
+        )}
+        {pieza.fecha_publicacion_prevista && pieza.estado !== 'publicada' && (
+          <span>
+            publicación{' '}
+            <span className="whitespace-nowrap">{diaYMes(pieza.fecha_publicacion_prevista)}</span>
+          </span>
+        )}
+        <Pendientes tareas={tareas} />
+        {pieza.guion.trim() === '' && <span>sin guion</span>}
+      </span>
+    </button>
+  )
+}
+
+/**
+ * AH3 y Z2: de qué se ha hablado. Pulsar una etiqueta filtra el tablero y las
+ * semanas; pulsarla otra vez los devuelve enteros. La que filtra, invertida.
+ */
+function Etiquetas({
+  entradas,
+  activo,
+  alElegir,
+}: {
+  entradas: Entrada[]
+  activo: string | null
+  alElegir: (etiqueta: string) => void
+}) {
+  return (
+    <section aria-label="Etiquetas" className="flex flex-col gap-2">
+      <h2 className="flex flex-col gap-0.5">
+        <span className="heading-station text-[13px]">Etiquetas</span>
+        <span className="mono-data font-normal text-ink-3">de qué hemos hablado</span>
+      </h2>
+      {entradas.length === 0 ? (
+        <p className="text-sm text-ink-2">Todavía no hay etiquetas: se ponen en cada pieza.</p>
+      ) : (
+        <ul className="flex flex-col max-lg:flex-row max-lg:flex-wrap max-lg:gap-x-6">
+          {entradas.map((entrada) => {
+            const elegida = activo === entrada.etiqueta
+            return (
+              <li key={entrada.etiqueta}>
                 <button
                   type="button"
-                  onClick={() => alAbrir(pieza)}
-                  className="group flex w-full flex-col gap-1.5 rounded-md border border-slate-800 px-2 py-2 text-left hover:bg-slate-800/60"
+                  aria-pressed={elegida}
+                  onClick={() => alElegir(entrada.etiqueta)}
+                  className={`flex flex-col gap-0.5 border-t border-line-faint px-2.5 py-2 text-left lg:-mx-2.5 lg:w-[calc(100%+1.25rem)] ${
+                    elegida ? 'bg-ink text-page' : 'hover:bg-raised'
+                  }`}
                 >
-                  <span className="flex items-baseline justify-between gap-2">
-                    <span className="min-w-0 break-words text-sm text-slate-100">
-                      {pieza.titulo}
-                    </span>
-                    <span
-                      aria-hidden
-                      className="shrink-0 text-slate-600 group-hover:text-slate-300"
-                    >
-                      →
-                    </span>
+                  <span className={`text-sm break-words ${elegida ? 'font-semibold' : ''}`}>
+                    {entrada.etiqueta}
                   </span>
-                  <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-400 empty:hidden">
-                    <Turno pieza={pieza} usuario={usuario} />
-                    {/* AC4: para cuándo, mientras siga pendiente. Entregado
-                        el diseño, su fecha ya no dice nada; publicada la
-                        pieza, la prevista se leería como la real, que es
-                        otra (ADR 0012). */}
-                    {pieza.fecha_entrega && entregaPendiente(pieza) && (
-                      <span>entrega {diaYMes(pieza.fecha_entrega)}</span>
-                    )}
-                    {pieza.fecha_publicacion_prevista && pieza.estado !== 'publicada' && (
-                      <span>publicación {diaYMes(pieza.fecha_publicacion_prevista)}</span>
-                    )}
-                    <Pendientes
-                      tareas={tareas.filter((tarea) => tarea.pieza_id === pieza.id)}
-                    />
-                    {pieza.guion.trim() === '' && <span>sin guion</span>}
+                  <span className={`mono-data ${elegida ? 'text-line' : 'text-ink-3'}`}>
+                    {entrada.publicadas} {entrada.publicadas === 1 ? 'publicada' : 'publicadas'} ·{' '}
+                    {entrada.enCurso} en curso
                   </span>
                 </button>
               </li>
-            ))}
-          </ul>
-        </section>
-      ))}
-    </div>
+            )
+          })}
+        </ul>
+      )}
+    </section>
   )
 }
 
@@ -362,15 +474,14 @@ function Tablero({
  */
 function SoloLasDe({ etiqueta, alQuitar }: { etiqueta: string; alQuitar: () => void }) {
   return (
-    <p className="mb-2 flex items-baseline justify-between gap-3 text-xs text-slate-400">
+    <p className="mono-label flex items-baseline justify-between gap-3 text-ink-2">
       <span>
-        Solo las de <span className="text-slate-100">{etiqueta}</span>
+        Solo las de{' '}
+        <span className="font-sans text-sm tracking-normal normal-case text-ink font-stretch-normal">
+          {etiqueta}
+        </span>
       </span>
-      <button
-        type="button"
-        onClick={alQuitar}
-        className="shrink-0 text-slate-400 hover:text-slate-200"
-      >
+      <button type="button" onClick={alQuitar} className={BOTON_DE_TEXTO}>
         Ver todas
       </button>
     </p>
@@ -387,22 +498,28 @@ function Semanas({ piezas, alAbrir }: { piezas: Pieza[]; alAbrir: (pieza: Pieza)
 
   if (lista.length === 0) {
     return (
-      <p className="text-sm text-slate-400">
+      <p className="text-sm text-ink-2">
         Nada pendiente con fecha. Las fechas se ponen en cada pieza.
       </p>
     )
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-5">
       {lista.map((semana) => (
-        <section key={semana.lunes} className="space-y-1">
-          <h3 className="text-xs font-medium text-slate-300">
+        <section key={semana.lunes} className="flex flex-col">
+          <h3
+            className={`mono-label border-b border-line pb-2 ${
+              semana.cuando === 'pasada'
+                ? 'text-alert'
+                : semana.cuando === 'esta'
+                  ? 'text-ink'
+                  : 'text-ink-2'
+            }`}
+          >
             Semana del {diaYMes(semana.lunes)}
-            {semana.cuando === 'esta' && <span className="text-slate-400"> · esta semana</span>}
-            {semana.cuando === 'pasada' && (
-              <span className="text-amber-300/80"> · atrasada</span>
-            )}
+            {semana.cuando === 'esta' && ' · esta semana'}
+            {semana.cuando === 'pasada' && ' · atrasada'}
           </h3>
           <ul>
             {semana.entradas.map((entrada) => (
@@ -410,17 +527,13 @@ function Semanas({ piezas, alAbrir }: { piezas: Pieza[]; alAbrir: (pieza: Pieza)
                 <button
                   type="button"
                   onClick={() => alAbrir(entrada.pieza)}
-                  className="-mx-2 flex w-[calc(100%+1rem)] items-baseline gap-3 rounded-md px-2 py-1.5 text-left text-xs hover:bg-slate-800/60"
+                  className="-mx-2 grid w-[calc(100%+1rem)] grid-cols-[3.5rem_6.5rem_minmax(0,1fr)] items-baseline gap-2 border-b border-line-faint px-2 py-2.5 text-left hover:bg-raised"
                 >
-                  <span className="w-12 shrink-0 text-slate-400">
-                    {diaDeLaSemana(entrada.fecha)}
-                  </span>
-                  <span className="w-20 shrink-0 text-slate-400">
+                  <span className="mono-data text-ink-2">{diaDeLaSemana(entrada.fecha)}</span>
+                  <span className="mono-data text-ink-2">
                     {entrada.tipo === 'entrega' ? 'entrega' : 'publicación'}
                   </span>
-                  <span className="min-w-0 break-words text-slate-100">
-                    {entrada.pieza.titulo}
-                  </span>
+                  <span className="text-sm break-words">{entrada.pieza.titulo}</span>
                 </button>
               </li>
             ))}
@@ -440,24 +553,7 @@ function Pendientes({ tareas }: { tareas: Tarea[] }) {
   return texto ? <span>{texto}</span> : null
 }
 
-/** El turno de cada pieza, resaltado cuando le toca a quien mira. */
-function Turno({ pieza, usuario }: { pieza: Pieza; usuario: Usuario }) {
-  const texto = aQuienLeToca(pieza, usuario)
-  if (texto === null) return null
-
-  return (
-    <span
-      className={`shrink-0 rounded px-2 py-0.5 text-[11px] ${
-        pieza.de_quien_es === usuario.rol
-          ? 'bg-amber-400/15 text-amber-200'
-          : 'text-slate-400'
-      }`}
-    >
-      {texto}
-    </span>
-  )
-}
-
+/** AH3: la pieza nueva, en la columna de la izquierda. Solo la ve Johan (D3). */
 function NuevaPieza({ alCrear }: { alCrear: () => Promise<void> }) {
   const [titulo, setTitulo] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -483,72 +579,21 @@ function NuevaPieza({ alCrear }: { alCrear: () => Promise<void> }) {
   }
 
   return (
-    <Panel titulo="Nueva pieza">
-      <form onSubmit={crear} className="space-y-3">
-        <Campo etiqueta="Título" valor={titulo} alCambiar={setTitulo} />
+    <form onSubmit={crear} className="flex flex-col gap-2.5">
+      <Campo rotulo="Nueva pieza">
+        <input
+          value={titulo}
+          onChange={(e) => setTitulo(e.target.value)}
+          placeholder="Título"
+          className={CONTROL}
+        />
+      </Campo>
 
-        {error && <Aviso mensaje={error} />}
+      {error && <Aviso mensaje={error} />}
 
-        {/* Sin `w-full`, a diferencia de «Entrar»: con el tablero la columna
-            mide 1024 px (AB5), y a ese ancho el botón pesaría más que él. */}
-        <button
-          type="submit"
-          disabled={enviando || !titulo.trim()}
-          className="rounded-md bg-slate-100 px-3 py-2.5 text-sm font-medium text-slate-900 disabled:opacity-40"
-        >
-          {enviando ? 'Creando…' : 'Crear pieza'}
-        </button>
-      </form>
-    </Panel>
-  )
-}
-
-function Campo({
-  etiqueta,
-  valor,
-  alCambiar,
-  tipo = 'text',
-  autoComplete,
-}: {
-  etiqueta: string
-  valor: string
-  alCambiar: (v: string) => void
-  tipo?: string
-  autoComplete?: string
-}) {
-  return (
-    <label className="block space-y-1.5">
-      <span className="text-xs text-slate-400">{etiqueta}</span>
-      <input
-        type={tipo}
-        value={valor}
-        autoComplete={autoComplete}
-        onChange={(e) => alCambiar(e.target.value)}
-        className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none focus:border-slate-500"
-      />
-    </label>
-  )
-}
-
-/** D4: los errores se ven, con `role="alert"` para que también se oigan. */
-function Aviso({ mensaje }: { mensaje: string }) {
-  return (
-    <p
-      role="alert"
-      className="rounded-md border border-rose-900/60 bg-rose-950/40 px-3 py-2 text-xs text-rose-200"
-    >
-      {mensaje}
-    </p>
-  )
-}
-
-function Panel({ titulo, children }: { titulo: string; children: React.ReactNode }) {
-  return (
-    <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
-      <h2 className="text-xs font-medium uppercase tracking-wider text-slate-500">
-        {titulo}
-      </h2>
-      <div className="mt-3">{children}</div>
-    </section>
+      <button type="submit" disabled={enviando || !titulo.trim()} className={BOTON}>
+        {enviando ? 'Creando…' : 'Crear pieza'}
+      </button>
+    </form>
   )
 }
