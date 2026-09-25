@@ -83,6 +83,7 @@ analítica, ni almacenamiento en la nube.
 │   │   ├── piezas.py         crear, listar, ver y editar piezas
 │   │   ├── traspasos.py      la máquina de estados y su historia
 │   │   ├── material.py       enlaces y la carpeta de la pieza en Syncthing
+│   │   ├── tareas.py         la checklist de cada pieza y las tareas sueltas
 │   │   ├── respaldo.py       lee las notas literature del vault
 │   │   └── exportador.py     escribe la pieza en el vault
 │   ├── migrations/           Alembic, una migración por cambio de esquema
@@ -145,6 +146,7 @@ o se está dentro, y dentro se ve el tablero o una pieza.
 | `pieza` | Título, guion, formato, tema, plataforma, respaldo, etiquetas, estado, y las fechas de entrega del diseño y de publicación prevista | Un `CHECK` admite solo los seis estados. La API admite solo los cuatro temas y guarda las etiquetas normalizadas ([ADR 0011](adr/0011-las-etiquetas-viajan-al-vault.md)). Las fechas son `DATE`: días, sin hora ni zona |
 | `traspaso` | Transición, estado de origen y de destino, quién, cuándo y una nota | Solo inserción: un trigger rechaza `UPDATE`, `DELETE` y `TRUNCATE` ([ADR 0008](adr/0008-traspaso-append-only-en-la-base.md)) |
 | `enlace` | URL, nota, quién y cuándo | Solo `http` y `https`, validado en el servidor |
+| `tarea` | Texto, la pieza si la tiene, quién la marcó y cuándo, quién la creó y cuándo | Sin pieza es suelta. Estar hecha es tener quién la marcó: desmarcarla lo borra. No es historia: se borra, como el material |
 
 El esquema lo crean las migraciones de Alembic, que corren al arrancar el
 contenedor de `api` (`alembic upgrade head` y después uvicorn). No hay

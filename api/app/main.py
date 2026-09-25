@@ -15,6 +15,7 @@ from .exportador import router as exportador_router
 from .material import router as material_router
 from .piezas import router as piezas_router
 from .respaldo import router as respaldo_router
+from .tareas import router as tareas_router
 from .traspasos import router as traspasos_router
 
 # El esquema lo crean las migraciones, no la aplicación: `alembic upgrade head`
@@ -29,6 +30,7 @@ app.include_router(exportador_router)
 app.include_router(respaldo_router)
 app.include_router(traspasos_router)
 app.include_router(material_router)
+app.include_router(tareas_router)
 
 
 def _sondear_base() -> tuple[bool, str | None]:

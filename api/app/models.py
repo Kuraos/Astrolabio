@@ -189,6 +189,38 @@ class Traspaso(Base):
     nota: Mapped[str | None] = mapped_column(Text, default=None)
 
 
+class Tarea(Base):
+    """Una tarea (AD1): de la checklist de una pieza, o suelta si no tiene.
+
+    No es historia, a diferencia de `traspaso`: se marca, se desmarca y se
+    borra, como el material, y por eso no está en el §2.6.
+    """
+
+    __tablename__ = "tarea"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    # Opcional: sin pieza, la tarea es suelta (decisión 1 de la Fase 6).
+    pieza_id: Mapped[int | None] = mapped_column(
+        ForeignKey("pieza.id"), index=True, default=None
+    )
+    texto: Mapped[str] = mapped_column(Text)
+    # Nulos mientras está pendiente: estar hecha es tenerlos, y no una columna
+    # aparte que pudiera contradecirlos.
+    marcada_por: Mapped[str | None] = mapped_column(String(50), default=None)
+    marcada_en: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), default=None
+    )
+    # Como `creada_por` en la pieza: sale de la sesión, nunca del cuerpo.
+    creada_por: Mapped[str] = mapped_column(String(50))
+    creada_en: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    @property
+    def hecha(self) -> bool:
+        return self.marcada_en is not None
+
+
 class Enlace(Base):
     """Un enlace de referencia de la pieza: un pin, un vídeo, un artículo (P1).
 
