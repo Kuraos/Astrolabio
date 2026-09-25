@@ -4,9 +4,12 @@
    clases que encuentra en nuestro código, y esta no aparece en él. */
 @source inline("sr-only");
 
-/* La identidad «Control» (Fase 7, ADR 0014). Qué es cada color y cuánto
-   contrasta, en DESIGN_SYSTEM §2. */
+/* La identidad «Control» (Fase 7, ADR 0014). Solo existen estos colores: la
+   paleta por defecto se vacía, así que una clase `slate-*` olvidada no pinta
+   nada, y `identidad.test.ts` lo vigila. Qué es cada uno y cuánto contrasta,
+   en DESIGN_SYSTEM §2. */
 @theme {
+  --color-*: initial;
   --color-page: #0a0a0b;
   --color-surface: #111113;
   --color-raised: #151517;
