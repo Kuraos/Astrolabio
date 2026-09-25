@@ -57,8 +57,7 @@ export default function VistaPieza({
   }
 
   return (
-    // `data-pieza`: la marca con la que App ensancha la columna (X1).
-    <div data-pieza className="space-y-4">
+    <div className="space-y-4">
       <div className="relative flex items-center justify-between gap-3">
         <button
           type="button"

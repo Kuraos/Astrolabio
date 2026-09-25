@@ -90,7 +90,7 @@ analítica, ni almacenamiento en la nube.
 ├── web/
 │   ├── src/
 │   │   ├── main.tsx          punto de entrada
-│   │   ├── App.tsx           sesión, lista de piezas y pieza nueva
+│   │   ├── App.tsx           sesión, tablero de piezas y pieza nueva
 │   │   ├── Pieza.tsx         la vista de una pieza y sus paneles
 │   │   ├── Guion.tsx         el guion: barra, campo y vista previa
 │   │   ├── Temas.tsx         el tema y las etiquetas de la pieza
@@ -98,6 +98,7 @@ analítica, ni almacenamiento en la nube.
 │   │   ├── barra.ts          las acciones de la barra del guion, puras
 │   │   ├── catalogo.ts       el catálogo de etiquetas, puro
 │   │   ├── flujo.ts          las palabras de estados y transiciones
+│   │   ├── tablero.ts        las piezas repartidas por estado, puro
 │   │   └── index.css         Tailwind y el estilo del guion renderizado
 │   ├── nginx.conf.template   el proxy de /api y la caché de los assets
 │   └── Dockerfile            compila con Node y sirve con nginx
@@ -107,7 +108,7 @@ analítica, ni almacenamiento en la nube.
 
 Cada módulo de `api/app/` es un router con su prefijo bajo `/api`, y
 `main.py` los monta todos. El cliente no tiene enrutador: o se está entrando,
-o se está dentro, y dentro se ve la lista o una pieza.
+o se está dentro, y dentro se ve el tablero o una pieza.
 
 ## 4. El camino de una petición
 

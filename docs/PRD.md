@@ -93,8 +93,8 @@ es reconstruir la pieza con otro formato, idea o medio.
 
 - **Cada pieza es de alguien.** A Johan le tocan `investigación`, `solicitud
   entregada`, `finalizada` y `diseño aprobado`; al editor, `material
-  aprobado`; `publicada` no es de nadie. La lista pone primero las que te
-  tocan, marcadas «Te toca».
+  aprobado`; `publicada` no es de nadie. El tablero pone una columna por
+  estado, y las piezas que te tocan van marcadas «Te toca».
 - **Todo queda en la historia**: quién movió la pieza, cuándo, y una nota
   opcional. La historia no se edita ni se borra.
 - **Lo irreversible se confirma.** Después de «Aprobar el diseño» la pieza ya

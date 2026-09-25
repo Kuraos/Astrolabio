@@ -57,7 +57,7 @@ Los contrastes en negrita no llegan a AA: ver §9.
   |---|---|---|
   | `text-2xl font-semibold tracking-tight` | 24 px | Nombre de la app |
   | `text-lg font-semibold` | 18 px | Título de la pieza |
-  | `text-sm` | 14 px | Lista de piezas, formularios de entrada y de pieza nueva |
+  | `text-sm` | 14 px | Tarjetas del tablero, formularios de entrada y de pieza nueva |
   | `text-xs` | 12 px | Casi todo dentro de los paneles |
   | `text-[11px]` | 11 px | Insignias y la ruta del archivo exportado |
 
@@ -87,7 +87,8 @@ La escala de Tailwind, de 4 en 4 px (`--spacing: 0.25rem`):
 ## 5. Radios, bordes y sombras
 
 - `rounded-lg` (8 px): paneles y el editor del guion.
-- `rounded-md` (6 px): botones, campos, avisos y filas de la lista.
+- `rounded-md` (6 px): botones, campos, avisos, filas del catálogo y tarjetas
+  del tablero.
 - `rounded` (4 px): insignias.
 - Bordes de 1 px en lugar de sombras. No hay sombras.
 
@@ -101,14 +102,16 @@ Los de referencia viven en `web/src/App.tsx`: `Panel`, `Campo`, `Aviso` y
 | Panel | `rounded-lg border border-slate-800 bg-slate-900/60 p-4`, con su título de panel | `Panel` |
 | Campo con etiqueta | `<label>` con la etiqueta en `text-xs text-slate-400`; el campo, `w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none focus:border-slate-500` | `Campo` |
 | Botón primario | `rounded-md bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-900 disabled:opacity-40` | Guardar, transiciones hacia adelante |
-| Botón primario de formulario | `w-full rounded-md bg-slate-100 px-3 py-2.5 text-sm font-medium text-slate-900` | Entrar, Crear pieza |
+| Botón primario de formulario | `w-full rounded-md bg-slate-100 px-3 py-2.5 text-sm font-medium text-slate-900` | Entrar. «Crear pieza», igual pero sin `w-full`: a 1024 px pesaría más que el tablero |
 | Botón secundario | `rounded-md border border-slate-700 px-3 py-1.5 text-xs text-slate-300 disabled:opacity-40` | Devolver, Reformular, Salir, Añadir enlace, Crear la carpeta |
 | Botón de texto | `text-xs text-slate-400 hover:text-slate-200` | ← Piezas, Quitar, Actualizar, Copiar ruta |
 | Aviso de error | `rounded-md border border-rose-900/60 bg-rose-950/40 px-3 py-2 text-xs text-rose-200`, con `role="alert"` | `Aviso` |
 | Aviso que no bloquea | `text-xs text-amber-300/80` | «sin guardar», «Guarda el guion antes de moverla» |
-| Insignia de turno | `rounded px-2 py-0.5 text-[11px]`, con `bg-amber-400/15 text-amber-200` si te toca y `text-slate-500` si no | `Turno` |
+| Insignia de turno | `rounded px-2 py-0.5 text-[11px]`, con `bg-amber-400/15 text-amber-200` si te toca y `text-slate-400` si no | `Turno` |
 | Insignia de rol | `rounded bg-slate-800 px-2 py-0.5 text-xs text-slate-300` | Sesión |
-| Fila de la lista | `rounded-md px-2 py-2.5 hover:bg-slate-800/60`, dentro de `divide-y divide-slate-800`. Si filtra, la elegida lleva `bg-slate-800/60` y `aria-pressed` | Lista de piezas, catálogo de etiquetas |
+| Fila de lista | `rounded-md px-2 py-2.5 hover:bg-slate-800/60`, dentro de `divide-y divide-slate-800`. Si filtra, la elegida lleva `bg-slate-800/60` y `aria-pressed` | Catálogo de etiquetas |
+| Columna del tablero | `<section>` con el estado en `text-xs font-medium uppercase tracking-wider text-slate-400` y la cuenta a la derecha, y sus tarjetas en `space-y-2`. Las columnas, en `grid gap-4 md:grid-cols-3 lg:grid-cols-6` | Tablero |
+| Tarjeta del tablero | `<button>` con `group flex w-full flex-col gap-1.5 rounded-md border border-slate-800 px-2 py-2 text-left hover:bg-slate-800/60`: el título en `text-sm text-slate-100`, con la flecha `→` a su derecha en `text-slate-600 group-hover:text-slate-300`, y debajo, en `text-xs text-slate-400`, el turno y lo que falta. Esa línea lleva `empty:hidden`, y el hueco es `gap` y no `space-y`, para que desaparezca con ella | Tablero |
 | Enlace externo | `underline decoration-slate-600 underline-offset-2 hover:decoration-slate-300`, con `target="_blank" rel="noopener noreferrer"` | Material |
 | Miniatura | `aspect-square w-full rounded-md bg-slate-950 object-contain`, en una rejilla `grid grid-cols-3 gap-2 md:grid-cols-6`, con el nombre, el tamaño y la fecha debajo en `text-[11px]` | Material |
 | Editor del guion | `textarea` en `font-mono text-xs leading-relaxed`, con la vista previa `.prosa` al lado | Vista de la pieza |
@@ -130,7 +133,7 @@ Los de referencia viven en `web/src/App.tsx`: `Panel`, `Campo`, `Aviso` y
 ## 7. Estados
 
 - **Hover**: un botón de texto pasa a un gris más claro (`slate-400` →
-  `slate-200`); las filas, a `bg-slate-800/60`.
+  `slate-200`); las filas y las tarjetas, a `bg-slate-800/60`.
 - **Foco**: los campos quitan el contorno y aclaran el borde
   (`outline-none focus:border-slate-500`); los botones conservan el anillo
   del navegador.
@@ -148,11 +151,12 @@ Los de referencia viven en `web/src/App.tsx`: `Panel`, `Campo`, `Aviso` y
 
 ## 8. Tamaños de pantalla
 
-- La entrada y la lista de piezas viven en una columna centrada de `max-w-lg`
-  (512 px), con `p-6`.
-- Con una pieza abierta, la columna pasa a `max-w-5xl` (1024 px). El
-  contenedor de `App` se ensancha cuando contiene la marca `data-pieza` de la
-  vista: `has-[[data-pieza]]:max-w-5xl`.
+- La entrada vive en una columna centrada de `max-w-lg` (512 px), con `p-6`.
+- Con sesión, la columna pasa a `max-w-5xl` (1024 px): el tablero necesita
+  sus seis columnas, y la pieza abierta, el guion con la vista previa al lado.
+  Lo decide `App`, según haya usuario.
+- El tablero pasa de una columna a tres desde `md` y a seis desde `lg`. En
+  pantalla estrecha, las columnas se apilan en el orden del flujo.
 - El guion y su vista previa se ponen lado a lado desde `md` (768 px); en
   escritorio, cada uno mide unos 500 px.
 - La rejilla de miniaturas pasa de tres columnas a seis desde `md`, para que
@@ -162,16 +166,17 @@ Los de referencia viven en `web/src/App.tsx`: `Panel`, `Campo`, `Aviso` y
 
 ## 9. Accesibilidad
 
-- `lang="es"`, botones de verdad (`<button>`), avisos con `role="alert"` y la
-  flecha decorativa de la lista con `aria-hidden`. Las confirmaciones son las
-  del navegador y funcionan con teclado.
+- `lang="es"`, botones de verdad (`<button>`), también las tarjetas del
+  tablero, avisos con `role="alert"` y la flecha decorativa de la tarjeta con
+  `aria-hidden`. Las confirmaciones son las del navegador y funcionan con
+  teclado.
 - **Contraste.** De `slate-100` a `slate-400` todo cumple AA. **`text-slate-500`
   da 4.0:1 sobre el panel y `text-slate-600`, 2.5:1: no llegan al 4.5:1 que
   pide el texto de 12 px.** Hoy los usan los títulos de panel y, fuera del
   panel Material, los metadatos, los motivos y los estados vacíos.
 - **Regla para lo nuevo**: el texto que hay que leer va en `text-slate-400` o
   más claro. `slate-500` y `slate-600`, solo para lo que puede no leerse,
-  como la flecha de la lista.
+  como la flecha de la tarjeta.
 - **Bordes de campo**: `slate-700` sobre el panel da 1.8:1, por debajo del
   3:1 que WCAG 1.4.11 pide para reconocer un control. Con foco, `slate-500`
   da 4.0:1.
@@ -197,8 +202,7 @@ Se arregla al tocar cada sitio, no de golpe:
    panel Material ya cumple.
 2. Los bordes de campo, por debajo de 3:1 (§9).
 3. Los campos sin `<label>` dentro de los paneles (§9).
-4. `disabled:opacity-50` en los dos botones de formulario de `App.tsx`; el
-   resto usa 40.
+4. `disabled:opacity-50` en el botón «Entrar» de `App.tsx`; el resto usa 40.
 5. `Panel`, `Campo` y `Aviso` no se exportan, y `Pieza.tsx` copia sus clases.
    Cuando otro archivo los necesite, se mueven a un módulo compartido en vez
    de copiarlos otra vez.

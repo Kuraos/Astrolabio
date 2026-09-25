@@ -4,9 +4,11 @@ import { ErrorDeApi, pedir, type Pieza, type Usuario } from './api'
 import { catalogo } from './catalogo'
 import { aQuienLeToca, enPalabras } from './flujo'
 import VistaPieza from './Pieza'
+import { tablero } from './tablero'
 
 /**
- * Fase 0, criterios D1–D4, y la lista de N1.
+ * Fase 0, criterios D1–D4, y el tablero de la Fase 6 (AB), que reemplazó a
+ * la lista de N1.
  *
  * Dos pantallas y ningún enrutador: entrar o estar dentro. Una biblioteca de
  * rutas para dos estados sería infraestructura sin beneficio.
@@ -29,11 +31,10 @@ export default function App() {
 
   return (
     <main className="min-h-screen bg-slate-950 p-6 text-slate-100">
-      {/* X1: con una pieza abierta la columna pasa de 512 a 1024 px, para
-          escribir el guion con la vista previa al lado. Lo decide el CSS con
-          `:has()` y la marca `data-pieza` de la vista, sin subir hasta aquí
-          el estado de qué pieza está abierta. */}
-      <div className="mx-auto w-full max-w-lg space-y-6 has-[[data-pieza]]:max-w-5xl">
+      {/* Con sesión, la columna pasa de 512 a 1024 px: el tablero necesita
+          sus seis columnas (AB5), y la pieza, el guion con la vista previa al
+          lado (X1). La entrada se queda estrecha. */}
+      <div className={`mx-auto w-full space-y-6 ${usuario ? 'max-w-5xl' : 'max-w-lg'}`}>
         <header className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">Astrolabio</h1>
           <p className="text-sm text-slate-400">Taller de Voz del Cosmos</p>
@@ -189,7 +190,7 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
         ) : piezas === null ? (
           <p className="text-sm text-slate-400">Cargando…</p>
         ) : piezas.length === 0 ? (
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-400">
             Todavía no hay piezas.
             {usuario.rol === 'editor' && ' Johan crea la primera.'}
           </p>
@@ -209,47 +210,13 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
               </button>
             </p>
           )}
-          <ul className="divide-y divide-slate-800">
-            {porTurno(piezas, usuario)
-              .filter((pieza) => activo === null || pieza.etiquetas.includes(activo))
-              .map((pieza) => (
-              <li key={pieza.id}>
-                {/* Los dos roles abren la pieza: el editor lee el guion y
-                    puede corregirlo; lo que no ve es el respaldo. */}
-                {/* Que se vea que se abre: fondo al pasar por encima y una
-                    flecha. Sin esto la lista parece de solo lectura — pasó
-                    de verdad, y si el dueño del producto no encuentra el
-                    editor, el editor tampoco. */}
-                <button
-                  type="button"
-                  onClick={() => setAbierta(pieza)}
-                  className="group -mx-2 flex w-[calc(100%+1rem)] items-center gap-3 rounded-md px-2 py-2.5 text-left hover:bg-slate-800/60"
-                >
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-sm text-slate-100">
-                      {pieza.titulo}
-                    </span>
-                    <span className="block text-xs text-slate-500">
-                      {enPalabras(pieza.estado)} · {pieza.creada_por} ·{' '}
-                      {new Date(pieza.creada_en).toLocaleDateString('es-CO', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric',
-                      })}
-                      {pieza.guion.trim() === '' && ' · sin guion'}
-                    </span>
-                  </span>
-                  <Turno pieza={pieza} usuario={usuario} />
-                  <span
-                    aria-hidden
-                    className="shrink-0 text-slate-600 group-hover:text-slate-300"
-                  >
-                    →
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
+          <Tablero
+            piezas={piezas.filter(
+              (pieza) => activo === null || pieza.etiquetas.includes(activo),
+            )}
+            usuario={usuario}
+            alAbrir={setAbierta}
+          />
           </>
         )}
       </Panel>
@@ -295,14 +262,66 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
 }
 
 /**
- * N1: primero las que son de quien mira, después las del otro y al final las
- * publicadas. Dentro de cada grupo se queda el orden de la API, la más nueva
- * arriba: `sort` es estable.
+ * AB1–AB3: una columna por estado, y en cada tarjeta de quién es y qué le
+ * falta. Mover la pieza no se hace aquí: la tarjeta la abre, y ahí están sus
+ * botones, la nota de «Devolver» y las confirmaciones (Fase 6, §7.4). Los dos
+ * roles abren cualquier pieza; lo que el editor no ve dentro es el respaldo.
+ *
+ * En pantalla estrecha, las columnas se apilan en el mismo orden (AB5).
  */
-function porTurno(piezas: Pieza[], usuario: Usuario): Pieza[] {
-  const grupo = (pieza: Pieza) =>
-    pieza.de_quien_es === usuario.rol ? 0 : pieza.de_quien_es === null ? 2 : 1
-  return [...piezas].sort((a, b) => grupo(a) - grupo(b))
+function Tablero({
+  piezas,
+  usuario,
+  alAbrir,
+}: {
+  piezas: Pieza[]
+  usuario: Usuario
+  alAbrir: (pieza: Pieza) => void
+}) {
+  return (
+    <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+      {tablero(piezas).map((columna) => (
+        <section key={columna.estado} className="min-w-0 space-y-2">
+          <h3 className="flex items-baseline justify-between gap-2 text-xs font-medium uppercase tracking-wider text-slate-400">
+            <span className="min-w-0 break-words">{enPalabras(columna.estado)}</span>
+            <span>{columna.piezas.length}</span>
+          </h3>
+          <ul className="space-y-2">
+            {columna.piezas.map((pieza) => (
+              <li key={pieza.id}>
+                {/* Que se vea que se abre: fondo al pasar por encima y una
+                    flecha. Sin ellos, la lista de antes parecía de solo
+                    lectura, y pasó de verdad. `gap` y no `space-y`: la línea
+                    de abajo se oculta cuando queda vacía, y un hueco hecho
+                    con margen se quedaría. */}
+                <button
+                  type="button"
+                  onClick={() => alAbrir(pieza)}
+                  className="group flex w-full flex-col gap-1.5 rounded-md border border-slate-800 px-2 py-2 text-left hover:bg-slate-800/60"
+                >
+                  <span className="flex items-baseline justify-between gap-2">
+                    <span className="min-w-0 break-words text-sm text-slate-100">
+                      {pieza.titulo}
+                    </span>
+                    <span
+                      aria-hidden
+                      className="shrink-0 text-slate-600 group-hover:text-slate-300"
+                    >
+                      →
+                    </span>
+                  </span>
+                  <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-400 empty:hidden">
+                    <Turno pieza={pieza} usuario={usuario} />
+                    {pieza.guion.trim() === '' && <span>sin guion</span>}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  )
 }
 
 /** El turno de cada pieza, resaltado cuando le toca a quien mira. */
@@ -315,7 +334,7 @@ function Turno({ pieza, usuario }: { pieza: Pieza; usuario: Usuario }) {
       className={`shrink-0 rounded px-2 py-0.5 text-[11px] ${
         pieza.de_quien_es === usuario.rol
           ? 'bg-amber-400/15 text-amber-200'
-          : 'text-slate-500'
+          : 'text-slate-400'
       }`}
     >
       {texto}
@@ -354,10 +373,12 @@ function NuevaPieza({ alCrear }: { alCrear: () => Promise<void> }) {
 
         {error && <Aviso mensaje={error} />}
 
+        {/* Sin `w-full`, a diferencia de «Entrar»: con el tablero la columna
+            mide 1024 px (AB5), y a ese ancho el botón pesaría más que él. */}
         <button
           type="submit"
           disabled={enviando || !titulo.trim()}
-          className="w-full rounded-md bg-slate-100 px-3 py-2.5 text-sm font-medium text-slate-900 disabled:opacity-50"
+          className="rounded-md bg-slate-100 px-3 py-2.5 text-sm font-medium text-slate-900 disabled:opacity-40"
         >
           {enviando ? 'Creando…' : 'Crear pieza'}
         </button>
