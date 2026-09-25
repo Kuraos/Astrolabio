@@ -38,6 +38,10 @@ export type Pieza = {
   respaldo: string[]
   // Y2 y Y3: ya normalizadas por el servidor.
   etiquetas: string[]
+  // AC1: `AAAA-MM-DD`, días del calendario. Se leen con `fechas.ts`, nunca
+  // con `new Date(texto)` (AC5).
+  fecha_entrega: string | null
+  fecha_publicacion_prevista: string | null
   // K4: los tres los decide el servidor. `transiciones` son las que puede dar
   // quien pregunta, y el cliente pinta esas y no otras (N2).
   estado: string

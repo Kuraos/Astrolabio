@@ -75,7 +75,7 @@ def test_la_pieza_tiene_su_forma_completa():
 
     `estado` entró en K1, cuando la conversación que pide el §2.8 ya estaba
     escrita en `docs/estados-del-flujo.md`. Hasta entonces esta prueba afirmaba
-    que no estaba. `etiquetas`, en Y2.
+    que no estaba. `etiquetas`, en Y2, y las dos fechas, en AC1.
     """
     columnas = set(Pieza.__table__.columns.keys())
 
@@ -91,6 +91,8 @@ def test_la_pieza_tiene_su_forma_completa():
         "respaldo",
         "estado",
         "etiquetas",
+        "fecha_entrega",
+        "fecha_publicacion_prevista",
     }
 
 

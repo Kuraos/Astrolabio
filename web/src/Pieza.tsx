@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import {
   ErrorDeApi,
@@ -16,9 +16,9 @@ import Guion from './Guion'
 import PanelTemas from './Temas'
 
 /**
- * Vista de una pieza: arriba el traspaso (N2, N3), el material y el tema con
- * sus etiquetas, y debajo el guion con su barra y su vista previa (J1, J2 y
- * la Fase 4).
+ * Vista de una pieza: arriba el traspaso (N2, N3), las fechas (AC3), el
+ * material y el tema con sus etiquetas, y debajo el guion con su barra y su
+ * vista previa (J1, J2 y la Fase 4).
  */
 export default function VistaPieza({
   pieza: inicial,
@@ -101,6 +101,8 @@ export default function VistaPieza({
         haySinGuardar={sinGuardar}
         alMover={setPieza}
       />
+
+      <PanelFechas pieza={pieza} alCambiar={setPieza} />
 
       <PanelMaterial pieza={pieza} />
 
@@ -311,6 +313,113 @@ function PanelTraspaso({
         </div>
       </div>
     </section>
+  )
+}
+
+/**
+ * Las fechas de la pieza (AC3): la entrega del diseño y la publicación
+ * prevista. Se guardan solas, sin pasar por «Guardar», como el tema (Y5).
+ */
+function PanelFechas({
+  pieza,
+  alCambiar,
+}: {
+  pieza: Pieza
+  alCambiar: (pieza: Pieza) => void
+}) {
+  const [error, setError] = useState<string | null>(null)
+
+  async function guardar(cambios: {
+    fecha_entrega?: string | null
+    fecha_publicacion_prevista?: string | null
+  }) {
+    setError(null)
+    try {
+      alCambiar(
+        await pedir<Pieza>(`/api/piezas/${pieza.id}`, {
+          method: 'PATCH',
+          body: JSON.stringify(cambios),
+        }),
+      )
+    } catch (causa) {
+      setError(causa instanceof ErrorDeApi ? causa.message : 'No se pudo guardar la fecha')
+    }
+  }
+
+  return (
+    <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
+      <h3 className="text-xs font-medium uppercase tracking-wider text-slate-500">Fechas</h3>
+
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        {/* «Entrega del diseño» y no «Fecha de entrega», que es la palabra del
+            editor: junto al botón «Entregar» de Johan, que es la otra
+            entrega, se leería al revés (Fase 6, §7.7). */}
+        <CampoFecha
+          etiqueta="Entrega del diseño"
+          valor={pieza.fecha_entrega}
+          alGuardar={(valor) => void guardar({ fecha_entrega: valor })}
+        />
+        <CampoFecha
+          etiqueta="Publicación prevista"
+          valor={pieza.fecha_publicacion_prevista}
+          alGuardar={(valor) => void guardar({ fecha_publicacion_prevista: valor })}
+        />
+      </div>
+
+      {error && (
+        <p
+          role="alert"
+          className="mt-3 rounded-md border border-rose-900/60 bg-rose-950/40 px-3 py-2 text-xs text-rose-200"
+        >
+          {error}
+        </p>
+      )}
+    </section>
+  )
+}
+
+/**
+ * Un campo de fecha del navegador que se guarda solo, pero no en cada cambio:
+ * al teclear el año, el campo pasa por 0002, 0020 y 0202 antes de 2026, y cada
+ * paso sería un PATCH que podría llegar después del bueno. Se guarda al salir
+ * del campo, o tras un momento sin cambios, que es lo que cubre elegir el día
+ * en el calendario: ahí el foco se queda en el campo.
+ */
+function CampoFecha({
+  etiqueta,
+  valor,
+  alGuardar,
+}: {
+  etiqueta: string
+  valor: string | null
+  alGuardar: (valor: string | null) => void
+}) {
+  const [borrador, setBorrador] = useState(valor ?? '')
+  const pendiente = useRef<number | undefined>(undefined)
+
+  function guardar(nuevo: string) {
+    window.clearTimeout(pendiente.current)
+    if (nuevo !== (valor ?? '')) alGuardar(nuevo || null)
+  }
+
+  return (
+    <label className="block space-y-1.5">
+      <span className="text-xs text-slate-400">{etiqueta}</span>
+      {/* `scheme-dark`: sin él, el icono y el calendario del navegador salen
+          en claro, y el icono negro no se ve sobre el campo. */}
+      <input
+        type="date"
+        value={borrador}
+        onChange={(e) => {
+          const nuevo = e.target.value
+          setBorrador(nuevo)
+          window.clearTimeout(pendiente.current)
+          pendiente.current = window.setTimeout(() => guardar(nuevo), 800)
+        }}
+        onBlur={() => guardar(borrador)}
+        className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-100 outline-none scheme-dark focus:border-slate-500"
+      />
+    </label>
   )
 }
 

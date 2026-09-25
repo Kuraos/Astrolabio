@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { ErrorDeApi, pedir, type Pieza, type Usuario } from './api'
 import { catalogo } from './catalogo'
+import { diaYMes } from './fechas'
 import { aQuienLeToca, enPalabras } from './flujo'
 import VistaPieza from './Pieza'
 import { tablero } from './tablero'
@@ -312,6 +313,13 @@ function Tablero({
                   </span>
                   <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-400 empty:hidden">
                     <Turno pieza={pieza} usuario={usuario} />
+                    {/* AC4: para cuándo. */}
+                    {pieza.fecha_entrega && (
+                      <span>entrega {diaYMes(pieza.fecha_entrega)}</span>
+                    )}
+                    {pieza.fecha_publicacion_prevista && (
+                      <span>publicación {diaYMes(pieza.fecha_publicacion_prevista)}</span>
+                    )}
                     {pieza.guion.trim() === '' && <span>sin guion</span>}
                   </span>
                 </button>

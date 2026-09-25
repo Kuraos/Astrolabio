@@ -8,9 +8,9 @@ palabras la conversación con el editor que pide el §2.8. Ninguno entra aquí s
 pasar antes por ese documento.
 """
 
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import ARRAY, CheckConstraint, DateTime, ForeignKey, String, Text, func
+from sqlalchemy import ARRAY, CheckConstraint, Date, DateTime, ForeignKey, String, Text, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -142,6 +142,13 @@ class Pieza(Base):
     etiquetas: Mapped[list[str]] = mapped_column(
         ARRAY(Text), server_default="{}", default=list
     )
+
+    # AC1: la entrega del diseño —la «fecha de entrega» del editor— y la
+    # publicación prevista. Días del calendario, sin hora ni zona: un `date`
+    # no se corre de día al pasar de UTC a Bogotá, como sí `creada_en`.
+    # Nulas mientras no se decidan.
+    fecha_entrega: Mapped[date | None] = mapped_column(Date, default=None)
+    fecha_publicacion_prevista: Mapped[date | None] = mapped_column(Date, default=None)
 
     # Toda pieza nace en la etapa de Johan, con el nombre que le puso él (K1).
     estado: Mapped[str] = mapped_column(

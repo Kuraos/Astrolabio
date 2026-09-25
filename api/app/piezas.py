@@ -1,4 +1,4 @@
-"""Piezas y su autorización (criterios C1–C5, H1–H3, K4 e Y1–Y4).
+"""Piezas y su autorización (criterios C1–C5, H1–H3, K4, Y1–Y4 y AC1–AC2).
 
 El §2.3 no admite matices: cada endpoint comprueba el rol **en el servidor**.
 Que la aplicación viva en una red privada no cambia nada — los dos roles del
@@ -8,7 +8,7 @@ mitad del valor del producto.
 
 import re
 import unicodedata
-from datetime import datetime
+from datetime import date, datetime
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -82,6 +82,10 @@ class PiezaEditada(BaseModel):
     # Sin etiquetas es `[]`, nunca `null`: la columna no admite nulos, y un
     # `null` explícito sería un 500 de la base en vez de un 422.
     etiquetas: list[str] = []
+    # AC2: los dos roles, y `null` la borra. Pydantic rechaza con 422 lo que no
+    # sea un día: otro formato, un día que no existe o una hora.
+    fecha_entrega: date | None = None
+    fecha_publicacion_prevista: date | None = None
 
     @field_validator("etiquetas")
     @classmethod
@@ -112,6 +116,8 @@ class PiezaPublica(BaseModel):
     plataforma: str | None
     respaldo: list[str]
     etiquetas: list[str]
+    fecha_entrega: date | None
+    fecha_publicacion_prevista: date | None
     estado: str
     de_quien_es: str | None
     # La rellena `_publica`: depende de quién pregunta, y la pieza no lo sabe.

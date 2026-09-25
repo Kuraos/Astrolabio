@@ -21,6 +21,8 @@ function pieza(id: number, estado: string): Pieza {
     plataforma: null,
     respaldo: [],
     etiquetas: [],
+    fecha_entrega: null,
+    fecha_publicacion_prevista: null,
     estado,
     de_quien_es: null,
     transiciones: [],

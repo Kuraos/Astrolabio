@@ -111,12 +111,13 @@ Los de referencia viven en `web/src/App.tsx`: `Panel`, `Campo`, `Aviso` y
 | Insignia de rol | `rounded bg-slate-800 px-2 py-0.5 text-xs text-slate-300` | Sesión |
 | Fila de lista | `rounded-md px-2 py-2.5 hover:bg-slate-800/60`, dentro de `divide-y divide-slate-800`. Si filtra, la elegida lleva `bg-slate-800/60` y `aria-pressed` | Catálogo de etiquetas |
 | Columna del tablero | `<section>` con el estado en `text-xs font-medium uppercase tracking-wider text-slate-400` y la cuenta a la derecha, y sus tarjetas en `space-y-2`. Las columnas, en `grid gap-4 md:grid-cols-3 lg:grid-cols-6` | Tablero |
-| Tarjeta del tablero | `<button>` con `group flex w-full flex-col gap-1.5 rounded-md border border-slate-800 px-2 py-2 text-left hover:bg-slate-800/60`: el título en `text-sm text-slate-100`, con la flecha `→` a su derecha en `text-slate-600 group-hover:text-slate-300`, y debajo, en `text-xs text-slate-400`, el turno y lo que falta. Esa línea lleva `empty:hidden`, y el hueco es `gap` y no `space-y`, para que desaparezca con ella | Tablero |
+| Tarjeta del tablero | `<button>` con `group flex w-full flex-col gap-1.5 rounded-md border border-slate-800 px-2 py-2 text-left hover:bg-slate-800/60`: el título en `text-sm text-slate-100`, con la flecha `→` a su derecha en `text-slate-600 group-hover:text-slate-300`, y debajo, en `text-xs text-slate-400`, el turno, las fechas («entrega 2 de oct») y lo que falta. Esa línea lleva `empty:hidden`, y el hueco es `gap` y no `space-y`, para que desaparezca con ella | Tablero |
 | Enlace externo | `underline decoration-slate-600 underline-offset-2 hover:decoration-slate-300`, con `target="_blank" rel="noopener noreferrer"` | Material |
 | Miniatura | `aspect-square w-full rounded-md bg-slate-950 object-contain`, en una rejilla `grid grid-cols-3 gap-2 md:grid-cols-6`, con el nombre, el tamaño y la fecha debajo en `text-[11px]` | Material |
 | Editor del guion | `textarea` en `font-mono text-xs leading-relaxed`, con la vista previa `.prosa` al lado | Vista de la pieza |
 | Botón de la barra | `rounded-md border border-slate-700 px-2 py-1 text-xs text-slate-300 hover:border-slate-500 hover:text-slate-100`; negrita y cursiva, en su propio estilo | Barra del guion |
 | Selector | `<select>` con las clases del campo, en `text-xs`, dentro de un `<label>` con su nombre en `text-xs text-slate-400` | Tema de la pieza |
+| Campo de fecha | `<input type="date">` con las clases del campo, en `text-xs` y con `scheme-dark`, sin el cual el icono del calendario sale negro sobre el campo. Se guarda al salir de él o tras 800 ms sin cambios, no en cada tecla | Fechas de la pieza |
 | Ficha de etiqueta | `rounded bg-slate-800 py-0.5 pl-2 pr-1 text-xs text-slate-200`, con un `×` que la quita y dice cuál en su `aria-label` | Etiquetas de la pieza |
 
 - **Hacia adelante y hacia atrás.** Entre los botones de transición, los que
