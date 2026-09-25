@@ -61,6 +61,11 @@ export type Semana = {
 // conozca no suma entregas: se ve en el tablero (AB2), no aquí.
 const SIN_ENTREGAR = new Set(['investigacion', 'solicitud_entregada', 'material_aprobado'])
 
+/** Si el editor aún no ha entregado el diseño: las semanas y la tarjeta. */
+export function entregaPendiente(pieza: Pieza): boolean {
+  return SIN_ENTREGAR.has(pieza.estado)
+}
+
 /**
  * AE1: lo que sigue pendiente con fecha, por semanas y en orden: la entrega
  * de cada pieza que el editor aún no ha finalizado, y la publicación prevista
@@ -70,7 +75,7 @@ const SIN_ENTREGAR = new Set(['investigacion', 'solicitud_entregada', 'material_
 export function semanas(piezas: Pieza[], hoy: string): Semana[] {
   const entradas: Entrada[] = []
   for (const pieza of piezas) {
-    if (pieza.fecha_entrega && SIN_ENTREGAR.has(pieza.estado)) {
+    if (pieza.fecha_entrega && entregaPendiente(pieza)) {
       entradas.push({ fecha: pieza.fecha_entrega, tipo: 'entrega', pieza })
     }
     if (pieza.fecha_publicacion_prevista && pieza.estado !== 'publicada') {

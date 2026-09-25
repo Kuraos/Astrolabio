@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { ErrorDeApi, pedir, type Pieza, type Tarea, type Usuario } from './api'
 import { catalogo } from './catalogo'
-import { diaDeHoy, diaDeLaSemana, diaYMes, semanas } from './fechas'
+import { diaDeHoy, diaDeLaSemana, diaYMes, entregaPendiente, semanas } from './fechas'
 import { aQuienLeToca, enPalabras } from './flujo'
 import VistaPieza from './Pieza'
 import { tablero } from './tablero'
@@ -341,12 +341,13 @@ function Tablero({
                   </span>
                   <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-400 empty:hidden">
                     <Turno pieza={pieza} usuario={usuario} />
-                    {/* AC4: para cuándo. */}
-                    {pieza.fecha_entrega && (
+                    {/* AC4: para cuándo, mientras siga pendiente. Entregado
+                        el diseño, su fecha ya no dice nada; publicada la
+                        pieza, la prevista se leería como la real, que es
+                        otra (ADR 0012). */}
+                    {pieza.fecha_entrega && entregaPendiente(pieza) && (
                       <span>entrega {diaYMes(pieza.fecha_entrega)}</span>
                     )}
-                    {/* Publicada, la prevista ya no dice nada y se leería
-                        como la real, que es otra (ADR 0012). */}
                     {pieza.fecha_publicacion_prevista && pieza.estado !== 'publicada' && (
                       <span>publicación {diaYMes(pieza.fecha_publicacion_prevista)}</span>
                     )}
