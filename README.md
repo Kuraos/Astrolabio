@@ -45,6 +45,10 @@ falta su prueba en el uso.
 La [hoja de ruta](docs/hoja-de-ruta.md) terminaba en la Fase 6: lo que venga
 después saldrá del uso.
 
+- **Fase 7, identidad «Control»**, abierta: la interfaz gana una identidad
+  propia sin cambiar lo que hace. Su alcance está en
+  [`docs/fase-7-identidad.md`](docs/fase-7-identidad.md).
+
 ---
 
 ## Cómo está hecho
@@ -134,3 +138,4 @@ qué alternativas se descartaron.
 | [0011](docs/adr/0011-las-etiquetas-viajan-al-vault.md) | Las etiquetas viajan al vault como tags anidados |
 | [0012](docs/adr/0012-la-fecha-de-publicacion-viaja-al-vault.md) | La fecha de publicación viaja al vault: la prevista y, al publicar, la real |
 | [0013](docs/adr/0013-transitivas-e-imagenes-fijadas.md) | Las transitivas y las imágenes base también se fijan |
+| [0014](docs/adr/0014-identidad-con-tokens-y-fuentes-propias.md) | La identidad trae sus colores y sus fuentes, servidas por la app |
