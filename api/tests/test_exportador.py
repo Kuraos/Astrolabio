@@ -53,7 +53,7 @@ def pieza(sesion_db: Session) -> Pieza:
         creada_por="johan",
         guion="## Guion\n\nUna masa solar es $M_\\odot$.\n",
         formato="video",
-        tema="Cumulos abiertos",
+        tema="Galaxias y cosmología",
         plataforma="YouTube",
         respaldo=["GWTC-5"],
     )
@@ -86,11 +86,33 @@ def test_el_frontmatter_cumple_la_plantilla(vault: Path, pieza: Pieza):
     # Fecha sin comillas: un `date` de YAML, como en la plantilla escrita a mano.
     assert isinstance(datos["fecha"], date)
     assert datos["formato"] == "video"
-    assert datos["tema"] == "Cumulos abiertos"
+    # AA1: el tema con su valor de la lista, tilde incluida.
+    assert datos["tema"] == "Galaxias y cosmología"
     assert datos["plataforma"] == "YouTube"
+    # Sin etiquetas, el tag de siempre y nada más.
     assert datos["tags"] == ["voz-del-cosmos"]
     assert datos["investigacion"] == ["GWTC-5"]
     assert "status" in datos
+
+
+def test_las_etiquetas_salen_como_tags_anidados(
+    vault: Path, pieza: Pieza, sesion_db: Session
+):
+    """AA1 y AA2 (ADR 0011). Anidadas bajo `voz-del-cosmos`, que se queda: el
+    panel de tags de Obsidian las agrupa ahí, y la auditoría del vault sigue
+    encontrando el tag de siempre. La ñ tiene que llegar escrita, no escapada.
+    """
+    pieza.etiquetas = ["agujeros-negros", "cañones-de-marte"]
+    sesion_db.flush()
+
+    texto = exportador.exportar(pieza, vault).read_text(encoding="utf-8")
+
+    assert _frontmatter(texto)["tags"] == [
+        "voz-del-cosmos",
+        "voz-del-cosmos/agujeros-negros",
+        "voz-del-cosmos/cañones-de-marte",
+    ]
+    assert "voz-del-cosmos/cañones-de-marte" in texto
 
 
 @pytest.mark.parametrize("estado", ESTADOS)

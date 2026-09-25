@@ -1,4 +1,4 @@
-"""Exportador al vault (criterios I1–I5 y O1, ADR 0001, 0007 y 0009).
+"""Exportador al vault (criterios I1–I5, O1 y AA1, ADR 0001, 0007, 0009 y 0011).
 
 La mitad «Astrolabio → vault». Una sola dirección: el vault recibe una copia
 marcada como generada que nunca se edita a mano.
@@ -92,7 +92,9 @@ def _nota(pieza: Pieza) -> str:
         "plataforma": pieza.plataforma,
         "investigacion": list(pieza.respaldo),
         "metricas": {"vistas": None, "alcance": None},
-        "tags": ["voz-del-cosmos"],
+        # Cada etiqueta, anidada bajo el tag de siempre, que se queda: el panel
+        # de tags de Obsidian las agrupa ahí (ADR 0011).
+        "tags": ["voz-del-cosmos", *(f"voz-del-cosmos/{e}" for e in pieza.etiquetas)],
         # Lo que permite reencontrar la nota si cambia el título (ADR 0007).
         "fuente": "astrolabio",
         "astrolabio_id": pieza.id,
