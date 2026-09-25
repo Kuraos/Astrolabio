@@ -1,6 +1,7 @@
 # Fase 7 — Identidad «Control»
 
-**Abierta el 2026-09-25**, con las decisiones de §7. Es alcance nuevo: la
+**Código terminado el 2026-09-25**, con las decisiones de §7; queda su prueba
+de terminado (§5): que el editor la vea en su máquina. Es alcance nuevo: la
 [hoja de ruta](hoja-de-ruta.md) terminó en la Fase 6, y esta nace de pedirle
 personalidad a la interfaz, no de un problema de uso.
 
@@ -182,3 +183,14 @@ Y cinco que no hizo falta preguntar, y que se cambian si no convencen:
 9. **1440 px como máximo**, en vez de 1024: las seis columnas y el guion con
    su vista previa lo agradecen, y más allá las líneas se hacen demasiado
    largas.
+
+## 8. Lo que apareció por el camino
+
+- **Los subíndices de las fórmulas no se pintaban, desde la Fase 1.**
+  `rehype-katex` pinta con KaTeX 0.16 y el CSS venía de `katex` 0.18, que
+  renombró sus clases de tamaño: $m_1$ se leía «m1». Se vio al ampliar la
+  vista previa para compararla con el canvas. `katex` queda en la versión de
+  `rehype-katex`, con una prueba que vigila que no se separen.
+- **El exportador usa el título tal cual como nombre de archivo**, y un título
+  con `?` o `:` no se puede escribir en el vault de Windows. No es de esta
+  fase: va en su propia rama.

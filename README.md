@@ -45,9 +45,11 @@ falta su prueba en el uso.
 La [hoja de ruta](docs/hoja-de-ruta.md) terminaba en la Fase 6: lo que venga
 después saldrá del uso.
 
-- **Fase 7, identidad «Control»**, abierta: la interfaz gana una identidad
-  propia sin cambiar lo que hace. Su alcance está en
-  [`docs/fase-7-identidad.md`](docs/fase-7-identidad.md).
+- **Fase 7, identidad «Control»**: la interfaz gana una identidad propia sin
+  cambiar lo que hace —sus colores y sus fuentes, un bloque naranja con lo que
+  te toca, las semanas en una línea de tiempo y la pieza en estaciones—. El
+  código está terminado; falta que el editor la vea en su máquina. Su alcance
+  está en [`docs/fase-7-identidad.md`](docs/fase-7-identidad.md).
 
 ---
 

@@ -56,7 +56,7 @@ cada cosa.
 
 | Parte | Tecnología |
 |---|---|
-| Cliente | React 18, TypeScript, Vite y Tailwind 4. El guion se pinta con `react-markdown`, `remark-gfm`, `remark-math` y `rehype-katex` |
+| Cliente | React 18, TypeScript, Vite y Tailwind 4. El guion se pinta con `react-markdown`, `remark-gfm`, `remark-math` y `rehype-katex`. Las fuentes, Archivo y Martian Mono, llegan de `@fontsource-variable` y las sirve la propia app ([ADR 0014](adr/0014-identidad-con-tokens-y-fuentes-propias.md)) |
 | Proxy | nginx: sirve el build y reenvía `/api` |
 | API | Python 3.12, FastAPI y uvicorn. SQLAlchemy 2.0 con psycopg 3, Alembic, pydantic-settings, argon2-cffi, PyYAML y Pillow |
 | Base de datos | Postgres 18 |
@@ -93,8 +93,9 @@ analítica, ni almacenamiento en la nube.
 │   └── tests/                pytest, una base `_test` aparte
 ├── web/
 │   ├── src/
-│   │   ├── main.tsx          punto de entrada
-│   │   ├── App.tsx           sesión, tablero de piezas y pieza nueva
+│   │   ├── main.tsx          punto de entrada, y las fuentes
+│   │   ├── App.tsx           entrada, tablero, semanas y pieza nueva
+│   │   ├── ui.tsx            botones, campos, estación y aviso: lo que se repite
 │   │   ├── Pieza.tsx         la vista de una pieza y sus paneles
 │   │   ├── Guion.tsx         el guion: barra, campo y vista previa
 │   │   ├── Temas.tsx         el tema y las etiquetas de la pieza
@@ -102,10 +103,10 @@ analítica, ni almacenamiento en la nube.
 │   │   ├── api.ts            pedir(), ErrorDeApi y los tipos de la API
 │   │   ├── barra.ts          las acciones de la barra del guion, puras
 │   │   ├── catalogo.ts       el catálogo de etiquetas, puro
-│   │   ├── fechas.ts         fechas de calendario y semanas, sin pasar por UTC
+│   │   ├── fechas.ts         fechas de calendario, semanas y su línea de tiempo
 │   │   ├── flujo.ts          las palabras de estados y transiciones
 │   │   ├── tablero.ts        las piezas repartidas por estado, puro
-│   │   └── index.css         Tailwind y el estilo del guion renderizado
+│   │   └── index.css         los colores y estilos de la identidad, y el del guion
 │   ├── nginx.conf.template   el proxy de /api y la caché de los assets
 │   └── Dockerfile            compila con Node y sirve con nginx
 ├── docs/                     producto, arquitectura, diseño, fases y ADR

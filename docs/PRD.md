@@ -51,6 +51,7 @@ sirve en pantalla sigue abierto ([estados §6](estados-del-flujo.md)).
 | 4 — Escribir con herramientas | Una barra de diez botones y atajos para el guion, que Ctrl+Z deshace de un paso; `mk` y `dm` abren fórmula; tablas y notas al pie en la vista previa; la pieza a 1024 px. Falta su prueba en el uso | T–X · [fase 4](fase-4-escritura.md) |
 | 5 — Temas y etiquetas | Cuatro temas fijos, etiquetas libres con un catálogo de qué se ha hablado que filtra la lista, y las etiquetas en el vault como tags anidados bajo `voz-del-cosmos`. Falta su prueba en el uso | Y–AA · [fase 5](fase-5-temas.md) |
 | 6 — Tablero, tareas y fechas | Un tablero por estado en lugar de la lista; tareas por pieza y sueltas, con lo que falta en cada tarjeta; fechas de entrega y de publicación, lo pendiente por semanas y la fecha de publicación en el vault. Falta su prueba en el uso | AB–AF · [fase 6](fase-6-tablero.md) |
+| 7 — Identidad «Control» | La interfaz gana una identidad propia sin cambiar lo que hace: sus colores y sus fuentes, un bloque naranja con lo que te toca, las semanas en una línea de tiempo y la pieza en estaciones. Falta que el editor la vea en su máquina | AG–AM · [fase 7](fase-7-identidad.md) |
 
 Quién puede qué, hoy:
 
@@ -198,8 +199,9 @@ Lo que se descartó dentro de cada fase está en su documento.
 ## 10. Lo que viene
 
 Con la fase 6, la [hoja de ruta](hoja-de-ruta.md) está hecha en código; falta
-probar las fases 3 a 6 en el uso. Lo que venga después saldrá de ese uso; el
-panel de métricas de §8 todavía no tiene fase.
+probar las fases 3 a 6 en el uso. La fase 7 no salió de ella sino de pedirle
+personalidad a la interfaz, y también está hecha en código. Lo que venga
+después saldrá del uso; el panel de métricas de §8 todavía no tiene fase.
 
 ## 11. Preguntas abiertas
 

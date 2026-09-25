@@ -264,7 +264,8 @@ sesiones en `.claude/worktrees/`.
 - Hoja de ruta, fases 3 a 6: `docs/hoja-de-ruta.md`
 - Fase 6, `docs/fase-6-tablero.md`: el código está terminado y falta su
   prueba en el uso.
-- **Alcance vigente: `docs/fase-7-identidad.md`**, la identidad «Control».
+- **Alcance vigente: `docs/fase-7-identidad.md`**, la identidad «Control»,
+  con el código terminado: falta que el editor la vea en su máquina.
 
 Registros de decisión:
 
