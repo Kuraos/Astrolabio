@@ -151,8 +151,8 @@ está en [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 - **Idioma**: los nombres del **dominio** van en español, porque son las
   palabras que usan los dos usuarios y las mismas del vault — `pieza`,
   `traspaso`, `guion`, `respaldo`, `version_pieza`, `snapshot`. Todo lo
-  demás (variables locales, utilidades, tipos técnicos, mensajes de commit)
-  en inglés. No traduzcas «pieza» a «piece» en el modelo de datos.
+  demás del código (variables locales, utilidades, tipos técnicos) en
+  inglés. No traduzcas «pieza» a «piece» en el modelo de datos.
 - **Configuración**: todo por variables de entorno, sin valores por defecto
   que apunten a producción. Nada de rutas absolutas escritas en el código
   — la app debe correr igual en el PC de Johan, en un mini-servidor y en la
@@ -163,8 +163,9 @@ está en [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 - **Tests**: cada regla de autorización de §2.3 tiene un test que comprueba
   el 403. Es la parte del código donde un fallo no se nota mirando la
   pantalla.
-- **Commits**: pequeños y con el porqué en el cuerpo cuando la decisión no
-  sea obvia. El repositorio es parte del portafolio; el historial se lee.
+- **Commits**: en español, como todo el historial; pequeños y con el porqué
+  en el cuerpo cuando la decisión no sea obvia. El repositorio es parte del
+  portafolio; el historial se lee.
 - **Reutiliza antes de crear.** En el cliente, toda llamada a la API pasa por
   `pedir`, y sus errores llegan como `ErrorDeApi` (`web/src/api.ts`); las
   palabras de estados y transiciones salen de `web/src/flujo.ts`. En la API,
