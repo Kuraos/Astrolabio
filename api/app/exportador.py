@@ -22,6 +22,7 @@ from . import respaldo
 from .auth import usuario_actual
 from .config import settings
 from .db import get_db
+from .material import nombre_sin_prohibidos
 from .models import Pieza, Usuario
 
 router = APIRouter(prefix="/api/piezas", tags=["piezas"])
@@ -141,14 +142,17 @@ def _nota_previa(carpeta: Path, pieza_id: int) -> Path | None:
     return None
 
 
-def _enlazar_en_moc(base: Path, titulo: str) -> None:
-    """Añade el enlace en la sección propia, sin tocar las escritas a mano."""
+def _enlazar_en_moc(base: Path, nombre: str) -> None:
+    """Añade el enlace en la sección propia, sin tocar las escritas a mano.
+
+    Al nombre del archivo, no al título: es lo que Obsidian resuelve.
+    """
     moc = base / MOC
     if not moc.is_file():
         return
 
     texto = moc.read_text(encoding="utf-8")
-    enlace = f"- [[{titulo}]]"
+    enlace = f"- [[{nombre}]]"
 
     if enlace in texto:
         return
@@ -166,7 +170,9 @@ def exportar(pieza: Pieza, base: Path) -> Path:
     carpeta = base / CARPETA
     carpeta.mkdir(parents=True, exist_ok=True)
 
-    destino = carpeta / f"{pieza.titulo}.md"
+    # El vault vive en Windows, y un `/` sacaría la nota de `Contenido/` (ADR 0007).
+    nombre = nombre_sin_prohibidos(pieza.titulo)
+    destino = carpeta / f"{nombre}.md"
     previa = _nota_previa(carpeta, pieza.id)
 
     # El título cambió: se mueve la nota anterior en vez de dejar dos.
@@ -180,7 +186,7 @@ def exportar(pieza: Pieza, base: Path) -> Path:
         )
 
     destino.write_text(_nota(pieza), encoding="utf-8")
-    _enlazar_en_moc(base, pieza.titulo)
+    _enlazar_en_moc(base, nombre)
 
     return destino
 

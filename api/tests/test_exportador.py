@@ -233,6 +233,60 @@ def test_cambiar_el_titulo_renombra_la_nota(vault: Path, pieza: Pieza):
     assert archivos == ["Las Pleyades, revisado.md"]
 
 
+# --- El nombre, sin lo que Windows no admite (ADR 0007 y 0010) ---
+
+
+@pytest.mark.parametrize(
+    ("titulo", "nombre"),
+    [
+        ("¿Qué es un año luz?", "¿Qué es un año luz"),
+        ("GWTC-5.0: 390 ondas gravitacionales", "GWTC-5.0 390 ondas gravitacionales"),
+        ("???", "sin título"),
+    ],
+)
+def test_el_nombre_pierde_lo_que_windows_no_admite(
+    vault: Path, pieza: Pieza, titulo: str, nombre: str
+):
+    """El vault vive en Windows, y desde el contenedor la escritura no falla:
+    el montaje de Docker Desktop guarda el `?` como U+F03F, un carácter de uso
+    privado, y el enlace del MOC ya no encuentra la nota. El título, entero,
+    sigue en el encabezado.
+    """
+    pieza.titulo = titulo
+
+    destino = exportador.exportar(pieza, vault)
+
+    moc = (vault / "MOC-VozDelCosmos.md").read_text(encoding="utf-8")
+    assert destino == vault / "Contenido" / f"{nombre}.md"
+    assert f"- [[{nombre}]]" in moc
+    assert f"# {titulo}\n" in destino.read_text(encoding="utf-8")
+
+
+def test_una_barra_en_el_titulo_no_saca_la_nota_de_contenido(vault: Path, pieza: Pieza):
+    """I5. Los dos roles cambian el título, y con un `../` la nota subiría a
+    `Voz-del-Cosmos/`; con `../Bitacora/`, a una carpeta que el montaje deja
+    escribible (ADR 0007).
+    """
+    pieza.titulo = "../fuera"
+
+    exportador.exportar(pieza, vault)
+
+    notas = sorted(p.relative_to(vault).as_posix() for p in vault.rglob("*.md"))
+    assert notas == ["Contenido/fuera.md", "MOC-VozDelCosmos.md"]
+
+
+def test_cambiar_el_titulo_renombra_la_nota_al_nombre_limpio(vault: Path, pieza: Pieza):
+    """I4 con un título que pierde caracteres: la nota se encuentra por su
+    `astrolabio_id` y se mueve al nombre limpio, sin dejar dos.
+    """
+    exportador.exportar(pieza, vault)
+    pieza.titulo = "¿Qué son las Pléyades?"
+    exportador.exportar(pieza, vault)
+
+    archivos = sorted(p.name for p in (vault / "Contenido").glob("*.md"))
+    assert archivos == ["¿Qué son las Pléyades.md"]
+
+
 # --- I5: no pisa lo que no es suyo ---
 
 

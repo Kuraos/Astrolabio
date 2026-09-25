@@ -25,6 +25,16 @@ Pero «estable» no es «inmutable», así que la nota generada lleva
 dejar una huérfana y crear una segunda. Cuesta seis líneas y evita el único
 fallo real de esta decisión: dos notas contradictorias sobre la misma pieza.
 
+Desde el 2026-09-25, el nombre es el título **sin lo que Windows no admite**
+(`\ / : * ? " < > |`), con la misma limpieza que la carpeta de la pieza (ADR
+0010); si no queda nada, `sin título`. El vault vive en Windows, y exportar
+«GWTC-5.0: 390 ondas gravitacionales» no fallaba: el montaje de Docker Desktop
+guarda cada carácter prohibido como uno de uso privado (el `:` pasa a U+F03A),
+y la nota quedaba con un nombre que el enlace del MOC no encontraba. Un `/`,
+además, la sacaba de `Contenido/`. El título entero sigue en el encabezado de la
+nota, y el enlace del MOC apunta al nombre del archivo, que es lo que Obsidian
+resuelve.
+
 ### La escritura se acota en el montaje, hasta donde se puede
 
 El contenedor monta `03-Negocios/Voz-del-Cosmos/` en escritura, y encima

@@ -39,7 +39,8 @@ router = APIRouter(prefix="/api/piezas", tags=["material"])
 MARCA_DE_SYNCTHING = ".stfolder"
 
 # Lo que Windows no admite en un nombre (ADR 0010), más los caracteres de
-# control. La carpeta se crea en la máquina de Johan y se abre en la del editor.
+# control. La carpeta se crea en la máquina de Johan y se abre en la del editor,
+# y la nota del vault se escribe en la de Johan (ADR 0007).
 _PROHIBIDOS = re.compile(r'[\\/:*?"<>|\x00-\x1f]')
 
 # R1: tienen miniatura estas extensiones y ninguna más (R4).
@@ -169,15 +170,22 @@ def carpeta_compartida() -> Path | None:
     return Path(ruta) if ruta else None
 
 
+def nombre_sin_prohibidos(titulo: str) -> str:
+    """El título sin lo que Windows no admite en un nombre (ADR 0010).
+
+    Windows tampoco admite un nombre que acabe en punto o en espacio. Si del
+    título no queda nada, `sin título`.
+    """
+    return _PROHIBIDOS.sub("", titulo).strip(". ") or "sin título"
+
+
 def nombre_de_carpeta(pieza: Pieza) -> str:
     """`<id> - <título>`, sin lo que Windows no admite (ADR 0010).
 
-    Windows tampoco admite un nombre que acabe en punto o en espacio. Y si del
-    título no queda nada, el nombre sigue empezando por `<id> - `, que es por
-    donde la app lo encuentra.
+    Aunque del título no quede nada, el nombre sigue empezando por `<id> - `,
+    que es por donde la app lo encuentra.
     """
-    titulo = _PROHIBIDOS.sub("", pieza.titulo).strip(". ")
-    return f"{pieza.id} - {titulo or 'sin título'}"
+    return f"{pieza.id} - {nombre_sin_prohibidos(pieza.titulo)}"
 
 
 def _carpetas_de_la_pieza(base: Path, pieza_id: int) -> list[Path]:
