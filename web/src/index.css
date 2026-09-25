@@ -4,33 +4,121 @@
    clases que encuentra en nuestro código, y esta no aparece en él. */
 @source inline("sr-only");
 
-/* Estilos mínimos para el markdown renderizado del guion (J1).
-   Sin plugin de tipografía: son pocas reglas y evitan una dependencia. */
+/* La identidad «Control» (Fase 7, ADR 0014). Qué es cada color y cuánto
+   contrasta, en DESIGN_SYSTEM §2. */
+@theme {
+  --color-page: #0a0a0b;
+  --color-surface: #111113;
+  --color-raised: #151517;
+  --color-line-faint: #1e1e21;
+  --color-line: #2b2b2f;
+  --color-line-strong: #4a4a50;
+  --color-control: #6b6b70;
+  --color-ink: #f3f3f0;
+  --color-prose: #dcdcd8;
+  --color-ink-2: #a3a3a8;
+  --color-ink-3: #8b8b91;
+  --color-signal: #ff6a2b;
+  --color-alert: #ffa3bd;
+
+  /* Las sirve la propia app: `main.tsx` importa sus hojas con eje de anchura. */
+  --font-sans: "Archivo Variable", system-ui, sans-serif;
+  --font-mono: "Martian Mono Variable", ui-monospace, monospace;
+}
+
+/* Los tres estilos de texto que se repiten en todas las pantallas. En rem,
+   para que sigan el tamaño de letra que cada uno tenga en su navegador. */
+@utility heading-station {
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 800;
+  font-stretch: 125%;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+@utility mono-label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-stretch: 87.5%;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+@utility mono-data {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-stretch: 75%;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--color-page);
+    color: var(--color-ink);
+  }
+
+  /* El foco se ve siempre que se llega con el teclado (AG4). Los campos lo
+     dicen además aclarando su borde. */
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+  }
+}
+
+/* El guion renderizado (J1, AK3). Sin plugin de tipografía: son pocas reglas
+   y evitan una dependencia. */
 .prosa > * + * {
   margin-top: 0.75rem;
 }
+.prosa > * + :is(h1, h2, h3) {
+  margin-top: 1.5rem;
+}
+/* Los títulos, como los de las estaciones: en el guion suelen ser «Lámina 2». */
 .prosa h1,
 .prosa h2,
 .prosa h3 {
-  font-weight: 600;
-  color: var(--color-slate-100);
+  font-weight: 800;
+  font-stretch: 125%;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink);
 }
-.prosa h1 { font-size: 1.125rem; }
-.prosa h2 { font-size: 1rem; }
-.prosa h3 { font-size: 0.9rem; }
-.prosa ul { list-style: disc; padding-left: 1.25rem; }
+.prosa h1 { font-size: 0.875rem; }
+.prosa h2 { font-size: 0.8125rem; }
+.prosa h3 { font-size: 0.75rem; }
+.prosa strong {
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.prosa a {
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-decoration-color: var(--color-control);
+  text-underline-offset: 3px;
+}
+.prosa ul { list-style: square; padding-left: 1.25rem; }
 .prosa ol { list-style: decimal; padding-left: 1.25rem; }
+.prosa li::marker {
+  color: var(--color-ink-3);
+}
 .prosa code {
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
+  font-stretch: 75%;
   font-size: 0.85em;
-  background: var(--color-slate-800);
+  background: var(--color-surface);
   padding: 0.1rem 0.3rem;
-  border-radius: 0.25rem;
 }
 .prosa blockquote {
-  border-left: 2px solid var(--color-slate-700);
+  border-left: 2px solid var(--color-line-strong);
   padding-left: 0.75rem;
-  color: var(--color-slate-400);
+  color: var(--color-ink-2);
+}
+.prosa .katex {
+  color: var(--color-ink);
 }
 /* KaTeX en bloque puede desbordar en pantallas estrechas. */
 .prosa .katex-display {
@@ -45,17 +133,17 @@
 }
 .prosa th,
 .prosa td {
-  border: 1px solid var(--color-slate-700);
+  border: 1px solid var(--color-line);
   padding: 0.25rem 0.5rem;
   text-align: left;
 }
 .prosa th {
   font-weight: 600;
-  color: var(--color-slate-100);
+  color: var(--color-ink);
 }
 /* Las notas al pie, separadas del texto por una línea, como en Obsidian. */
 .prosa .footnotes {
-  border-top: 1px solid var(--color-slate-800);
+  border-top: 1px solid var(--color-line);
   padding-top: 0.5rem;
   font-size: 0.85em;
 }
