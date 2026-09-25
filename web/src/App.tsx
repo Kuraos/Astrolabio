@@ -2,7 +2,15 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { ErrorDeApi, pedir, type Pieza, type Tarea, type Usuario } from './api'
 import { catalogo, type Entrada } from './catalogo'
-import { diaDeHoy, diaDeLaSemana, diaYMes, entregaPendiente, semanas } from './fechas'
+import {
+  diaDeHoy,
+  diaDeLaSemana,
+  diaYMes,
+  entregaPendiente,
+  lineaDeTiempo,
+  semanas,
+  type Semana,
+} from './fechas'
 import { aQuienLeToca, duenoDelEstado, enPalabras } from './flujo'
 import VistaPieza from './Pieza'
 import { ESTADOS, tablero } from './tablero'
@@ -491,10 +499,12 @@ function SoloLasDe({ etiqueta, alQuitar }: { etiqueta: string; alQuitar: () => v
 /**
  * AE2: lo pendiente con fecha, por semanas, porque el editor trabaja «por
  * bloques semanales, quincenales o mensuales» (P1). Lo atrasado sale primero,
- * y cada entrada abre su pieza.
+ * y cada entrada abre su pieza. Desde `md`, en una línea de días (AI2); en
+ * pantalla estrecha, en lista.
  */
 function Semanas({ piezas, alAbrir }: { piezas: Pieza[]; alAbrir: (pieza: Pieza) => void }) {
-  const lista = semanas(piezas, diaDeHoy())
+  const hoy = diaDeHoy()
+  const lista = semanas(piezas, hoy)
 
   if (lista.length === 0) {
     return (
@@ -505,7 +515,109 @@ function Semanas({ piezas, alAbrir }: { piezas: Pieza[]; alAbrir: (pieza: Pieza)
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <>
+      <LineaDeTiempo lista={lista} hoy={hoy} alAbrir={alAbrir} />
+      <ListaDeSemanas lista={lista} alAbrir={alAbrir} />
+    </>
+  )
+}
+
+/**
+ * AI2: una columna por día, con hoy invertido y lo atrasado en rosa. Cada
+ * etiqueta cuelga de su día —o, al final de la línea, acaba en él— y va en el
+ * carril que le dio `lineaDeTiempo`. Los números de los días son andamio: el
+ * lector de pantalla lee las semanas y las entradas, no 28 números.
+ */
+function LineaDeTiempo({
+  lista,
+  hoy,
+  alAbrir,
+}: {
+  lista: Semana[]
+  hoy: string
+  alAbrir: (pieza: Pieza) => void
+}) {
+  const linea = lineaDeTiempo(lista, hoy)
+  const columnas = linea.celdas
+    .map((celda) => (celda.tipo === 'dia' ? 'minmax(0,1fr)' : '1.5rem'))
+    .join(' ')
+  const lunes = new Set(linea.semanas.map((s) => s.desde))
+
+  return (
+    <div className="grid border-t border-line max-md:hidden" style={{ gridTemplateColumns: columnas }}>
+      {linea.semanas.map((semana) => (
+        <span
+          key={semana.lunes}
+          className={`mono-label border-l border-line-strong px-2 py-2 ${
+            semana.cuando === 'pasada'
+              ? 'text-alert'
+              : semana.cuando === 'esta'
+                ? 'text-ink'
+                : 'text-ink-2'
+          }`}
+          style={{ gridColumn: `${semana.desde} / span 7`, gridRow: 1 }}
+        >
+          Semana del {diaYMes(semana.lunes)}
+          {semana.cuando === 'pasada' && ' · atrasada'}
+          {semana.cuando === 'esta' && ' · esta semana'}
+        </span>
+      ))}
+
+      {linea.celdas.map((celda, i) =>
+        celda.tipo === 'salto' ? (
+          <span
+            key={`salto-${i}`}
+            aria-hidden
+            className="mono-data flex items-center justify-center border-b border-line text-ink-3"
+            style={{ gridColumn: i + 1, gridRow: '1 / span 2' }}
+          >
+            …
+          </span>
+        ) : (
+          <span
+            key={celda.fecha}
+            aria-hidden
+            className={`mono-data border-b border-l py-1 pl-1.5 ${
+              lunes.has(i + 1) ? 'border-l-line-strong' : 'border-l-line-faint'
+            } ${celda.hoy ? 'border-b-ink bg-ink font-medium text-page' : 'border-b-line text-ink-3'}`}
+            style={{ gridColumn: i + 1, gridRow: 2 }}
+          >
+            {Number(celda.fecha.slice(8))}
+          </span>
+        ),
+      )}
+
+      {linea.marcas.map(({ entrada, cuando, desde, hasta, ancla, carril }) => (
+        <button
+          key={`${entrada.tipo}-${entrada.pieza.id}`}
+          type="button"
+          onClick={() => alAbrir(entrada.pieza)}
+          className={`mt-3 flex min-w-0 flex-col gap-1 px-2 pt-0.5 pb-1 hover:bg-raised ${
+            ancla === 'inicio' ? 'border-l-2 text-left' : 'items-end border-r-2 text-right'
+          } ${
+            cuando === 'pasada'
+              ? 'border-alert'
+              : cuando === 'esta'
+                ? 'border-ink'
+                : 'border-control'
+          }`}
+          style={{ gridColumn: `${desde} / ${hasta + 1}`, gridRow: carril + 3 }}
+        >
+          <span className={`mono-label ${cuando === 'pasada' ? 'text-alert' : 'text-ink-2'}`}>
+            {diaDeLaSemana(entrada.fecha)} · {entrada.tipo === 'entrega' ? 'entrega' : 'publicación'}
+            {cuando === 'pasada' && ' · atrasada'}
+          </span>
+          <span className="text-sm leading-tight font-medium break-words">{entrada.pieza.titulo}</span>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+/** AE2 tal cual, para pantallas estrechas: una línea de días no cabe en un teléfono. */
+function ListaDeSemanas({ lista, alAbrir }: { lista: Semana[]; alAbrir: (pieza: Pieza) => void }) {
+  return (
+    <div className="flex flex-col gap-5 md:hidden">
       {lista.map((semana) => (
         <section key={semana.lunes} className="flex flex-col">
           <h3

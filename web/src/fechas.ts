@@ -98,3 +98,86 @@ export function semanas(piezas: Pieza[], hoy: string): Semana[] {
     entradas: suyas,
   }))
 }
+
+/** `fecha` más `dias` días del calendario. */
+function masDias(fecha: string, dias: number): string {
+  const dia = enUtc(fecha)
+  dia.setUTCDate(dia.getUTCDate() + dias)
+  return dia.toISOString().slice(0, 10)
+}
+
+/** Una columna de la línea: un día, o el salto entre dos semanas lejanas. */
+export type Celda = { tipo: 'dia'; fecha: string; hoy: boolean } | { tipo: 'salto' }
+
+/**
+ * Una entrada en la línea: de qué columna a qué columna va su etiqueta, en qué
+ * carril, y si su día es el principio de la etiqueta o, al final de la línea,
+ * su fin. Las columnas cuentan desde 1, como las de una rejilla de CSS.
+ */
+export type Marca = {
+  entrada: Entrada
+  cuando: Semana['cuando']
+  desde: number
+  hasta: number
+  ancla: 'inicio' | 'fin'
+  carril: number
+}
+
+export type Linea = {
+  celdas: Celda[]
+  semanas: { lunes: string; cuando: Semana['cuando']; desde: number }[]
+  marcas: Marca[]
+}
+
+/**
+ * AI1: las semanas de `semanas()`, en una línea de días. La semana de hoy
+ * entra siempre, aunque esté vacía, para saber dónde se está; las que no
+ * tienen nada entre dos que sí tienen se dibujan como un salto, no como siete
+ * días vacíos. Cada etiqueta ocupa una quinta parte de los días y va al
+ * primer carril donde no pisa a otra.
+ */
+export function lineaDeTiempo(lista: Semana[], hoy: string): Linea {
+  if (lista.length === 0) return { celdas: [], semanas: [], marcas: [] }
+
+  const estaSemana = lunesDe(hoy)
+  const todas = lista.some((s) => s.lunes === estaSemana)
+    ? lista
+    : [...lista, { lunes: estaSemana, cuando: 'esta' as const, entradas: [] }].sort((a, b) =>
+        a.lunes < b.lunes ? -1 : 1,
+      )
+
+  const celdas: Celda[] = []
+  const columnaDe = new Map<string, number>()
+  const semanasEnLinea: Linea['semanas'] = []
+  todas.forEach((semana, i) => {
+    if (i > 0 && masDias(todas[i - 1].lunes, 7) !== semana.lunes) celdas.push({ tipo: 'salto' })
+    semanasEnLinea.push({ lunes: semana.lunes, cuando: semana.cuando, desde: celdas.length + 1 })
+    for (let d = 0; d < 7; d++) {
+      const fecha = masDias(semana.lunes, d)
+      celdas.push({ tipo: 'dia', fecha, hoy: fecha === hoy })
+      columnaDe.set(fecha, celdas.length)
+    }
+  })
+
+  const dias = celdas.filter((c) => c.tipo === 'dia').length
+  const ancho = Math.max(1, Math.round(dias / 5))
+  const finDeCarril: number[] = []
+  const marcas = todas
+    .flatMap((s) => s.entradas.map((entrada) => ({ entrada, cuando: s.cuando })))
+    .map(({ entrada, cuando }): Omit<Marca, 'carril'> => {
+      const columna = columnaDe.get(entrada.fecha) ?? 1
+      // Si no cabe hacia la derecha, la etiqueta acaba en su día.
+      return columna + ancho - 1 <= celdas.length
+        ? { entrada, cuando, desde: columna, hasta: columna + ancho - 1, ancla: 'inicio' }
+        : { entrada, cuando, desde: Math.max(1, columna - ancho + 1), hasta: columna, ancla: 'fin' }
+    })
+    .sort((a, b) => a.desde - b.desde)
+    .map((marca) => {
+      let carril = finDeCarril.findIndex((fin) => fin < marca.desde)
+      if (carril === -1) carril = finDeCarril.length
+      finDeCarril[carril] = marca.hasta
+      return { ...marca, carril }
+    })
+
+  return { celdas, semanas: semanasEnLinea, marcas }
+}
