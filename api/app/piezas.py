@@ -71,16 +71,20 @@ class PiezaEditada(BaseModel):
     Distinguir «no lo mandaron» de «lo mandaron vacío» importa aquí: borrar un
     guion por omitirlo del cuerpo sería una forma muy cara de aprender la
     diferencia.
+
+    Opcional no es anulable: solo `formato`, `tema` y `plataforma` admiten
+    `null`, porque una pieza puede no tenerlos todavía. En el resto la columna
+    no admite nulos, y un `null` explícito sería un 500 de la base en vez de un
+    422. Sus valores por defecto no se escriben nunca —`exclude_unset` deja
+    fuera lo que no vino—: solo permiten omitirlos.
     """
 
-    titulo: str | None = None
-    guion: str | None = None
+    titulo: str = ""
+    guion: str = ""
     formato: Formato | None = None
     tema: Tema | None = None
     plataforma: str | None = None
-    respaldo: list[str] | None = None
-    # Sin etiquetas es `[]`, nunca `null`: la columna no admite nulos, y un
-    # `null` explícito sería un 500 de la base en vez de un 422.
+    respaldo: list[str] = []
     etiquetas: list[str] = []
 
     @field_validator("etiquetas")

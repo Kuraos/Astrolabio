@@ -249,3 +249,56 @@ def test_una_pieza_que_no_existe_da_404(cliente: TestClient):
     _entrar_como(cliente, "johan")
 
     assert cliente.get("/api/piezas/99999").status_code == 404
+
+
+# --- Qué admite `null` y qué no ---
+
+
+@pytest.fixture
+def pieza(sesion_db: Session) -> Pieza:
+    """Con todo relleno, para que se note cualquier cosa que se escriba."""
+    p = Pieza(
+        titulo="Ondas gravitacionales",
+        creada_por="johan",
+        guion="Primer borrador",
+        formato="video",
+        plataforma="YouTube",
+        respaldo=["GWTC-5"],
+    )
+    sesion_db.add(p)
+    sesion_db.flush()
+    return p
+
+
+@pytest.mark.parametrize("campo", ["titulo", "guion", "respaldo"])
+def test_titulo_guion_y_respaldo_no_se_pueden_anular(
+    cliente: TestClient, sesion_db: Session, pieza: Pieza, campo: str
+):
+    """Como `etiquetas` (Y2): sus columnas no admiten nulos, así que un `null`
+    explícito es 422 y no un 500 de la base. Y un 422 no guarda nada.
+    """
+    _entrar_como(cliente, "johan")
+
+    respuesta = cliente.patch(f"/api/piezas/{pieza.id}", json={campo: None})
+
+    assert respuesta.status_code == 422
+    sesion_db.refresh(pieza)
+    assert pieza.titulo == "Ondas gravitacionales"
+    assert pieza.guion == "Primer borrador"
+    assert pieza.respaldo == ["GWTC-5"]
+
+
+@pytest.mark.parametrize("campo", ["formato", "plataforma"])
+def test_formato_y_plataforma_si_se_pueden_anular(
+    cliente: TestClient, sesion_db: Session, pieza: Pieza, campo: str
+):
+    """La otra cara, como el tema (Y1): una pieza puede no tenerlos todavía.
+    Anularlos es 200 y la columna vuelve a nulo.
+    """
+    _entrar_como(cliente, "johan")
+
+    respuesta = cliente.patch(f"/api/piezas/{pieza.id}", json={campo: None})
+
+    assert respuesta.status_code == 200
+    sesion_db.refresh(pieza)
+    assert getattr(pieza, campo) is None
