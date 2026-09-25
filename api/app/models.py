@@ -155,6 +155,14 @@ class Pieza(Base):
         String(30), server_default="investigacion", default="investigacion"
     )
 
+    # AF1: el exportador busca aquí el día en que se publicó. Solo lectura: la
+    # historia se escribe en `traspasos.py`, y `viewonly` impide que la pieza
+    # la toque, ni siquiera anulando su clave al borrarse, que sería un
+    # `UPDATE` que el trigger rechaza (ADR 0008).
+    traspasos: Mapped[list["Traspaso"]] = relationship(
+        order_by="Traspaso.id", viewonly=True
+    )
+
     @property
     def de_quien_es(self) -> str | None:
         """El rol al que le toca, o nadie si ya se publicó (K4)."""

@@ -110,7 +110,9 @@ es reconstruir la pieza con otro formato, idea o medio.
 3. Johan enlaza las notas de respaldo de su vault, que la app lee sin
    escribirlas.
 4. Johan la exporta: la nota `type: contenido` se escribe en `Contenido/` del
-   vault, marcada como generada, con el estado en `status`.
+   vault, marcada como generada, con el estado en `status`, las etiquetas
+   como tags anidados bajo `voz-del-cosmos` y, en `fecha_publicacion`, la
+   fecha prevista o, ya publicada, la real.
 
 ### 6.3 Pasar el material
 

@@ -1,4 +1,5 @@
-"""Exportador al vault (criterios I1–I5, O1 y AA1, ADR 0001, 0007, 0009 y 0011).
+"""Exportador al vault (criterios I1–I5, O1, AA1 y AF1, ADR 0001, 0007, 0009, 0011
+y 0012).
 
 La mitad «Astrolabio → vault». Una sola dirección: el vault recibe una copia
 marcada como generada que nunca se edita a mano.
@@ -8,7 +9,7 @@ Escribe en exactamente dos sitios: la carpeta `Contenido/` y el archivo
 ahí no puede escribir aunque el código se equivoque (ADR 0007).
 """
 
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -54,14 +55,28 @@ CHECKLIST = """\
 """
 
 
-def _fecha_local(pieza: Pieza) -> date:
+def _dia_local(momento: datetime) -> date:
     """La fecha del vault es la del calendario de Johan, no la de UTC.
 
     Devuelve un `date` y no una cadena: `yaml.safe_dump` escribe las cadenas
     entrecomilladas, y la plantilla del vault usa fechas sin comillas. Una
     nota generada debe ser indistinguible de una escrita a mano (ADR 0001).
     """
-    return pieza.creada_en.astimezone(ZoneInfo(settings.vault_zona_horaria)).date()
+    return momento.astimezone(ZoneInfo(settings.vault_zona_horaria)).date()
+
+
+def _fecha_publicacion(pieza: Pieza) -> date | None:
+    """AF1 (ADR 0012): la prevista mientras no se publica; publicada, la real,
+    que es el día del traspaso «Publicar» en la zona del vault.
+
+    Una pieza publicada sin ese traspaso solo sale de tocar la base a mano;
+    ahí se queda la prevista, en vez de reventar la exportación.
+    """
+    if pieza.estado == "publicada":
+        publicar = next((t for t in pieza.traspasos if t.transicion == "publicar"), None)
+        if publicar is not None:
+            return _dia_local(publicar.creado_en)
+    return pieza.fecha_publicacion_prevista
 
 
 def _cuerpo_del_guion(guion: str) -> str:
@@ -87,8 +102,8 @@ def _nota(pieza: Pieza) -> str:
         # traducirlo (ADR 0009). Es una copia: envejece hasta la exportación
         # siguiente, igual que el guion.
         "status": pieza.estado,
-        "fecha": _fecha_local(pieza),
-        "fecha_publicacion": None,
+        "fecha": _dia_local(pieza.creada_en),
+        "fecha_publicacion": _fecha_publicacion(pieza),
         "plataforma": pieza.plataforma,
         "investigacion": list(pieza.respaldo),
         "metricas": {"vistas": None, "alcance": None},

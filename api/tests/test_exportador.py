@@ -115,6 +115,61 @@ def test_las_etiquetas_salen_como_tags_anidados(
     assert "voz-del-cosmos/cañones-de-marte" in texto
 
 
+# --- AF: la fecha de publicación (ADR 0012) ---
+
+
+def test_sin_fechas_la_publicacion_sale_vacia(vault: Path, pieza: Pieza):
+    """AF1: como hasta ahora, cuando no hay ni prevista ni real."""
+    datos = _frontmatter(exportador.exportar(pieza, vault).read_text(encoding="utf-8"))
+
+    assert datos["fecha_publicacion"] is None
+
+
+def test_sin_publicar_sale_la_prevista(vault: Path, pieza: Pieza, sesion_db: Session):
+    """AF1 y AF2: la del plan, y sin comillas, como `fecha`: la tabla del MOC
+    la ordena como fecha, no como texto.
+    """
+    pieza.estado = "diseno_aprobado"
+    pieza.fecha_publicacion_prevista = date(2026, 10, 2)
+    sesion_db.flush()
+
+    texto = exportador.exportar(pieza, vault).read_text(encoding="utf-8")
+
+    assert _frontmatter(texto)["fecha_publicacion"] == date(2026, 10, 2)
+    assert "fecha_publicacion: 2026-10-02\n" in texto
+
+
+def test_publicada_sale_la_real_en_la_zona_del_vault(
+    vault: Path, pieza: Pieza, sesion_db: Session
+):
+    """AF1: publicada, el día del traspaso «Publicar», y no el del plan. En la
+    zona del vault: a las 21:00 en Bogotá son las 02:00 UTC del día siguiente,
+    y en UTC la pieza se publicaría un día más tarde de lo que se publicó.
+    """
+    from datetime import UTC, datetime
+
+    from app.models import Traspaso
+
+    pieza.estado = "publicada"
+    pieza.fecha_publicacion_prevista = date(2026, 9, 15)
+    sesion_db.add(
+        Traspaso(
+            pieza_id=pieza.id,
+            transicion="publicar",
+            desde="diseno_aprobado",
+            hacia="publicada",
+            creado_por="johan",
+            # 02:00 UTC del 18 = 21:00 del 17 en Bogotá (UTC-5).
+            creado_en=datetime(2026, 9, 18, 2, 0, tzinfo=UTC),
+        )
+    )
+    sesion_db.flush()
+
+    datos = _frontmatter(exportador.exportar(pieza, vault).read_text(encoding="utf-8"))
+
+    assert datos["fecha_publicacion"] == date(2026, 9, 17)
+
+
 @pytest.mark.parametrize("estado", ESTADOS)
 def test_status_es_el_estado_de_la_pieza(
     vault: Path, pieza: Pieza, sesion_db: Session, estado: str
