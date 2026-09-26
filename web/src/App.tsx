@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 import { ErrorDeApi, pedir, type Pieza, type Tarea, type Usuario } from './api'
 import { catalogo, type Entrada } from './catalogo'
@@ -136,6 +136,22 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
   const [error, setError] = useState<string | null>(null)
   const [filtro, setFiltro] = useState<string | null>(null)
   const [tareas, setTareas] = useState<Tarea[]>([])
+  // Dónde estaba el tablero al abrir la pieza, para devolverlo al volver.
+  const desplazamiento = useRef(0)
+
+  function abrir(pieza: Pieza) {
+    desplazamiento.current = window.scrollY
+    setAbierta(pieza)
+  }
+
+  // Sin enrutador, el navegador no se entera de que cambió la pantalla y
+  // conserva el desplazamiento del tablero: la pieza se abría a media altura,
+  // con la barra, el título y los estados (AJ1, AJ2) fuera de la vista. Se
+  // abre arriba, y al volver el tablero recupera el suyo, como con «atrás».
+  // `useLayoutEffect` para que el salto ocurra antes de pintar.
+  useLayoutEffect(() => {
+    window.scrollTo(0, abierta ? 0 : desplazamiento.current)
+  }, [abierta])
 
   const cargar = useCallback(async () => {
     try {
@@ -246,7 +262,7 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
                   {usuario.rol === 'investigador' && <NuevaPieza alCrear={cargar} />}
                   <Etiquetas entradas={entradas} activo={activo} alElegir={alternarFiltro} />
                 </div>
-                <Tablero piezas={visibles} usuario={usuario} tareas={tareas} alAbrir={setAbierta} />
+                <Tablero piezas={visibles} usuario={usuario} tareas={tareas} alAbrir={abrir} />
               </div>
             </section>
           )}
@@ -257,7 +273,7 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
             extra={<span className="mono-label text-ink-3">Entregas y publicaciones</span>}
           >
             {activo && <SoloLasDe etiqueta={activo} alQuitar={() => setFiltro(null)} />}
-            <Semanas piezas={visibles} alAbrir={setAbierta} />
+            <Semanas piezas={visibles} alAbrir={abrir} />
           </Estacion>
 
           {/* AD5 y AH5: lo que no es de ninguna pieza. */}
