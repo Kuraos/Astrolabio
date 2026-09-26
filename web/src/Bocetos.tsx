@@ -94,7 +94,7 @@ export default function PanelBocetos({
             Claude está haciendo el boceto: suele tardar uno o dos minutos.
           </p>
         ) : estado && !estado.disponible ? (
-          // Sin configurar o sin lo que hace falta: no es un error (§7).
+          // Sin configurar o sin lo que hace falta: no es un error (DESIGN_SYSTEM §7).
           <p className="text-sm text-ink-2">{estado.motivo}</p>
         ) : (
           estado && (
@@ -217,7 +217,7 @@ function VistaDelBoceto({
  * AV2 y AV3: una lámina, dibujada desde los datos en su proporción, con la
  * rejilla a la vista y cada elemento en su zona. Rejilla de CSS y no SVG, para
  * que el texto se parta solo y las fórmulas salgan con el KaTeX del guion
- * (fase 9, §8.8).
+ * (fase 9, §7.8).
  */
 export function LaminaDeBoceto({
   lamina,

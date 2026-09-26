@@ -41,7 +41,7 @@ REJILLAS: dict[str, tuple[int, int]] = {
 }
 _DE_UNA_LAMINA = {"post_individual": "Un post individual", "poster": "Un póster"}
 
-# Lo que admite Instagram en un carrusel (fase 9, §8.11).
+# Lo que admite Instagram en un carrusel (fase 9, §7.11).
 MAX_LAMINAS = 20
 
 
@@ -132,8 +132,8 @@ def pedir_a_claude(cliente: anthropic.Anthropic, modelo: str, mensaje: str) -> R
     """AS3 y AS4: una petición, con la salida estructurada del esquema.
 
     En streaming, porque un carrusel largo, con razonamiento, no cabe en los
-    16.000 tokens de una petición sin él (fase 9, §8.11). Y con el respaldo
-    ante una negativa (§8.12): si el modelo declina, la API reintenta con otro
+    16.000 tokens de una petición sin él (fase 9, §7.11). Y con el respaldo
+    ante una negativa (§7.12): si el modelo declina, la API reintenta con otro
     dentro de la misma petición, y `modelo` dice cuál respondió.
     """
     with cliente.beta.messages.stream(
@@ -271,7 +271,7 @@ def cifras_sin_fuente(boceto: BocetoDeClaude, fuente: str) -> list[str]:
 
     Se comparan las rachas de dígitos, así que la misma cifra escrita de otra
     forma no avisa: «1{,}496» en el LaTeX del copy y «1,496» en el boceto dan
-    las mismas, «1» y «496». Avisa y no rechaza (fase 9, §8.10).
+    las mismas, «1» y «496». Avisa y no rechaza (fase 9, §7.10).
     """
     conocidas = set(_CIFRA.findall(fuente))
     avisos = []

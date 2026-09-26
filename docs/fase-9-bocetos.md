@@ -193,7 +193,7 @@ Y las que no hizo falta preguntar, que se cambian si no convencen:
     resto responde en milisegundos, y una regla aparte para una ruta sería
     más configuración que beneficio.
 
-## 9. Lo que apareció por el camino
+## 8. Lo que apareció por el camino
 
 - **La petición real, contra un Anthropic de mentira.** Sin clave no se puede
   llamar a Claude, pero sí al SDK de verdad: con `ANTHROPIC_BASE_URL`
