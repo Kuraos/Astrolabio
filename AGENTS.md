@@ -264,8 +264,11 @@ sesiones en `.claude/worktrees/`.
 - Hoja de ruta, fases 3 a 6: `docs/hoja-de-ruta.md`
 - Fase 6, `docs/fase-6-tablero.md`: el código está terminado y falta su
   prueba en el uso.
-- **Alcance vigente: `docs/fase-7-identidad.md`**, la identidad «Control»,
-  con el código terminado: falta que el editor la vea en su máquina.
+- Fase 7, `docs/fase-7-identidad.md`: la identidad «Control», con el código
+  terminado: falta que el editor la vea en su máquina.
+- **Alcance vigente: `docs/fase-8-cuadro-de-materiales.md`**, lo que pide el
+  cuadro de materiales del editor: tipo de pieza, propósito, nivel, destino,
+  copy gráfico y caption.
 
 Registros de decisión:
 
@@ -283,3 +286,4 @@ Registros de decisión:
 - `docs/adr/0012-la-fecha-de-publicacion-viaja-al-vault.md`
 - `docs/adr/0013-transitivas-e-imagenes-fijadas.md`
 - `docs/adr/0014-identidad-con-tokens-y-fuentes-propias.md`
+- `docs/adr/0015-el-cuadro-de-materiales-viaja-al-vault.md`

@@ -1,9 +1,8 @@
 # Fase 8 — El cuadro de materiales
 
-**Propuesta del 2026-09-26, sin código todavía.** Las decisiones de §7 están
-acordadas con Johan; las de §8 se proponen y esperan su visto bueno antes de
-escribir nada. Es alcance nuevo, como la Fase 7: nace de la prueba de Johan
-del 2026-09-25, no de la [hoja de ruta](hoja-de-ruta.md).
+**Alcance vigente desde el 2026-09-26**, con todas las decisiones de §7 y §8
+acordadas con Johan. Es alcance nuevo, como la Fase 7: nace de la prueba de
+Johan del 2026-09-25, no de la [hoja de ruta](hoja-de-ruta.md).
 
 ## 1. Objetivo
 
@@ -154,7 +153,7 @@ fusione, junto con cualquier consulta de Dataview que filtre por
 6. **Copy gráfico y caption, junto al guion, en pestañas.**
 7. **Al vault**, con su ADR.
 
-## 8. Propuestas — esperan el visto bueno de Johan
+## 8. Propuestas — aprobadas por Johan el 2026-09-26
 
 1. **Destino es una lista, no un valor.** Si lo de TikTok va también a
    Instagram, una sola plataforma obligaría a escoger una o a duplicar la

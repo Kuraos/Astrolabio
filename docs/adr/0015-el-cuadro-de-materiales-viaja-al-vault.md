@@ -1,7 +1,7 @@
 # ADR 0015 — El cuadro de materiales viaja al vault
 
 - **Fecha**: 2026-09-26
-- **Estado**: propuesta
+- **Estado**: aceptada
 - **Contexto**: criterios AQ de `docs/fase-8-cuadro-de-materiales.md`. Cambia
   lo que escribe el exportador ([ADR 0007](0007-como-escribe-astrolabio-en-el-vault.md)),
   como antes el estado ([ADR 0009](0009-el-estado-viaja-al-vault.md)), las
