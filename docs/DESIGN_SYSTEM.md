@@ -29,7 +29,8 @@ anchura, una mono para los rótulos y un solo color de señal.
 - **El rosa avisa**: lo atrasado, lo que está sin guardar. Si además bloquea
   es un error, y va en caja con su rótulo.
 - **Invertido —fondo en tinta— es seleccionado o actual**: la etiqueta que
-  filtra, el día de hoy y el estado de la pieza cuando no te toca.
+  filtra, la pestaña elegida, el día de hoy y el estado de la pieza cuando no
+  te toca.
 - **Sin paneles ni sombras**: las estaciones se separan con líneas de 1 px.
   Esquinas rectas.
 - Sin iconos de biblioteca ni animaciones. Lo único que se dibuja son las
@@ -131,19 +132,20 @@ La escala de Tailwind, de 4 en 4 px (`--spacing: 0.25rem`):
 ## 6. Componentes
 
 Las piezas que se repiten viven en `web/src/ui.tsx`: `ANCHO`, `BOTON`,
-`BOTON_SECUNDARIO`, `BOTON_DE_TEXTO`, `CONTROL`, `Estacion`, `Campo` y
-`Aviso`. Lo que solo usa una pantalla vive en ella.
+`BOTON_SECUNDARIO`, `BOTON_DE_TEXTO`, `CONTROL`, `Estacion`, `Campo`,
+`Pestanas` y `Aviso`. Lo que solo usa una pantalla vive en ella.
 
 | Componente | Cómo | Dónde |
 |---|---|---|
 | Estación | `Estacion`: el título en `heading-station` y, si hace falta, una acción o una nota a la derecha. Las líneas que la separan las pone quien la coloca | Todas las pantallas |
-| Campo con rótulo | `Campo` con un control de clase `CONTROL`: el rótulo en `mono-label text-ink-2` encima, el borde en `control`, y en tinta con el foco | Entrada, pieza nueva, nota del traspaso, enlace, fechas, tema |
-| Selector | Un `<select>` con `CONTROL`. Sus opciones, en tinta sobre el fondo de la página (`option` en `index.css`): la lista la pinta el navegador aparte, y sin eso salía blanco sobre blanco | Tema |
+| Campo con rótulo | `Campo` con un control de clase `CONTROL`: el rótulo en `mono-label text-ink-2` encima, el borde en `control`, y en tinta con el foco | Entrada, pieza nueva, nota del traspaso, enlace, fechas, cuadro, tema, caption |
+| Selector | Un `<select>` con `CONTROL`, y «Sin …» como primera opción para lo que aún no se ha decidido. Sus opciones, en tinta sobre el fondo de la página (`option` en `index.css`): la lista la pinta el navegador aparte, y sin eso salía blanco sobre blanco | Tipo de pieza, propósito, nivel, tema |
+| Pestañas | `Pestanas`: un grupo con borde `line-strong`, como los de la barra del guion, con cada pestaña en `mono-label`; la elegida, invertida. Los paneles los pone quien las usa, con los `id` de `idsDePestana`, y se esconden con `hidden` en vez de desmontarse cuando guardan algo que no se puede perder | Textos de la pieza |
 | Botón primario | `BOTON`: tinta sobre negro | Entrar, Crear pieza, Guardar, las transiciones que avanzan |
 | Botón secundario | `BOTON_SECUNDARIO`: borde `control` | Devolver, Reformular, Exportar al vault, Añadir, Crear la carpeta |
 | Botón de texto | `BOTON_DE_TEXTO`: `mono-label` en `ink-2`, en tinta al pasar | ← Piezas, Quitar, Actualizar, Copiar ruta, Ver todas |
 | Aviso de error | `Aviso`: caja con borde `alert` y fondo `alert/8`, el rótulo «Error» y el mensaje en tinta, con `role="alert"` | Debajo de lo que falló |
-| Aviso que no bloquea | Texto en `text-alert`, a 13 px, o `mono-label text-alert` si es un rótulo | «Sin guardar», «Guarda el guion antes de moverla…», «Checklist: …» |
+| Aviso que no bloquea | Texto en `text-alert`, a 13 px, o `mono-label text-alert` si es un rótulo | «Sin guardar», «Guarda los textos antes de moverla…», «Checklist: …», «Falta: …», «Cuadro de materiales: falta …» |
 | Hecho | Caja con borde `control`, el rótulo «Escrito en» y la ruta en `mono-data`, con `role="status"` | Exportar al vault |
 | Te toca, el bloque | `TeToca`: fondo `signal`, el número en grande y «de N piezas» | Tablero, arriba a la izquierda |
 | Te toca, la marca | Un cuadrado de 8 px en `bg-signal` y el texto en `mono-label text-signal` | Tarjeta |
@@ -156,10 +158,13 @@ Las piezas que se repiten viven en `web/src/ui.tsx`: `ANCHO`, `BOTON`,
 | Pista de estados | Seis celdas con barra de 3 px: las que pasaron en `control`, la actual en señal si te toca o invertida si no, las que faltan en `line`. `aria-current="step"` en la actual | Pieza |
 | Historia | La fecha en `mono-data`, la transición en negrita, de dónde a dónde y quién en `mono-data`, y la nota en `prose` | Traspaso |
 | Ficha de etiqueta | Borde `line-strong`, fondo `raised`, y una × que dice cuál quita en su `aria-label` | Tema y etiquetas |
-| Casilla | La del navegador, `size-4 accent-ink` | Tareas, respaldo |
+| Casilla | La del navegador, `size-4 accent-ink` | Tareas, respaldo, destino |
+| Cuadro de materiales | Tres selectores en fila desde `sm`; los destinos, en casillas dentro de un `fieldset` con su `legend` en `mono-label`, porque una pieza puede ir a varios; y debajo, lo que falta como aviso que no bloquea | Pieza |
+| Lámina | «Lámina N» en `mono-label`, con ↑, ↓ y «Quitar» como botones de texto que dicen cuál mueven en su `aria-label`; el campo, con `CONTROL`; y el recuento en `mono-data`: caracteres y palabras sin el LaTeX, y las fórmulas aparte. Con fórmula, debajo, pintada, tras una línea `line-strong` | Copy gráfico, en dos columnas desde `lg` |
+| Límites del caption | Por destino, su nombre en `text-sm font-medium`, dónde va el caption si no es el pie, y las medidas en `mono-data`. Pasarse va en `text-alert` y en palabras, «1 de más»: el color solo no se oye. Sin límite comprobado, se dice | Caption |
 | Miniatura | `aspect-square border border-line bg-surface object-contain`, cinco por fila desde `md` | Material |
 | Barra del guion | Cuatro grupos con borde `line-strong` —énfasis, bloques, lo que viene de fuera y fórmulas—, en `role="toolbar"` | Guion |
-| Editor y vista previa | «Markdown» y «Vista previa» rotulan las dos mitades. El editor, sobre `surface`; la vista previa, con la clase `.prosa` de `index.css` | Guion |
+| Editor y vista previa | «Markdown» y «Vista previa» rotulan las dos mitades. El editor, sobre `surface`; la vista previa, con la clase `.prosa` de `index.css` | Pestaña «Guion» de los textos |
 
 - **Hacia adelante y hacia atrás.** Entre los botones de transición, los que
   avanzan son primarios y los que vuelven atrás (`devolver`, `reformular`)
@@ -209,7 +214,10 @@ Mirado a 1280 y a 375 px, sin desborde horizontal.
   de pantalla.
 - **La pieza** pone sus estaciones en dos columnas desde `lg`, y el guion con
   su vista previa, lado a lado desde `md`. En pantalla estrecha, su barra
-  pasa a dos filas y la pista de estados, a dos columnas.
+  pasa a dos filas y la pista de estados, a dos columnas. El cuadro de
+  materiales va arriba a la derecha, junto a las fechas; los textos, a todo
+  el ancho, con las láminas en dos columnas y el caption junto a sus límites
+  desde `lg`.
 - La marca de la entrada encoge con la pantalla (`clamp`).
 - Lo largo —URLs, nombres de archivo, rutas, etiquetas— lleva `break-words` o
   `break-all`, y su contenedor `min-w-0`, para no desbordar.
@@ -227,6 +235,11 @@ Mirado a 1280 y a 375 px, sin desborde horizontal.
   `ink-3` sobre `raised`, 5,4. Los bordes de control, 3,7:1.
 - **Todo campo tiene nombre.** Los sueltos, con rótulo visible; las filas de
   añadir —tareas y etiquetas—, con `aria-label` y el título de su estación.
+- **Las pestañas siguen el patrón de ARIA**: `role="tablist"`, `tab` y
+  `tabpanel`, `aria-selected` y `aria-controls`. Solo la elegida entra en el
+  orden del Tab; las flechas, Inicio y Fin eligen otra y le pasan el foco.
+- **Mover una lámina lleva el foco con ella**, para seguir moviéndola; en un
+  extremo, al botón del otro sentido.
 - **Los colores que hay que distinguir difieren también en luminosidad** (§2).
 - Las confirmaciones son las del navegador y funcionan con teclado.
 

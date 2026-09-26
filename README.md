@@ -50,6 +50,11 @@ después saldrá del uso.
   te toca, las semanas en una línea de tiempo y la pieza en estaciones—. El
   código está terminado; falta que el editor la vea en su máquina. Su alcance
   está en [`docs/fase-7-identidad.md`](docs/fase-7-identidad.md).
+- **Fase 8, el cuadro de materiales**: la pieza lleva lo que pide el cuadro
+  del editor —tipo de pieza, propósito, nivel y destinos—, el copy de cada
+  lámina con su largo y el caption con los límites de cada red, y todo viaja
+  al vault. Falta la prueba con una pieza real. Su alcance está en
+  [`docs/fase-8-cuadro-de-materiales.md`](docs/fase-8-cuadro-de-materiales.md).
 
 ---
 

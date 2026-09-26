@@ -52,6 +52,7 @@ sirve en pantalla sigue abierto ([estados §6](estados-del-flujo.md)).
 | 5 — Temas y etiquetas | Cuatro temas fijos, etiquetas libres con un catálogo de qué se ha hablado que filtra la lista, y las etiquetas en el vault como tags anidados bajo `voz-del-cosmos`. Falta su prueba en el uso | Y–AA · [fase 5](fase-5-temas.md) |
 | 6 — Tablero, tareas y fechas | Un tablero por estado en lugar de la lista; tareas por pieza y sueltas, con lo que falta en cada tarjeta; fechas de entrega y de publicación, lo pendiente por semanas y la fecha de publicación en el vault. Falta su prueba en el uso | AB–AF · [fase 6](fase-6-tablero.md) |
 | 7 — Identidad «Control» | La interfaz gana una identidad propia sin cambiar lo que hace: sus colores y sus fuentes, un bloque naranja con lo que te toca, las semanas en una línea de tiempo y la pieza en estaciones. Falta que el editor la vea en su máquina | AG–AM · [fase 7](fase-7-identidad.md) |
+| 8 — El cuadro de materiales | La pieza lleva lo que pide el cuadro del editor, con sus palabras: tipo de pieza, propósito, nivel y destinos, lo que falta del cuadro, el copy de cada lámina con su largo y el caption con los límites de cada red. Todo viaja al vault. Falta la prueba con una pieza real | AN–AR · [fase 8](fase-8-cuadro-de-materiales.md) |
 
 Quién puede qué, hoy:
 
@@ -200,16 +201,29 @@ Lo que se descartó dentro de cada fase está en su documento.
 
 Con la fase 6, la [hoja de ruta](hoja-de-ruta.md) está hecha en código; falta
 probar las fases 3 a 6 en el uso. La fase 7 no salió de ella sino de pedirle
-personalidad a la interfaz, y también está hecha en código. Lo que venga
-después saldrá del uso; el panel de métricas de §8 todavía no tiene fase.
+personalidad a la interfaz, y la 8, de la prueba de Johan del 2026-09-25: las
+dos están hechas en código.
+
+Lo siguiente, acordado con Johan, son los **bocetos con Claude**: la API le
+pide a Claude un boceto de cada lámina —qué elementos lleva, cuánto pesa cada
+uno y dónde va— a partir del tipo de pieza, el destino y el copy gráfico de la
+fase 8, y el cliente lo dibuja. El editor aprobó los bocetos de prueba. Será
+el primer servicio externo de la app, así que lleva su propio ADR. El panel de
+métricas de §8 todavía no tiene fase.
 
 ## 11. Preguntas abiertas
 
-De la conversación con el editor ([estados §6](estados-del-flujo.md)),
-pendiente de hacerse en vivo:
+Las tres que quedaban de la conversación con el editor
+([estados §6](estados-del-flujo.md)) las resolvió Johan con la
+[fase 8](fase-8-cuadro-de-materiales.md):
 
-- ¿Los «copys in graphic» son el guion o un texto aparte?
-- ¿Voz del Cosmos hace impresos?
-- Lo que él llama «tipo de pieza» es lo que el código llama `formato`, y lo
-  que él llama «formato» no existe en el modelo. Hay que resolverlo antes de
-  que las dos palabras convivan en pantalla.
+- **Los «copys in graphic» son un texto aparte del guion**: el copy gráfico,
+  lámina por lámina, junto al caption de la publicación.
+- **Impresos, a largo plazo**, si se ve viable hacer mercancía. «Impreso» ya
+  es uno de los destinos, para no tener que migrar otra vez.
+- **«Tipo de pieza» es la palabra en pantalla**, y «formato» salió de ella.
+  «Formato y tamaño» del cuadro no tiene campo todavía: casi siempre se
+  deduce del tipo y el destino (fase 8, §8.6).
+
+Lo que sigue abierto no cambia el producto, y se valida con las primeras
+piezas reales (estados §6).

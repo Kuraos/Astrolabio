@@ -95,17 +95,22 @@ analítica, ni almacenamiento en la nube.
 │   ├── src/
 │   │   ├── main.tsx          punto de entrada, y las fuentes
 │   │   ├── App.tsx           entrada, tablero, semanas y pieza nueva
-│   │   ├── ui.tsx            botones, campos, estación y aviso: lo que se repite
+│   │   ├── ui.tsx            botones, campos, estación, pestañas y aviso: lo que se repite
 │   │   ├── Pieza.tsx         la vista de una pieza y sus paneles
+│   │   ├── Cuadro.tsx        el cuadro de materiales: tipo, propósito, nivel y destino
 │   │   ├── Guion.tsx         el guion: barra, campo y vista previa
+│   │   ├── Textos.tsx        el copy gráfico, lámina por lámina, y el caption
 │   │   ├── Temas.tsx         el tema y las etiquetas de la pieza
 │   │   ├── Tareas.tsx        la lista de tareas: la checklist y las sueltas
 │   │   ├── api.ts            pedir(), ErrorDeApi y los tipos de la API
 │   │   ├── barra.ts          las acciones de la barra del guion, puras
 │   │   ├── catalogo.ts       el catálogo de etiquetas, puro
+│   │   ├── cuadro.ts         las palabras del cuadro, lo que falta y los límites del caption
 │   │   ├── fechas.ts         fechas de calendario, semanas y su línea de tiempo
 │   │   ├── flujo.ts          las palabras de estados y transiciones
+│   │   ├── recuento.ts       caracteres, palabras, fórmulas y hashtags, puros
 │   │   ├── tablero.ts        las piezas repartidas por estado, puro
+│   │   ├── piezaDePrueba.ts  la pieza de las pruebas del cliente
 │   │   └── index.css         los colores y estilos de la identidad, y el del guion
 │   ├── nginx.conf.template   el proxy de /api y la caché de los assets
 │   └── Dockerfile            compila con Node y sirve con nginx
@@ -148,7 +153,7 @@ o se está dentro, y dentro se ve el tablero o una pieza.
 |---|---|---|
 | `usuario` | Nombre, hash Argon2id y rol (`investigador` o `editor`) | Se siembran desde el entorno |
 | `sesion` | El testigo de la cookie, su usuario y su caducidad | Cerrar sesión borra la fila ([ADR 0006](adr/0006-sesiones-con-estado-en-postgres.md)) |
-| `pieza` | Título, guion, formato, tema, plataforma, respaldo, etiquetas, estado, y las fechas de entrega del diseño y de publicación prevista | Un `CHECK` admite solo los seis estados. La API admite solo los cuatro temas y guarda las etiquetas normalizadas ([ADR 0011](adr/0011-las-etiquetas-viajan-al-vault.md)). Las fechas son `DATE`: días, sin hora ni zona |
+| `pieza` | Título, guion, el cuadro de materiales —`formato` (el tipo de pieza), propósito, nivel, `plataforma` (los destinos), el copy gráfico por lámina y el caption—, tema, respaldo, etiquetas, estado, y las fechas de entrega del diseño y de publicación prevista | Un `CHECK` admite solo los seis estados. La API admite solo los valores de cada lista —cuatro temas, cinco tipos, cinco propósitos, dos niveles, cuatro destinos— y guarda las etiquetas normalizadas ([ADR 0011](adr/0011-las-etiquetas-viajan-al-vault.md)). Los destinos y el copy gráfico son listas. Las fechas son `DATE`: días, sin hora ni zona |
 | `traspaso` | Transición, estado de origen y de destino, quién, cuándo y una nota | Solo inserción: un trigger rechaza `UPDATE`, `DELETE` y `TRUNCATE` ([ADR 0008](adr/0008-traspaso-append-only-en-la-base.md)) |
 | `enlace` | URL, nota, quién y cuándo | Solo `http` y `https`, validado en el servidor |
 | `tarea` | Texto, la pieza si la tiene, quién la marcó y cuándo, quién la creó y cuándo | Sin pieza es suelta. Estar hecha es tener quién la marcó: desmarcarla lo borra. No es historia: se borra, como el material |

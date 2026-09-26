@@ -168,7 +168,9 @@ está en [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
   portafolio; el historial se lee.
 - **Reutiliza antes de crear.** En el cliente, toda llamada a la API pasa por
   `pedir`, y sus errores llegan como `ErrorDeApi` (`web/src/api.ts`); las
-  palabras de estados y transiciones salen de `web/src/flujo.ts`. En la API,
+  palabras de estados y transiciones salen de `web/src/flujo.ts`, y las del
+  cuadro de materiales, de `web/src/cuadro.ts`. Una prueba del cliente que
+  necesite una pieza la pide a `piezaDePrueba`. En la API,
   cada endpoint recibe al usuario con `Depends(usuario_actual)`, y toda ruta
   de archivo que venga de fuera se comprueba con `respaldo.dentro_de`.
 - **Interfaz**: sigue [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md). Un
@@ -268,7 +270,8 @@ sesiones en `.claude/worktrees/`.
   terminado: falta que el editor la vea en su máquina.
 - **Alcance vigente: `docs/fase-8-cuadro-de-materiales.md`**, lo que pide el
   cuadro de materiales del editor: tipo de pieza, propósito, nivel, destino,
-  copy gráfico y caption.
+  copy gráfico y caption. El código está terminado: falta la prueba con una
+  pieza real.
 
 Registros de decisión:
 

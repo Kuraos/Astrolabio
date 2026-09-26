@@ -1,8 +1,9 @@
 # Fase 8 — El cuadro de materiales
 
-**Alcance vigente desde el 2026-09-26**, con todas las decisiones de §7 y §8
-acordadas con Johan. Es alcance nuevo, como la Fase 7: nace de la prueba de
-Johan del 2026-09-25, no de la [hoja de ruta](hoja-de-ruta.md).
+**Código terminado el 2026-09-26**, con todas las decisiones de §7 y §8
+acordadas con Johan; queda su prueba de terminado (§5): una pieza real. Es
+alcance nuevo, como la Fase 7: nace de la prueba de Johan del 2026-09-25, no
+de la [hoja de ruta](hoja-de-ruta.md).
 
 ## 1. Objetivo
 
@@ -82,27 +83,34 @@ Las letras siguen después de la AM de la Fase 7.
 
 ### AO. En la pieza
 
-- **AO1** La estación del tema se amplía con el cuadro: tipo de pieza,
-  propósito, nivel y destino, con esas palabras. Ninguna pantalla dice
-  «formato».
-- **AO2** Junto a la estación, lo que falta del cuadro, en una línea:
-  «Falta: propósito, destino». Es información, no un candado: el traspaso no
-  cambia (§2).
+- **AO1** Una estación, «Cuadro de materiales», con el tipo de pieza, el
+  propósito, el nivel y los destinos, con esas palabras, arriba y junto a las
+  fechas, que el cuadro también pide. Bajo el título de la pieza, su resumen.
+  Ninguna pantalla dice «formato».
+- **AO2** En la estación, lo que falta del cuadro, en una línea: «Falta:
+  propósito, destino». Y junto a «Entregar», que es cuando Johan le pasa el
+  cuadro al editor, como la checklist (AD7). Es información, no un candado:
+  el traspaso no cambia (§2).
 
 ### AP. Los textos, junto al guion
 
-- **AP1** La estación del guion tiene tres pestañas: «Guion», «Copy gráfico»
-  y «Caption». La barra de herramientas y la vista previa solo están en
-  «Guion».
+- **AP1** La estación del guion pasa a «Textos», con tres pestañas: «Guion»,
+  «Copy gráfico» y «Caption». La barra de herramientas y la vista previa solo
+  están en «Guion». Los tres se guardan juntos, con «Guardar» o Ctrl+S desde
+  cualquier pestaña.
 - **AP2** «Copy gráfico» muestra un campo por lámina, numerado, con su
   recuento de caracteres y de palabras debajo, y botones para añadir, quitar
-  y mover láminas. Un «Post individual» o un «Póster» empiezan con una.
+  y mover láminas. Un «Post individual» o un «Póster» empiezan con una. El
+  LaTeX no cuenta como texto: las fórmulas se cuentan aparte y se ven
+  pintadas debajo de su lámina (§10).
 - **AP3** «Caption» cuenta caracteres y hashtags. Si la pieza tiene destinos,
   muestra el límite de cada uno junto al recuento, sacado de una sola tabla
   en el cliente (§8.3). Pasarse lo marca en rosa; no impide guardar.
 - **AP4** Las funciones que cuentan caracteres, palabras y hashtags son puras
-  y llevan sus pruebas en vitest. Un emoji cuenta como un carácter, que es
-  como lo cuentan las redes, no como dos unidades de UTF-16.
+  y llevan sus pruebas en vitest. Un emoji cuenta como un carácter, como lo ve
+  quien escribe, y no como las dos unidades de UTF-16 que cuenta `length`.
+  Cómo lo cuenta cada red no lo documenta ninguna: cerca del límite, el
+  recuento es una guía, y la pantalla lo dice.
 
 ### AQ. El vault
 
@@ -200,3 +208,21 @@ fusione, junto con cualquier consulta de Dataview que filtre por
   error. Por la API no pasa, porque pydantic exige una lista; solo lo hacían
   las fixtures de pruebas escritas para la plataforma de texto, que ya usan
   listas.
+- **El LaTeX inflaba el largo de las láminas.** La lámina de prueba
+  «Recorre $d \approx 1{,}496 \times 10^{11}\,\mathrm{m}$ a $c$…» decía 95
+  caracteres y 12 palabras, y en la pieza se leen 11 caracteres y dos
+  palabras más tres fórmulas. Se vio en la captura. El recuento deja fuera las
+  fórmulas y las cuenta aparte, y cada lámina con fórmula la enseña pintada,
+  con el KaTeX del guion: el editor la pone en la pieza y no lee LaTeX.
+- **Los límites del caption, comprobados el 2026-09-26** (§8.3), en
+  `LIMITES_DEL_CAPTION` de `cuadro.ts`:
+
+  | Destino | Caracteres | Hashtags | Fuente |
+  |---|---|---|---|
+  | Instagram | 2.200 | 5, desde diciembre de 2025 | Anuncio de la cuenta @creators de Instagram, confirmado por Adam Mosseri; antes eran 30 |
+  | TikTok | 4.000, desde 2023 | Sin comprobar: unas fuentes dicen 5, otras 30 o 100 | Publicaciones de creadores en TikTok de 2023 sobre el cambio de 2.200 a 4.000; no hay anuncio oficial a mano |
+  | YouTube | 5.000, en la descripción | 60: con más, los ignora todos | Ayuda de YouTube |
+
+  Lo de TikTok se publica tal cual en Instagram, así que en esas piezas
+  mandan los límites de Instagram, que son los más estrictos. Si una red
+  rechaza algo que aquí cabe, lo que hay que revisar es esta tabla.
