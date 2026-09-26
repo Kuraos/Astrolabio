@@ -145,10 +145,10 @@ Las piezas que se repiten viven en `web/src/ui.tsx`: `ANCHO`, `BOTON`,
 | Te toca, la marca | Un cuadrado de 8 px en `bg-signal` y el texto en `mono-label text-signal` | Tarjeta |
 | Turno del otro | `mono-label text-ink-3`: «Le toca a Johan», «Le toca al editor» | Tarjeta |
 | Franja de estados | Por columna, su número, su nombre, cuántas piezas tiene y de quién es, dicho desde quien mira (`duenoDelEstado`, en `flujo.ts`) | Tablero |
-| Tarjeta | Botón con la marca de turno, el título con la flecha y los datos en `mono-data`. La entrega vencida, en `text-alert`; las publicadas, en `ink-2` | Tablero |
+| Tarjeta | Botón con la marca de turno, el título con la flecha y los datos en `mono-data`. La entrega y la publicación vencidas —anteriores a hoy—, en `text-alert`; las publicadas, en `ink-2` | Tablero |
 | Etiqueta del catálogo | Botón con `aria-pressed`; la que filtra, invertida | Tablero, columna izquierda |
 | Nota de filtro | «Solo las de …», con la etiqueta en tinta, y «Ver todas» | Tablero y semanas, mientras filtra |
-| Línea de tiempo | Columnas por día, colocadas por `lineaDeTiempo` (`fechas.ts`); hoy, invertido; lo atrasado, en rosa; cada entrada, un botón que abre su pieza | Semanas, desde `md` |
+| Línea de tiempo | Columnas por día, colocadas por `lineaDeTiempo` (`fechas.ts`); hoy, invertido; en rosa, cada entrada vencida y el rótulo de las semanas pasadas; cada entrada, un botón que abre su pieza. Vencida es anterior a hoy, por día y no por semana, como en la tarjeta: lo decide `vencida`, en `semanas()` | Semanas, desde `md` |
 | Pista de estados | Seis celdas con barra de 3 px: las que pasaron en `control`, la actual en señal si te toca o invertida si no, las que faltan en `line`. `aria-current="step"` en la actual | Pieza |
 | Historia | La fecha en `mono-data`, la transición en negrita, de dónde a dónde y quién en `mono-data`, y la nota en `prose` | Traspaso |
 | Ficha de etiqueta | Borde `line-strong`, fondo `raised`, y una × que dice cuál quita en su `aria-label` | Tema y etiquetas |
@@ -200,6 +200,7 @@ Mirado a 1280 y a 375 px, sin desborde horizontal.
   el orden del flujo (AB5). Allí la celda de cada estado pasa de bloque alto a
   una fila, y el bloque «te toca», a una línea.
 - **Las semanas** son una línea de tiempo desde `md` y una lista por debajo.
+  En la lista, la fecha y el tipo de una entrada vencida van en rosa.
 - **La pieza** pone sus estaciones en dos columnas desde `lg`, y el guion con
   su vista previa, lado a lado desde `md`. En pantalla estrecha, su barra
   pasa a dos filas y la pista de estados, a dos columnas.

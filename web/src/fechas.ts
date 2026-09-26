@@ -49,7 +49,13 @@ export function lunesDe(fecha: string): string {
   return dia.toISOString().slice(0, 10)
 }
 
-export type Entrada = { fecha: string; tipo: 'entrega' | 'publicacion'; pieza: Pieza }
+export type Entrada = {
+  fecha: string
+  tipo: 'entrega' | 'publicacion'
+  pieza: Pieza
+  /** Su fecha es anterior a hoy. Lo que vence hoy aún está a tiempo. */
+  vencida: boolean
+}
 
 export type Semana = {
   lunes: string
@@ -69,17 +75,20 @@ export function entregaPendiente(pieza: Pieza): boolean {
 /**
  * AE1: lo que sigue pendiente con fecha, por semanas y en orden: la entrega
  * de cada pieza que el editor aún no ha finalizado, y la publicación prevista
- * de cada una sin publicar. Las semanas anteriores a la de `hoy` son lo
- * atrasado, y salen primero.
+ * de cada una sin publicar. Las semanas anteriores a la de `hoy` salen
+ * primero. Lo atrasado se cuenta por día, como en la tarjeta, y no por
+ * semana: una entrega del martes ya está vencida el viernes.
  */
 export function semanas(piezas: Pieza[], hoy: string): Semana[] {
   const entradas: Entrada[] = []
+  const anotar = (fecha: string, tipo: Entrada['tipo'], pieza: Pieza) =>
+    entradas.push({ fecha, tipo, pieza, vencida: fecha < hoy })
   for (const pieza of piezas) {
     if (pieza.fecha_entrega && entregaPendiente(pieza)) {
-      entradas.push({ fecha: pieza.fecha_entrega, tipo: 'entrega', pieza })
+      anotar(pieza.fecha_entrega, 'entrega', pieza)
     }
     if (pieza.fecha_publicacion_prevista && pieza.estado !== 'publicada') {
-      entradas.push({ fecha: pieza.fecha_publicacion_prevista, tipo: 'publicacion', pieza })
+      anotar(pieza.fecha_publicacion_prevista, 'publicacion', pieza)
     }
   }
   // `AAAA-MM-DD` ordena como texto igual que como fecha.
