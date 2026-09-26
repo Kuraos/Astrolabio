@@ -69,7 +69,8 @@ Las letras siguen después de la AR de la Fase 8.
 - **AS4** El modelo se elige en el `.env` (`BOCETOS_MODELO`), y por defecto es
   `claude-opus-5`.
 - **AS5** Sin `ANTHROPIC_API_KEY`, la app funciona igual: el panel dice que
-  los bocetos no están configurados y el `POST` responde 503 con ese motivo.
+  los bocetos no están configurados y el `POST` responde 409 con ese motivo,
+  como el exportador sin vault.
 - **AS6** Solo se pide para lo que tiene rejilla (§7.1) y copy: sin tipo, con
   un short o un video largo, sin copy gráfico, o con más de una lámina en un
   post individual o un póster, 409 con el motivo en español.

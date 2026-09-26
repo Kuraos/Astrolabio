@@ -10,6 +10,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
 from .auth import router as auth_router
+from .bocetos import router as bocetos_router
 from .db import engine
 from .exportador import router as exportador_router
 from .material import router as material_router
@@ -31,6 +32,7 @@ app.include_router(respaldo_router)
 app.include_router(traspasos_router)
 app.include_router(material_router)
 app.include_router(tareas_router)
+app.include_router(bocetos_router)
 
 
 def _sondear_base() -> tuple[bool, str | None]:
