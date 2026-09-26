@@ -91,8 +91,8 @@ Las letras siguen después de la AF de la Fase 6.
   investigador (D3)— y el catálogo de etiquetas, que filtra como hasta ahora
   (Z2, AB4). La etiqueta que filtra se ve invertida.
 - **AH4** Las tarjetas dicen lo mismo que en la Fase 6 (AB3, AC4, AD6), con la
-  flecha de que se abren. Una entrega ya vencida sale en rosa, y las piezas
-  publicadas quedan en segundo plano.
+  flecha de que se abren. Una entrega o una publicación ya vencidas salen en
+  rosa, y las piezas publicadas quedan en segundo plano.
 - **AH5** Las tareas sueltas, debajo de las semanas (AD5).
 - **AH6** El tablero crece hasta 1440 px. En pantalla estrecha, las columnas se
   apilan en el orden del flujo (AB5).
@@ -170,9 +170,10 @@ Cada paso sirve por sí solo: si la fase se detiene a la mitad, lo hecho se usa.
    Revisa lo que la Fase 6 dejó fuera en su §2, «la línea de tiempo es una
    lista por semanas». No es un calendario ni un Gantt: cada entrada es un día,
    sin duración.
-4. **La tarjeta marca en rosa la entrega vencida.** Revisa también la Fase 6,
-   §2, que dejaba fuera «los avisos de fechas vencidas». Es un color en lo que
-   ya se ve, no un aviso: nada salta ni se notifica.
+4. **La tarjeta marca en rosa la entrega y la publicación vencidas**, con el
+   criterio de la línea de tiempo: anteriores a hoy, por día (§8). Revisa
+   también la Fase 6, §2, que dejaba fuera «los avisos de fechas vencidas».
+   Es un color en lo que ya se ve, no un aviso: nada salta ni se notifica.
 
 Y cinco que no hizo falta preguntar, y que se cambian si no convencen:
 
@@ -191,6 +192,15 @@ Y cinco que no hizo falta preguntar, y que se cambian si no convencen:
   renombró sus clases de tamaño: $m_1$ se leía «m1». Se vio al ampliar la
   vista previa para compararla con el canvas. `katex` queda en la versión de
   `rehype-katex`, con una prueba que vigila que no se separen.
+- **La tarjeta y la línea de tiempo decían «tarde» con criterios distintos.**
+  La tarjeta comparaba la entrega con hoy; la línea, la semana con la de hoy.
+  Una entrega del martes, vista el viernes, salía en rosa en la tarjeta y sin
+  rosa en la línea, y ninguna prueba tenía un atraso dentro de la semana en
+  curso. Johan eligió el día: cada entrada vencida va en rosa y dice
+  «atrasada», también en la lista del teléfono, y el rótulo de la semana lo
+  sigue diciendo solo de las semanas pasadas. La publicación vencida también va en rosa, en la
+  línea y ahora en la tarjeta (decisión 4). Lo calcula `semanas()`, con su
+  prueba.
 - **El exportador usa el título tal cual como nombre de archivo**, y un título
   con `?` o `:` no se puede escribir en el vault de Windows. No es de esta
   fase: va en su propia rama.

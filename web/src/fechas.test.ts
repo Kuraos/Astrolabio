@@ -144,6 +144,27 @@ describe('AE1: lo que sigue pendiente, por semanas', () => {
     ])
   })
 
+  it('lo vencido se cuenta por día, no por semana: el martes ya pasó el viernes', () => {
+    const piezas = [
+      pieza(1, 'material_aprobado', { fecha_entrega: '2026-09-17' }),
+      pieza(2, 'material_aprobado', { fecha_entrega: '2026-09-22' }),
+      pieza(3, 'diseno_aprobado', { fecha_publicacion_prevista: '2026-09-24' }),
+      pieza(4, 'material_aprobado', { fecha_entrega: '2026-09-25' }),
+      pieza(5, 'material_aprobado', { fecha_entrega: '2026-09-26' }),
+    ]
+
+    // Lo que vence hoy aún está a tiempo.
+    expect(
+      semanas(piezas, HOY).flatMap((s) => s.entradas.map((e) => [e.fecha, s.cuando, e.vencida])),
+    ).toEqual([
+      ['2026-09-17', 'pasada', true],
+      ['2026-09-22', 'esta', true],
+      ['2026-09-24', 'esta', true],
+      ['2026-09-25', 'esta', false],
+      ['2026-09-26', 'esta', false],
+    ])
+  })
+
   it('sin fechas pendientes no hay semanas', () => {
     expect(semanas([pieza(1, 'investigacion', {})], HOY)).toEqual([])
   })

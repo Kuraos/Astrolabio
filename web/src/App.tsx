@@ -421,14 +421,15 @@ function Tarjeta({
       <span className="mono-data flex flex-col text-ink-2 empty:hidden">
         {/* AC4: para cuándo, mientras siga pendiente. Entregado el diseño, su
             fecha ya no dice nada; publicada la pieza, la prevista se leería
-            como la real, que es otra (ADR 0012). Vencida, en rosa (§7.4). */}
+            como la real, que es otra (ADR 0012). Vencidas, en rosa (§7.4):
+            anteriores a hoy, con el mismo criterio que las semanas. */}
         {pieza.fecha_entrega && entregaPendiente(pieza) && (
           <span className={pieza.fecha_entrega < hoy ? 'text-alert' : ''}>
             entrega <span className="whitespace-nowrap">{diaYMes(pieza.fecha_entrega)}</span>
           </span>
         )}
         {pieza.fecha_publicacion_prevista && pieza.estado !== 'publicada' && (
-          <span>
+          <span className={pieza.fecha_publicacion_prevista < hoy ? 'text-alert' : ''}>
             publicación{' '}
             <span className="whitespace-nowrap">{diaYMes(pieza.fecha_publicacion_prevista)}</span>
           </span>
@@ -539,10 +540,12 @@ function Semanas({ piezas, alAbrir }: { piezas: Pieza[]; alAbrir: (pieza: Pieza)
 }
 
 /**
- * AI2: una columna por día, con hoy invertido y lo atrasado en rosa. Cada
- * etiqueta cuelga de su día —o, al final de la línea, acaba en él— y va en el
- * carril que le dio `lineaDeTiempo`. Los números de los días son andamio: el
- * lector de pantalla lee las semanas y las entradas, no 28 números.
+ * AI2: una columna por día, con hoy invertido y lo atrasado en rosa: cada
+ * entrada vencida, aunque sea de esta semana, y el rótulo de las semanas ya
+ * pasadas. Cada etiqueta cuelga de su día —o, al final de la línea, acaba en
+ * él— y va en el carril que le dio `lineaDeTiempo`. Los números de los días
+ * son andamio: el lector de pantalla lee las semanas y las entradas, no 28
+ * números.
  */
 function LineaDeTiempo({
   lista,
@@ -611,7 +614,7 @@ function LineaDeTiempo({
           className={`mt-3 flex min-w-0 flex-col gap-1 px-2 pt-0.5 pb-1 hover:bg-raised ${
             ancla === 'inicio' ? 'border-l-2 text-left' : 'items-end border-r-2 text-right'
           } ${
-            cuando === 'pasada'
+            entrada.vencida
               ? 'border-alert'
               : cuando === 'esta'
                 ? 'border-ink'
@@ -619,9 +622,9 @@ function LineaDeTiempo({
           }`}
           style={{ gridColumn: `${desde} / ${hasta + 1}`, gridRow: carril + 3 }}
         >
-          <span className={`mono-label ${cuando === 'pasada' ? 'text-alert' : 'text-ink-2'}`}>
+          <span className={`mono-label ${entrada.vencida ? 'text-alert' : 'text-ink-2'}`}>
             {diaDeLaSemana(entrada.fecha)} · {entrada.tipo === 'entrega' ? 'entrega' : 'publicación'}
-            {cuando === 'pasada' && ' · atrasada'}
+            {entrada.vencida && ' · atrasada'}
           </span>
           <span className="text-sm leading-tight font-medium break-words">{entrada.pieza.titulo}</span>
         </button>
@@ -657,9 +660,12 @@ function ListaDeSemanas({ lista, alAbrir }: { lista: Semana[]; alAbrir: (pieza: 
                   onClick={() => alAbrir(entrada.pieza)}
                   className="-mx-2 grid w-[calc(100%+1rem)] grid-cols-[3.5rem_6.5rem_minmax(0,1fr)] items-baseline gap-2 border-b border-line-faint px-2 py-2.5 text-left hover:bg-raised"
                 >
-                  <span className="mono-data text-ink-2">{diaDeLaSemana(entrada.fecha)}</span>
-                  <span className="mono-data text-ink-2">
+                  <span className={`mono-data ${entrada.vencida ? 'text-alert' : 'text-ink-2'}`}>
+                    {diaDeLaSemana(entrada.fecha)}
+                  </span>
+                  <span className={`mono-data ${entrada.vencida ? 'text-alert' : 'text-ink-2'}`}>
                     {entrada.tipo === 'entrega' ? 'entrega' : 'publicación'}
+                    {entrada.vencida && ' · atrasada'}
                   </span>
                   <span className="text-sm break-words">{entrada.pieza.titulo}</span>
                 </button>
