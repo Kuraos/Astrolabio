@@ -649,6 +649,7 @@ function ListaDeSemanas({ lista, alAbrir }: { lista: Semana[]; alAbrir: (pieza: 
                   </span>
                   <span className={`mono-data ${entrada.vencida ? 'text-alert' : 'text-ink-2'}`}>
                     {entrada.tipo === 'entrega' ? 'entrega' : 'publicación'}
+                    {entrada.vencida && ' · atrasada'}
                   </span>
                   <span className="text-sm break-words">{entrada.pieza.titulo}</span>
                 </button>

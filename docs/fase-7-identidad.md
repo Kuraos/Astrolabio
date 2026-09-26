@@ -196,9 +196,9 @@ Y cinco que no hizo falta preguntar, y que se cambian si no convencen:
   La tarjeta comparaba la entrega con hoy; la línea, la semana con la de hoy.
   Una entrega del martes, vista el viernes, salía en rosa en la tarjeta y sin
   rosa en la línea, y ninguna prueba tenía un atraso dentro de la semana en
-  curso. Johan eligió el día: cada entrada vencida va en rosa, también en la
-  lista del teléfono, y el rótulo «atrasada» de la semana sigue siendo solo
-  de las semanas pasadas. La publicación vencida también va en rosa, en la
+  curso. Johan eligió el día: cada entrada vencida va en rosa y dice
+  «atrasada», también en la lista del teléfono, y el rótulo de la semana lo
+  sigue diciendo solo de las semanas pasadas. La publicación vencida también va en rosa, en la
   línea y ahora en la tarjeta (decisión 4). Lo calcula `semanas()`, con su
   prueba.
 - **El exportador usa el título tal cual como nombre de archivo**, y un título

@@ -200,7 +200,9 @@ Mirado a 1280 y a 375 px, sin desborde horizontal.
   el orden del flujo (AB5). Allí la celda de cada estado pasa de bloque alto a
   una fila, y el bloque «te toca», a una línea.
 - **Las semanas** son una línea de tiempo desde `md` y una lista por debajo.
-  En la lista, la fecha y el tipo de una entrada vencida van en rosa.
+  En la lista, la fecha y el tipo de una entrada vencida van en rosa, y el
+  tipo dice «atrasada», como en la línea: el color solo no lo oye el lector
+  de pantalla.
 - **La pieza** pone sus estaciones en dos columnas desde `lg`, y el guion con
   su vista previa, lado a lado desde `md`. En pantalla estrecha, su barra
   pasa a dos filas y la pista de estados, a dos columnas.
