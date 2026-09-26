@@ -12,8 +12,10 @@ import {
   type Traspaso,
   type Usuario,
 } from './api'
+import PanelBocetos from './Bocetos'
 import PanelCuadro from './Cuadro'
 import { esDeUnaLamina, faltaDelCuadro, resumen } from './cuadro'
+import { fechaYHora } from './fechas'
 import { aQuienLeToca, confirmacion, enPalabras, vuelveAtras } from './flujo'
 import Guion from './Guion'
 import { ESTADOS } from './tablero'
@@ -223,6 +225,10 @@ export default function VistaPieza({
               <Caption texto={caption} destinos={pieza.plataforma} alCambiar={setCaption} />
             </PanelDeTexto>
           </Estacion>
+
+          {/* Fase 9: el boceto de cada lámina, con el copy de arriba. */}
+          <PanelBocetos pieza={pieza} haySinGuardar={sinGuardar} />
+
         </div>
       </div>
     </main>
@@ -287,16 +293,6 @@ function Pista({ pieza, usuario }: { pieza: Pieza; usuario: Usuario }) {
   )
 }
 
-/** AJ5: «12 de sept, 16:30», en 24 h. */
-function fechaYHora(iso: string): string {
-  return new Date(iso).toLocaleString('es-CO', {
-    day: 'numeric',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-    hourCycle: 'h23',
-  })
-}
 
 /**
  * El traspaso: qué puede hacer quien mira y cómo llegó aquí (N2, N3). De quién

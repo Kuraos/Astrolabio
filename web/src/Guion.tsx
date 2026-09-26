@@ -102,9 +102,16 @@ const NOTAS_AL_PIE = {
  * Obsidian. El tachado, solo con dos virgulillas, que es como lo documenta
  * Obsidian: en un guion de física, `~10` es «aproximadamente diez».
  */
-export function VistaPrevia({ texto }: { texto: string }) {
+export function VistaPrevia({
+  texto,
+  letra = 'text-[15px] leading-[1.65] text-prose',
+}: {
+  texto: string
+  /** El tamaño y el color de la letra: el boceto la pinta más pequeña. */
+  letra?: string
+}) {
   return (
-    <div className="prosa text-[15px] leading-[1.65] text-prose">
+    <div className={`prosa ${letra}`}>
       <Markdown
         remarkPlugins={[[remarkGfm, { singleTilde: false }], remarkMath]}
         rehypePlugins={[rehypeKatex]}

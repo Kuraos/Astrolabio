@@ -33,6 +33,21 @@ export function diaDeLaSemana(fecha: string): string {
   })
 }
 
+/**
+ * AJ5: un instante —la historia, un archivo, un boceto— y no un día del
+ * calendario: «12 de sept, 16:30», en 24 h y en la hora de quien mira. Este
+ * sí pasa por `new Date`, porque el texto trae su hora y su zona.
+ */
+export function fechaYHora(iso: string): string {
+  return new Date(iso).toLocaleString('es-CO', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  })
+}
+
 /** Hoy como día del calendario, en la zona de quien mira. */
 export function diaDeHoy(): string {
   const ahora = new Date()
