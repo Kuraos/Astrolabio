@@ -241,6 +241,7 @@ def test_cambiar_el_titulo_renombra_la_nota(vault: Path, pieza: Pieza):
     [
         ("¿Qué es un año luz?", "¿Qué es un año luz"),
         ("GWTC-5.0: 390 ondas gravitacionales", "GWTC-5.0 390 ondas gravitacionales"),
+        ("Antes/después de Starlink", "Antes-después de Starlink"),
         ("El #1 de las galaxias", "El 1 de las galaxias"),
         ("10^24 estrellas", "1024 estrellas"),
         ("La constante de Hubble [revisada]", "La constante de Hubble revisada"),
@@ -277,7 +278,7 @@ def test_una_barra_en_el_titulo_no_saca_la_nota_de_contenido(vault: Path, pieza:
     exportador.exportar(pieza, vault)
 
     notas = sorted(p.relative_to(vault).as_posix() for p in vault.rglob("*.md"))
-    assert notas == ["Contenido/fuera.md", "MOC-VozDelCosmos.md"]
+    assert notas == ["Contenido/-fuera.md", "MOC-VozDelCosmos.md"]
 
 
 def test_cambiar_el_titulo_renombra_la_nota_al_nombre_limpio(vault: Path, pieza: Pieza):

@@ -185,7 +185,8 @@ def test_dos_carpetas_con_el_mismo_numero_se_reportan_y_no_se_crea_otra(
         ('Luz: ¿"onda" o <partícula>?', "Luz ¿onda o partícula"),
         ("Hasta aquí. ", "Hasta aquí"),
         ("???", "sin título"),
-        ("../../fuera", "fuera"),
+        ("1/3 de la materia", "1-3 de la materia"),
+        ("../../fuera", "-..-fuera"),
     ],
 )
 def test_el_titulo_pierde_lo_que_windows_no_admite(titulo: str, nombre: str):

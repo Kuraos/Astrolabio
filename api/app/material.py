@@ -173,9 +173,13 @@ def carpeta_compartida() -> Path | None:
 def nombre_sin_prohibidos(titulo: str) -> str:
     """El título sin lo que Windows no admite en un nombre (ADR 0010).
 
-    Windows tampoco admite un nombre que acabe en punto o en espacio. Si del
-    título no queda nada, `sin título`.
+    La `/` pasa a `-`, para que «1/3» no se lea «13». Windows tampoco admite un
+    nombre que acabe en punto o en espacio. Si del título no queda nada,
+    `sin título`.
     """
+    # `translate` y no `replace`: Q5 busca `replace` en este módulo, porque en
+    # un `Path` mueve archivos.
+    titulo = titulo.translate(str.maketrans("/", "-"))
     return _PROHIBIDOS.sub("", titulo).strip(". ") or "sin título"
 
 

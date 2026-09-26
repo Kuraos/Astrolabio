@@ -70,7 +70,8 @@ mantiene al editor fuera del vault.
 - Si alguien crea a mano otra carpeta con el mismo número, la app no adivina
   cuál es la buena: el panel dice que hay dos.
 - Al crear la carpeta, el título pierde los caracteres que Windows no admite en
-  un nombre (`\ / : * ? " < > |`).
+  un nombre (`\ : * ? " < > |`). La `/` pasa a `-` desde el 2026-09-25, para
+  que «1/3» no se lea «13»; las carpetas de antes conservan su nombre.
 - Pillow es una dependencia nueva, fijada como las demás.
 - Cada navegador genera la miniatura la primera vez que la ve. Si algún día eso
   pesa, se guardan, y este ADR se revisa.
