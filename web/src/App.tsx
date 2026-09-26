@@ -425,17 +425,17 @@ function Tarjeta({
             anteriores a hoy, con el mismo criterio que las semanas. */}
         {pieza.fecha_entrega && entregaPendiente(pieza) && (
           <span className={pieza.fecha_entrega < hoy ? 'text-alert' : ''}>
-            entrega <span className="whitespace-nowrap">{diaYMes(pieza.fecha_entrega)}</span>
+            Entrega <span className="whitespace-nowrap">{diaYMes(pieza.fecha_entrega)}</span>
           </span>
         )}
         {pieza.fecha_publicacion_prevista && pieza.estado !== 'publicada' && (
           <span className={pieza.fecha_publicacion_prevista < hoy ? 'text-alert' : ''}>
-            publicación{' '}
+            Publicación{' '}
             <span className="whitespace-nowrap">{diaYMes(pieza.fecha_publicacion_prevista)}</span>
           </span>
         )}
         <Pendientes tareas={tareas} />
-        {pieza.guion.trim() === '' && <span>sin guion</span>}
+        {pieza.guion.trim() === '' && <span>Sin guion</span>}
       </span>
     </button>
   )
@@ -458,7 +458,7 @@ function Etiquetas({
     <section aria-label="Etiquetas" className="flex flex-col gap-2">
       <h2 className="flex flex-col gap-0.5">
         <span className="heading-station text-[13px]">Etiquetas</span>
-        <span className="mono-data font-normal text-ink-3">de qué hemos hablado</span>
+        <span className="mono-data font-normal text-ink-3">De qué hemos hablado</span>
       </h2>
       {entradas.length === 0 ? (
         <p className="text-sm text-ink-2">Todavía no hay etiquetas: se ponen en cada pieza.</p>
@@ -623,7 +623,7 @@ function LineaDeTiempo({
           style={{ gridColumn: `${desde} / ${hasta + 1}`, gridRow: carril + 3 }}
         >
           <span className={`mono-label ${entrada.vencida ? 'text-alert' : 'text-ink-2'}`}>
-            {diaDeLaSemana(entrada.fecha)} · {entrada.tipo === 'entrega' ? 'entrega' : 'publicación'}
+            {diaDeLaSemana(entrada.fecha)} · {entrada.tipo === 'entrega' ? 'Entrega' : 'Publicación'}
             {entrada.vencida && ' · atrasada'}
           </span>
           <span className="text-sm leading-tight font-medium break-words">{entrada.pieza.titulo}</span>
@@ -664,7 +664,7 @@ function ListaDeSemanas({ lista, alAbrir }: { lista: Semana[]; alAbrir: (pieza: 
                     {diaDeLaSemana(entrada.fecha)}
                   </span>
                   <span className={`mono-data ${entrada.vencida ? 'text-alert' : 'text-ink-2'}`}>
-                    {entrada.tipo === 'entrega' ? 'entrega' : 'publicación'}
+                    {entrada.tipo === 'entrega' ? 'Entrega' : 'Publicación'}
                     {entrada.vencida && ' · atrasada'}
                   </span>
                   <span className="text-sm break-words">{entrada.pieza.titulo}</span>
@@ -684,7 +684,9 @@ function ListaDeSemanas({ lista, alAbrir }: { lista: Semana[]; alAbrir: (pieza: 
  */
 function Pendientes({ tareas }: { tareas: Tarea[] }) {
   const texto = quedan(tareas)
-  return texto ? <span>{texto}</span> : null
+  // `quedan` va en minúscula porque el traspaso lo usa a media frase; aquí
+  // abre la línea.
+  return texto ? <span>{texto[0].toUpperCase() + texto.slice(1)}</span> : null
 }
 
 /** AH3: la pieza nueva, en la columna de la izquierda. Solo la ve Johan (D3). */

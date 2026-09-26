@@ -81,7 +81,7 @@ Y los pares que no son texto sobre fondo:
   |---|---|---|
   | `heading-station` | Archivo 800, anchura 125 %, 0,875 rem, +0,04 em, mayúsculas | Título de estación: «Traspaso», «Semanas» |
   | `mono-label` | Martian Mono, anchura 87,5 %, 0,6875 rem, +0,06 em, mayúsculas | Rótulos, botones, turnos, números de columna |
-  | `mono-data` | Martian Mono, anchura 75 %, 0,6875 rem | Datos en minúscula: fechas, recuentos, quién |
+  | `mono-data` | Martian Mono, anchura 75 %, 0,6875 rem | Datos: fechas, recuentos, quién |
 
 - **Tamaños**:
 
@@ -98,11 +98,14 @@ Y los pares que no son texto sobre fondo:
   | El texto de la interfaz | `text-sm` |
   | El editor del guion | `font-mono text-[12.5px] leading-[1.75] font-stretch-condensed` |
 
-- **Mayúsculas para lo fijo, minúsculas para los datos.** Los rótulos, los
-  botones y los turnos van en mayúsculas con `mono-label`; las fechas, los
-  nombres y las palabras del flujo (`enPalabras`), en minúscula. En el código
-  el texto se escribe en caja normal: la mayúscula la pone el CSS, y el lector
-  de pantalla lee la palabra, no letras sueltas.
+- **Mayúsculas para lo fijo, mayúscula inicial para lo demás.** Los rótulos,
+  los botones y los turnos van en mayúsculas con `mono-label`. Lo demás —los
+  estados del flujo (`enPalabras`), las líneas de una tarjeta, «Hecha por…»—
+  empieza con mayúscula, como una frase: «Investigación», «Entrega 2 de oct»
+  (cambiado el 2026-09-25, a pedido de Johan). Lo que es un identificador va
+  como está: los usuarios, las etiquetas y los dominios. En el código el texto
+  se escribe en caja normal: la mayúscula de `mono-label` la pone el CSS, y el
+  lector de pantalla lee la palabra, no letras sueltas.
 
 ## 4. Espaciado
 
@@ -135,6 +138,7 @@ Las piezas que se repiten viven en `web/src/ui.tsx`: `ANCHO`, `BOTON`,
 |---|---|---|
 | Estación | `Estacion`: el título en `heading-station` y, si hace falta, una acción o una nota a la derecha. Las líneas que la separan las pone quien la coloca | Todas las pantallas |
 | Campo con rótulo | `Campo` con un control de clase `CONTROL`: el rótulo en `mono-label text-ink-2` encima, el borde en `control`, y en tinta con el foco | Entrada, pieza nueva, nota del traspaso, enlace, fechas, tema |
+| Selector | Un `<select>` con `CONTROL`. Sus opciones, en tinta sobre el fondo de la página (`option` en `index.css`): la lista la pinta el navegador aparte, y sin eso salía blanco sobre blanco | Tema |
 | Botón primario | `BOTON`: tinta sobre negro | Entrar, Crear pieza, Guardar, las transiciones que avanzan |
 | Botón secundario | `BOTON_SECUNDARIO`: borde `control` | Devolver, Reformular, Exportar al vault, Añadir, Crear la carpeta |
 | Botón de texto | `BOTON_DE_TEXTO`: `mono-label` en `ink-2`, en tinta al pasar | ← Piezas, Quitar, Actualizar, Copiar ruta, Ver todas |

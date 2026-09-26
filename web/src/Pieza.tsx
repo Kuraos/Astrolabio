@@ -886,14 +886,22 @@ function PanelRespaldo({
 }) {
   const [estado, setEstado] = useState<EstadoDelRespaldo | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [consultando, setConsultando] = useState(false)
 
-  useEffect(() => {
+  // Una nota que se crea en el vault con la pieza abierta no llega sola: se
+  // vuelve a mirar con «Actualizar», como la carpeta de Syncthing.
+  const consultar = useCallback(() => {
+    setConsultando(true)
+    setError(null)
     pedir<EstadoDelRespaldo>('/api/respaldo')
       .then(setEstado)
       .catch((causa: unknown) =>
         setError(causa instanceof ErrorDeApi ? causa.message : 'No se pudo consultar'),
       )
+      .finally(() => setConsultando(false))
   }, [])
+
+  useEffect(consultar, [consultar])
 
   const alternar = useCallback(
     async (archivo: string) => {
@@ -916,7 +924,15 @@ function PanelRespaldo({
   )
 
   return (
-    <Estacion titulo="Respaldo científico" className="border-t border-line pt-5 pb-7">
+    <Estacion
+      titulo="Respaldo científico"
+      extra={
+        <button type="button" onClick={consultar} disabled={consultando} className={BOTON_DE_TEXTO}>
+          Actualizar
+        </button>
+      }
+      className="border-t border-line pt-5 pb-7"
+    >
       {error && <Aviso mensaje={error} />}
 
       {/* G4, la mitad de interfaz: si el vault no está montado la aplicación
@@ -950,6 +966,15 @@ function PanelRespaldo({
             ))}
           </ul>
         ))}
+
+      {/* §2.1: el respaldo lo escribe el vault y aquí solo se enlaza. Dicho en
+          pantalla, porque «no deja añadir» se lee como un fallo. */}
+      {estado?.disponible && (
+        <p className="text-[13px] leading-snug text-ink-3">
+          Son las notas literature de Investigacion/Recursos, en el vault. Una nota nueva
+          aparece aquí al actualizar.
+        </p>
+      )}
     </Estacion>
   )
 }

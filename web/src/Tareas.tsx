@@ -106,7 +106,7 @@ export default function ListaDeTareas({
                   </span>
                   {/* AD4: quién la marcó, para no tener que preguntarlo. */}
                   {tarea.hecha && (
-                    <span className="mono-data text-ink-3">hecha por {tarea.marcada_por}</span>
+                    <span className="mono-data text-ink-3">Hecha por {tarea.marcada_por}</span>
                   )}
                 </span>
               </label>
