@@ -7,26 +7,11 @@ import { describe, expect, it } from 'vitest'
 
 import type { Pieza } from './api'
 import { catalogo } from './catalogo'
+import { piezaDePrueba } from './piezaDePrueba'
 
 /** Una pieza con solo lo que el catálogo mira: su estado y sus etiquetas. */
 function pieza(estado: string, etiquetas: string[]): Pieza {
-  return {
-    id: 1,
-    titulo: 'Una pieza',
-    creada_en: '2026-09-24T00:00:00Z',
-    creada_por: 'johan',
-    guion: '',
-    formato: null,
-    tema: null,
-    plataforma: null,
-    respaldo: [],
-    etiquetas,
-    fecha_entrega: null,
-    fecha_publicacion_prevista: null,
-    estado,
-    de_quien_es: null,
-    transiciones: [],
-  }
+  return piezaDePrueba({ estado, etiquetas, de_quien_es: null })
 }
 
 describe('Z1: cada etiqueta, con sus piezas publicadas y en curso', () => {

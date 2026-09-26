@@ -32,9 +32,16 @@ export type Pieza = {
   creada_en: string
   creada_por: string
   guion: string
+  // AN1–AN5: el cuadro de materiales del editor, con los identificadores de
+  // la API. Sus palabras en pantalla salen de `cuadro.ts`. `formato` es el
+  // «tipo de pieza», y `plataforma`, los destinos.
   formato: string | null
   tema: string | null
-  plataforma: string | null
+  proposito: string | null
+  nivel: string | null
+  plataforma: string[]
+  copy_grafico: string[]
+  caption: string
   respaldo: string[]
   // Y2 y Y3: ya normalizadas por el servidor.
   etiquetas: string[]

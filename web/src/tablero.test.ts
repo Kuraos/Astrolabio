@@ -6,27 +6,12 @@
 import { describe, expect, it } from 'vitest'
 
 import type { Pieza } from './api'
+import { piezaDePrueba } from './piezaDePrueba'
 import { tablero, type Columna } from './tablero'
 
 /** Una pieza con solo lo que el tablero mira: cuál es y en qué estado está. */
 function pieza(id: number, estado: string): Pieza {
-  return {
-    id,
-    titulo: `Pieza ${id}`,
-    creada_en: '2026-09-24T00:00:00Z',
-    creada_por: 'johan',
-    guion: '',
-    formato: null,
-    tema: null,
-    plataforma: null,
-    respaldo: [],
-    etiquetas: [],
-    fecha_entrega: null,
-    fecha_publicacion_prevista: null,
-    estado,
-    de_quien_es: null,
-    transiciones: [],
-  }
+  return piezaDePrueba({ id, titulo: `Pieza ${id}`, estado, de_quien_es: null })
 }
 
 function enColumnas(columnas: Columna[]): [string, number[]][] {
