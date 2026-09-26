@@ -233,6 +233,66 @@ def test_cambiar_el_titulo_renombra_la_nota(vault: Path, pieza: Pieza):
     assert archivos == ["Las Pleyades, revisado.md"]
 
 
+# --- El nombre, sin lo que no admiten Windows ni los enlaces (ADR 0007 y 0010) ---
+
+
+@pytest.mark.parametrize(
+    ("titulo", "nombre"),
+    [
+        ("¿Qué es un año luz?", "¿Qué es un año luz"),
+        ("GWTC-5.0: 390 ondas gravitacionales", "GWTC-5.0 390 ondas gravitacionales"),
+        ("Antes/después de Starlink", "Antes-después de Starlink"),
+        ("El #1 de las galaxias", "El 1 de las galaxias"),
+        ("10^24 estrellas", "1024 estrellas"),
+        ("La constante de Hubble [revisada]", "La constante de Hubble revisada"),
+        ("Materia oscura %%borrador%%", "Materia oscura borrador"),
+        ("???", "sin título"),
+    ],
+)
+def test_el_nombre_pierde_lo_que_no_admiten_windows_ni_los_enlaces(
+    vault: Path, pieza: Pieza, titulo: str, nombre: str
+):
+    """El vault vive en Windows, y desde el contenedor la escritura no falla:
+    el montaje de Docker Desktop guarda el `?` como U+F03F, un carácter de uso
+    privado, y el enlace del MOC ya no encuentra la nota. Tampoco la encuentra
+    si el nombre lleva lo que Obsidian lee como sintaxis del enlace. El título,
+    entero, sigue en el encabezado.
+    """
+    pieza.titulo = titulo
+
+    destino = exportador.exportar(pieza, vault)
+
+    moc = (vault / "MOC-VozDelCosmos.md").read_text(encoding="utf-8")
+    assert destino == vault / "Contenido" / f"{nombre}.md"
+    assert f"- [[{nombre}]]" in moc
+    assert f"# {titulo}\n" in destino.read_text(encoding="utf-8")
+
+
+def test_una_barra_en_el_titulo_no_saca_la_nota_de_contenido(vault: Path, pieza: Pieza):
+    """I5. Los dos roles cambian el título, y con un `../` la nota subiría a
+    `Voz-del-Cosmos/`; con `../Bitacora/`, a una carpeta que el montaje deja
+    escribible (ADR 0007).
+    """
+    pieza.titulo = "../fuera"
+
+    exportador.exportar(pieza, vault)
+
+    notas = sorted(p.relative_to(vault).as_posix() for p in vault.rglob("*.md"))
+    assert notas == ["Contenido/-fuera.md", "MOC-VozDelCosmos.md"]
+
+
+def test_cambiar_el_titulo_renombra_la_nota_al_nombre_limpio(vault: Path, pieza: Pieza):
+    """I4 con un título que pierde caracteres: la nota se encuentra por su
+    `astrolabio_id` y se mueve al nombre limpio, sin dejar dos.
+    """
+    exportador.exportar(pieza, vault)
+    pieza.titulo = "¿Qué son las Pléyades?"
+    exportador.exportar(pieza, vault)
+
+    archivos = sorted(p.name for p in (vault / "Contenido").glob("*.md"))
+    assert archivos == ["¿Qué son las Pléyades.md"]
+
+
 # --- I5: no pisa lo que no es suyo ---
 
 
@@ -248,6 +308,37 @@ def test_se_niega_a_pisar_una_nota_escrita_a_mano(vault: Path, pieza: Pieza):
         exportador.exportar(pieza, vault)
 
     assert "Escrito a mano" in a_mano.read_text(encoding="utf-8")
+
+
+def test_renombrar_no_pisa_una_nota_escrita_a_mano(vault: Path, pieza: Pieza):
+    """I5 también al renombrar: `rename` pisa el destino sin avisar. La nota
+    escrita a mano se queda, y la generada, con su nombre de antes.
+    """
+    exportador.exportar(pieza, vault)
+    a_mano = vault / "Contenido" / "Las Pleyades, revisado.md"
+    a_mano.write_text("---\ntype: contenido\n---\n\nEscrito a mano.\n", encoding="utf-8")
+    pieza.titulo = "Las Pleyades, revisado"
+
+    with pytest.raises(exportador.NotaAjena):
+        exportador.exportar(pieza, vault)
+
+    assert "Escrito a mano" in a_mano.read_text(encoding="utf-8")
+    assert (vault / "Contenido" / "Las Pleyades.md").is_file()
+
+
+def test_no_pisa_la_nota_de_otra_pieza(vault: Path, pieza: Pieza, sesion_db: Session):
+    """Dos títulos que quedan iguales sin lo que Windows no admite dan el mismo
+    nombre. La segunda pieza no se queda con la nota de la primera.
+    """
+    primera = exportador.exportar(pieza, vault)
+    otra = Pieza(titulo="Las Pleyades?", creada_por="johan")
+    sesion_db.add(otra)
+    sesion_db.flush()
+
+    with pytest.raises(exportador.NotaAjena):
+        exportador.exportar(otra, vault)
+
+    assert _frontmatter(primera.read_text(encoding="utf-8"))["astrolabio_id"] == pieza.id
 
 
 def test_no_escribe_fuera_de_contenido_y_el_moc(vault: Path, pieza: Pieza):
@@ -280,6 +371,40 @@ def test_no_duplica_el_enlace_al_reexportar(vault: Path, pieza: Pieza):
 
     moc = (vault / "MOC-VozDelCosmos.md").read_text(encoding="utf-8")
     assert moc.count("[[Las Pleyades]]") == 1
+
+
+def test_cada_enlace_del_moc_va_en_su_linea(vault: Path, sesion_db: Session):
+    """Un enlace por línea, el nuevo primero. Desde la tercera pieza, el
+    enlace nuevo se pegaba al de debajo en la misma línea.
+    """
+    for titulo in ("Primera", "Segunda", "Tercera"):
+        p = Pieza(titulo=titulo, creada_por="johan")
+        sesion_db.add(p)
+        sesion_db.flush()
+        exportador.exportar(p, vault)
+
+    moc = (vault / "MOC-VozDelCosmos.md").read_text(encoding="utf-8")
+    assert moc.endswith(
+        f"{exportador.SECCION_MOC}\n\n- [[Tercera]]\n- [[Segunda]]\n- [[Primera]]\n"
+    )
+
+
+def test_renombrar_cambia_el_enlace_de_la_seccion_y_nada_mas(vault: Path, pieza: Pieza):
+    """El enlace al nombre viejo sale de la sección de Astrolabio. El que
+    Johan escribió en una sección suya, debajo, se queda (ADR 0007).
+    """
+    exportador.exportar(pieza, vault)
+    moc = vault / "MOC-VozDelCosmos.md"
+    with moc.open("a", encoding="utf-8") as archivo:
+        archivo.write("\n## Pendientes\n\n- [[Las Pleyades]]\n")
+    pieza.titulo = "Las Pleyades, revisado"
+
+    exportador.exportar(pieza, vault)
+
+    assert moc.read_text(encoding="utf-8").endswith(
+        f"{exportador.SECCION_MOC}\n\n- [[Las Pleyades, revisado]]\n"
+        "\n## Pendientes\n\n- [[Las Pleyades]]\n"
+    )
 
 
 def test_no_toca_las_secciones_escritas_a_mano(vault: Path, pieza: Pieza):

@@ -9,6 +9,7 @@ Escribe en exactamente dos sitios: la carpeta `Contenido/` y el archivo
 ahí no puede escribir aunque el código se equivoque (ADR 0007).
 """
 
+import re
 from datetime import date, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -22,6 +23,7 @@ from . import respaldo
 from .auth import usuario_actual
 from .config import settings
 from .db import get_db
+from .material import nombre_sin_prohibidos
 from .models import Pieza, Usuario
 
 router = APIRouter(prefix="/api/piezas", tags=["piezas"])
@@ -31,9 +33,16 @@ MOC = "MOC-VozDelCosmos.md"
 MARCA = "<!-- generado por Astrolabio — no editar -->"
 SECCION_MOC = "## Piezas (generado por Astrolabio)"
 
+# Lo que Obsidian lee como sintaxis de un enlace: su ayuda avisa de `# | ^ : %%
+# [[ ]]`, y `|` y `:` ya los quita `nombre_sin_prohibidos`. Van también los
+# corchetes sueltos: uno al final del nombre cierra el `[[…]]` antes de tiempo.
+_ROMPEN_ENLACES = re.compile(r"[#^\[\]]|%%")
+
 
 class NotaAjena(Exception):
-    """El archivo existe y no lo escribió Astrolabio."""
+    """El archivo existe y no es de esta pieza: lo escribió una persona, o es
+    la nota de otra pieza.
+    """
 
 
 class Exportacion(BaseModel):
@@ -141,46 +150,71 @@ def _nota_previa(carpeta: Path, pieza_id: int) -> Path | None:
     return None
 
 
-def _enlazar_en_moc(base: Path, titulo: str) -> None:
-    """Añade el enlace en la sección propia, sin tocar las escritas a mano."""
+def _enlazar_en_moc(base: Path, nombre: str, anterior: str | None = None) -> None:
+    """Añade el enlace en la sección propia, sin tocar las escritas a mano.
+
+    Al nombre del archivo, no al título: es lo que Obsidian resuelve. Si la
+    nota se renombró, el enlace a su nombre `anterior` sale de la sección.
+    """
     moc = base / MOC
     if not moc.is_file():
         return
 
     texto = moc.read_text(encoding="utf-8")
-    enlace = f"- [[{titulo}]]"
+    enlace = f"- [[{nombre}]]"
 
-    if enlace in texto:
+    if SECCION_MOC not in texto:
+        if enlace not in texto:
+            texto = f"{texto.rstrip()}\n\n{SECCION_MOC}\n\n{enlace}\n"
+            moc.write_text(texto, encoding="utf-8")
         return
 
-    if SECCION_MOC in texto:
-        cabeza, resto = texto.split(SECCION_MOC, 1)
-        texto = f"{cabeza}{SECCION_MOC}\n{enlace}{resto[len(chr(10)):] if resto.startswith(chr(10)) else resto}"
-    else:
-        texto = f"{texto.rstrip()}\n\n{SECCION_MOC}\n\n{enlace}\n"
+    cabeza, resto = texto.split(SECCION_MOC, 1)
+    # La sección acaba en el encabezado siguiente: lo que venga después es de Johan.
+    seccion, corte, cola = resto.partition("\n#")
+    if anterior is not None:
+        seccion = seccion.replace(f"\n- [[{anterior}]]", "")
+    if enlace not in texto:
+        # El nuevo, primero, y cada enlace en su línea.
+        seccion = f"\n\n{enlace}\n" + seccion.lstrip("\n")
 
-    moc.write_text(texto, encoding="utf-8")
+    nuevo = f"{cabeza}{SECCION_MOC}{seccion}{corte}{cola}"
+    if nuevo != texto:
+        moc.write_text(nuevo, encoding="utf-8")
 
 
 def exportar(pieza: Pieza, base: Path) -> Path:
     carpeta = base / CARPETA
     carpeta.mkdir(parents=True, exist_ok=True)
 
-    destino = carpeta / f"{pieza.titulo}.md"
+    # Sin lo que Windows no admite —el vault vive ahí, y un `/` sacaría la nota
+    # de `Contenido/`— ni lo que rompe el enlace del MOC (ADR 0007).
+    nombre = nombre_sin_prohibidos(_ROMPEN_ENLACES.sub("", pieza.titulo))
+    destino = carpeta / f"{nombre}.md"
     previa = _nota_previa(carpeta, pieza.id)
 
+    # Antes de mover nada: `rename` pisaría sin avisar lo que haya en el destino.
+    if destino.is_file():
+        existente = destino.read_text(encoding="utf-8")
+        if MARCA not in existente:
+            raise NotaAjena(
+                f"«{destino.name}» existe y no lleva la marca de generada: "
+                "lo escribió una persona y Astrolabio no lo sobrescribe."
+            )
+        if _frontmatter(existente).get("astrolabio_id") != pieza.id:
+            raise NotaAjena(
+                f"«{destino.name}» ya es la nota de otra pieza: "
+                "cambia el título de una de las dos."
+            )
+
     # El título cambió: se mueve la nota anterior en vez de dejar dos.
+    anterior = None
     if previa is not None and previa != destino:
         previa.rename(destino)
-
-    if destino.is_file() and MARCA not in destino.read_text(encoding="utf-8"):
-        raise NotaAjena(
-            f"«{destino.name}» existe y no lleva la marca de generada: "
-            "lo escribió una persona y Astrolabio no lo sobrescribe."
-        )
+        anterior = previa.stem
 
     destino.write_text(_nota(pieza), encoding="utf-8")
-    _enlazar_en_moc(base, pieza.titulo)
+    _enlazar_en_moc(base, nombre, anterior)
 
     return destino
 

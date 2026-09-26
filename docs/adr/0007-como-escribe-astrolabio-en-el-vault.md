@@ -25,6 +25,24 @@ Pero «estable» no es «inmutable», así que la nota generada lleva
 dejar una huérfana y crear una segunda. Cuesta seis líneas y evita el único
 fallo real de esta decisión: dos notas contradictorias sobre la misma pieza.
 
+Desde el 2026-09-25, el nombre es el título **sin lo que Windows no admite**
+(`\ : * ? " < > |`; la `/` pasa a `-`, para que «1/3» no se lea «13»), con la
+misma limpieza que la carpeta de la pieza (ADR 0010); si no queda nada,
+`sin título`. El vault vive en Windows, y exportar
+«GWTC-5.0: 390 ondas gravitacionales» no fallaba: el montaje de Docker Desktop
+guarda cada carácter prohibido como uno de uso privado (el `:` pasa a U+F03A),
+y la nota quedaba con un nombre que el enlace del MOC no encontraba. Un `/`,
+además, la sacaba de `Contenido/`. El título entero sigue en el encabezado de la
+nota, y el enlace del MOC apunta al nombre del archivo, que es lo que Obsidian
+resuelve.
+
+El nombre tampoco lleva lo que Obsidian lee como sintaxis de un enlace: `#`,
+`^`, corchetes y `%%` ([ayuda de Obsidian](https://obsidian.md/help/links)). Con
+ellos, la nota se escribe, pero el enlace del MOC no llega a ella. La carpeta de
+Syncthing sí los admite, porque nadie la enlaza. Se quitan y no se sustituyen:
+un `-` haría de «10^24» un rango. «10^24 estrellas» se llama `1024 estrellas`;
+con superíndices, «10²⁴ estrellas», el nombre pasa intacto.
+
 ### La escritura se acota en el montaje, hasta donde se puede
 
 El contenedor monta `03-Negocios/Voz-del-Cosmos/` en escritura, y encima
@@ -46,7 +64,8 @@ acotado a esta carpeta: el diario está fuera y es inalcanzable.
 
 Decisión de Johan. La nota generada se enlaza desde
 `## Piezas (generado por Astrolabio)`, una sección que crea y mantiene la
-aplicación y que **no toca ninguna sección escrita a mano**.
+aplicación y que **no toca ninguna sección escrita a mano**. La sección llega
+hasta el encabezado siguiente: lo que venga después es de Johan.
 
 Queda registrado que esto puede ser innecesario: el MOC ya rastrea
 `Contenido/` con Dataview, y la plantilla de contenido cierra con
@@ -61,6 +80,12 @@ Si el archivo de destino existe y **no** lleva
 avisa. Significa que alguien la escribió a mano, y la regla de una sola
 dirección del ADR 0001 no autoriza a Astrolabio a decidir que su versión es
 la buena.
+
+Desde el 2026-09-25, tampoco se toca la nota generada de otra pieza, la de otro
+`astrolabio_id`: dos títulos que quedan iguales sin lo que Windows no admite dan
+el mismo nombre, y la segunda pieza no puede quedarse con la nota de la
+primera. Las dos comprobaciones van antes de renombrar, porque `rename` pisa el
+destino sin avisar.
 
 ## Alternativas descartadas
 
@@ -77,8 +102,9 @@ la buena.
 
 - Exportar es **idempotente**: la misma pieza produce el mismo archivo, y
   reexportar lo actualiza en vez de duplicarlo.
-- Renombrar una pieza mueve su nota. Los wikilinks que apunten al nombre viejo
-  se rompen igual — eso Obsidian lo resuelve al renombrar desde su interfaz, y
-  Astrolabio no puede. Es el coste aceptado de nombrar por título.
+- Renombrar una pieza mueve su nota, y su enlace en la sección del MOC. Los
+  demás wikilinks que apunten al nombre viejo se rompen igual — eso Obsidian lo
+  resuelve al renombrar desde su interfaz, y Astrolabio no puede. Es el coste
+  aceptado de nombrar por título.
 - El editor no exporta. El destino es el vault personal de Johan, y el ADR
   0001 se lo asigna a él; la comprobación es un 403 en el servidor.
