@@ -136,6 +136,7 @@ demasiado pronto.
 | Red | Tailscale | El editor entra por red privada cifrada, sin nube y sin abrir puertos |
 | Auth | Sesión en cookie `HttpOnly` + Argon2 | Dos usuarios; un proveedor OAuth externo sería infraestructura sin beneficio |
 | Guion | Markdown + KaTeX | El contenido lleva fórmulas y deben conservarse en LaTeX real |
+| Bocetos | Claude, con el SDK `anthropic` | Opcional: sin clave en el `.env` no se usa. El único servicio de fuera ([ADR 0016](docs/adr/0016-bocetos-con-claude.md)) |
 
 **Tauri no se usa**, a diferencia de Grimoire, y es deliberado: el cliente
 del editor tiene que ser un navegador. Si más adelante hace falta una

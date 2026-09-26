@@ -24,6 +24,7 @@ flowchart LR
     vault[("vault de Obsidian<br/>solo 03-Negocios/Voz-del-Cosmos")]
     compartida[("carpeta de Syncthing<br/>una carpeta por pieza")]
     copia[("su copia de Syncthing")]
+    claude["API de Anthropic<br/>solo si hay clave"]
 
     johan -->|"localhost · un solo puerto"| web
     editor -->|"http · un solo puerto"| web
@@ -33,6 +34,7 @@ flowchart LR
     api -->|"lista archivos y<br/>crea la carpeta de la pieza"| compartida
     compartida <-->|"Syncthing"| copia
     editor -.->|"abre los originales"| copia
+    api -.->|"pide un boceto,<br/>con un botón"| claude
 ```
 
 - **Un solo origen.** El navegador conoce una dirección y un puerto: `web`
@@ -40,7 +42,10 @@ flowchart LR
   CORS ni `SameSite=None` ([ADR 0005](adr/0005-mismo-origen-tras-proxy.md)).
 - **Autoalojado.** Todo corre en el PC de Johan; el editor entra por
   Tailscale, sin nube y sin puertos abiertos
-  ([ADR 0002](adr/0002-autoalojado-con-tailscale.md)).
+  ([ADR 0002](adr/0002-autoalojado-con-tailscale.md)). La excepción son los
+  bocetos: si hay clave, la API sale a Anthropic cuando alguien pide uno, con
+  el cuadro, el copy y el guion de la pieza
+  ([ADR 0016](adr/0016-bocetos-con-claude.md)).
 - **Los archivos pesados no pasan por la API.** Viajan entre las dos máquinas
   por Syncthing, y la app solo ve la copia de la máquina donde corre
   ([ADR 0003](adr/0003-binarios-fuera-de-la-app.md),
@@ -58,14 +63,16 @@ cada cosa.
 |---|---|
 | Cliente | React 18, TypeScript, Vite y Tailwind 4. El guion se pinta con `react-markdown`, `remark-gfm`, `remark-math` y `rehype-katex`. Las fuentes, Archivo y Martian Mono, llegan de `@fontsource-variable` y las sirve la propia app ([ADR 0014](adr/0014-identidad-con-tokens-y-fuentes-propias.md)) |
 | Proxy | nginx: sirve el build y reenvía `/api` |
-| API | Python 3.12, FastAPI y uvicorn. SQLAlchemy 2.0 con psycopg 3, Alembic, pydantic-settings, argon2-cffi, PyYAML y Pillow |
+| API | Python 3.12, FastAPI y uvicorn. SQLAlchemy 2.0 con psycopg 3, Alembic, pydantic-settings, argon2-cffi, PyYAML, Pillow y el SDK de Anthropic para los bocetos |
 | Base de datos | Postgres 18 |
 | Pruebas | pytest y el `TestClient` de FastAPI, contra Postgres real; vitest para las funciones del cliente |
 | Verificación | GitHub Actions, en cada push |
 | Fuera de la app | Tailscale (red), Syncthing (archivos entre las dos máquinas), Obsidian con obsidian-git (el vault) |
 
-No hay servicios de terceros: ni autenticación externa, ni correo, ni
-analítica, ni almacenamiento en la nube.
+Un solo servicio de terceros, y opcional: la API de Anthropic, a la que se le
+piden los bocetos cuando hay clave en el `.env`
+([ADR 0016](adr/0016-bocetos-con-claude.md)). Ni autenticación externa, ni
+correo, ni analítica, ni almacenamiento en la nube.
 
 ## 3. Estructura del proyecto
 
@@ -88,7 +95,8 @@ analítica, ni almacenamiento en la nube.
 │   │   ├── material.py       enlaces y la carpeta de la pieza en Syncthing
 │   │   ├── tareas.py         la checklist de cada pieza y las tareas sueltas
 │   │   ├── respaldo.py       lee las notas literature del vault
-│   │   └── exportador.py     escribe la pieza en el vault
+│   │   ├── exportador.py     escribe la pieza en el vault
+│   │   └── bocetos.py        pide el boceto a Claude, lo valida y lo guarda
 │   ├── migrations/           Alembic, una migración por cambio de esquema
 │   └── tests/                pytest, una base `_test` aparte
 ├── web/
@@ -100,10 +108,12 @@ analítica, ni almacenamiento en la nube.
 │   │   ├── Cuadro.tsx        el cuadro de materiales: tipo, propósito, nivel y destino
 │   │   ├── Guion.tsx         el guion: barra, campo y vista previa
 │   │   ├── Textos.tsx        el copy gráfico, lámina por lámina, y el caption
+│   │   ├── Bocetos.tsx       pide el boceto y dibuja sus láminas
 │   │   ├── Temas.tsx         el tema y las etiquetas de la pieza
 │   │   ├── Tareas.tsx        la lista de tareas: la checklist y las sueltas
 │   │   ├── api.ts            pedir(), ErrorDeApi y los tipos de la API
 │   │   ├── barra.ts          las acciones de la barra del guion, puras
+│   │   ├── boceto.ts         el orden de lectura del boceto y si se quedó viejo, puro
 │   │   ├── catalogo.ts       el catálogo de etiquetas, puro
 │   │   ├── cuadro.ts         las palabras del cuadro, lo que falta y los límites del caption
 │   │   ├── fechas.ts         fechas de calendario, semanas y su línea de tiempo
@@ -157,6 +167,7 @@ o se está dentro, y dentro se ve el tablero o una pieza.
 | `traspaso` | Transición, estado de origen y de destino, quién, cuándo y una nota | Solo inserción: un trigger rechaza `UPDATE`, `DELETE` y `TRUNCATE` ([ADR 0008](adr/0008-traspaso-append-only-en-la-base.md)) |
 | `enlace` | URL, nota, quién y cuándo | Solo `http` y `https`, validado en el servidor |
 | `tarea` | Texto, la pieza si la tiene, quién la marcó y cuándo, quién la creó y cuándo | Sin pieza es suelta. Estar hecha es tener quién la marcó: desmarcarla lo borra. No es historia: se borra, como el material |
+| `boceto` | La pieza, quién lo pidió y cuándo, el modelo, la rejilla, el copy con que se hizo, los tokens de entrada y de salida, y las láminas en JSONB o el error | Cada intento que tuvo respuesta de Claude, también el fallido, porque costó. Un `CHECK` exige láminas o error, nunca los dos ([ADR 0016](adr/0016-bocetos-con-claude.md)) |
 
 El esquema lo crean las migraciones de Alembic, que corren al arrancar el
 contenedor de `api` (`alembic upgrade head` y después uvicorn). No hay
@@ -186,7 +197,11 @@ ruta del `.env` no es la compartida y la app no crea nada en ella.
 - **Sesión con estado en Postgres**: un testigo robado deja de servir al
   cerrar sesión.
 - **Credenciales, solo en el entorno.** `.env.example` documenta las claves,
-  sin valores reales.
+  sin valores reales; la de Anthropic, vacía. La clave vive en el servidor y
+  nunca viaja al navegador: por eso el boceto lo pide la API.
+- **Lo que escribe el modelo son datos.** El boceto se valida en el servidor
+  —su forma con el esquema, y la rejilla, los pesos y los solapes con código—
+  y el cliente lo pinta como texto o como markdown sin HTML.
 - **Lo que entra se valida en el servidor**: los enlaces con `HttpUrl`, las
   transiciones contra la tabla de `traspasos.py`.
 - **Ninguna ruta sale de su carpeta.** `respaldo.dentro_de` resuelve los

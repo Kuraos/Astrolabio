@@ -1,8 +1,9 @@
 # Fase 9 — Bocetos con Claude
 
-**Alcance vigente desde el 2026-09-26**, con las decisiones de §7 acordadas
-con Johan. Nace de su prueba del 2026-09-25, como la Fase 8, y la necesita:
-el boceto sale del tipo de pieza, el destino y el copy gráfico que trajo.
+**Código terminado el 2026-09-26**, con las decisiones de §7 acordadas con
+Johan; queda su prueba de terminado (§5), que necesita su clave. Nace de su
+prueba del 2026-09-25, como la Fase 8, y la necesita: el boceto sale del tipo
+de pieza, el destino y el copy gráfico que trajo.
 
 ## 1. Objetivo
 
@@ -191,3 +192,25 @@ Y las que no hizo falta preguntar, que se cambian si no convencen:
 13. **nginx espera hasta 10 minutos** a toda la API, no solo a los bocetos: el
     resto responde en milisegundos, y una regla aparte para una ruta sería
     más configuración que beneficio.
+
+## 9. Lo que apareció por el camino
+
+- **La petición real, contra un Anthropic de mentira.** Sin clave no se puede
+  llamar a Claude, pero sí al SDK de verdad: con `ANTHROPIC_BASE_URL`
+  apuntando a un servidor local que responde con los eventos de streaming de
+  la API, el boceto se pidió, se validó, se guardó y se dibujó desde la
+  pantalla. El servidor anotó lo que armó el SDK: el modelo, el streaming con
+  64.000 tokens, la salida estructurada, el respaldo ante una negativa con su
+  cabecera beta y la clave en su cabecera. Lo que queda sin probar es lo que
+  solo sabe la API real: que acepte esa combinación y lo que responda Claude.
+- **Sin configurar es 409, no 503.** El exportador ya respondía 409 cuando
+  falta el vault; los bocetos siguen esa regla (AS5).
+- **En una zona de una fila no cabían el rótulo y el texto.** La nota de un
+  crédito se quedaba en «Nota · 4»; se vio en la captura del teléfono. Ahora
+  van en línea.
+- **El digest de la imagen de Python había cambiado** y los otros tres no. Se
+  leyeron del registro de Docker Hub, porque en la sesión de la nube no hay
+  Docker; el lock se regeneró repitiendo la etapa `lock` en un entorno limpio
+  de Python 3.12, y la CI lo comprueba con la imagen.
+- **Con `httpx2` instalado, el `TestClient` deja de avisar** de que usaba
+  `httpx`, en desuso: lo trajo el SDK.

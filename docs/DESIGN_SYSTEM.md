@@ -34,7 +34,7 @@ anchura, una mono para los rótulos y un solo color de señal.
 - **Sin paneles ni sombras**: las estaciones se separan con líneas de 1 px.
   Esquinas rectas.
 - Sin iconos de biblioteca ni animaciones. Lo único que se dibuja son las
-  flechas, en texto.
+  flechas, en texto, y el aspa de los huecos de imagen del boceto.
 
 Solo hay tema oscuro.
 
@@ -162,6 +162,8 @@ Las piezas que se repiten viven en `web/src/ui.tsx`: `ANCHO`, `BOTON`,
 | Cuadro de materiales | Tres selectores en fila desde `sm`; los destinos, en casillas dentro de un `fieldset` con su `legend` en `mono-label`, porque una pieza puede ir a varios; y debajo, lo que falta como aviso que no bloquea | Pieza |
 | Lámina | «Lámina N» en `mono-label`, con ↑, ↓ y «Quitar» como botones de texto que dicen cuál mueven en su `aria-label`; el campo, con `CONTROL`; y el recuento en `mono-data`: caracteres y palabras sin el LaTeX, y las fórmulas aparte. Con fórmula, debajo, pintada, tras una línea `line-strong` | Copy gráfico, en dos columnas desde `lg` |
 | Límites del caption | Por destino, su nombre en `text-sm font-medium`, dónde va el caption si no es el pie, y las medidas en `mono-data`. Pasarse va en `text-alert` y en palabras, «1 de más»: el color solo no se oye. Sin límite comprobado, se dice | Caption |
+| Lámina del boceto | Una `figure`: «Lámina N» en `mono-label` y la idea en `text-sm` encima; la lámina, una rejilla de CSS en su proporción, sobre `surface`, con líneas `line` cada celda y borde `line-strong`; debajo, «Para la edición» en `mono-label` y la nota en `ink-2`. Tres por fila desde `xl`, dos desde `sm` | Boceto |
+| Elemento del boceto | En su zona de la rejilla, con «Tipo · peso» en `mono-data`. El peso, en el borde y la letra: 1, borde de 2 px en tinta sobre `raised` y 15 px en negrita; 2, borde `ink-2` y 13 px; 3, borde `control` y 12 px; 4, borde discontinuo `line-strong` y 11 px en `ink-2`. Figura y gráfica llevan el aspa, un SVG en `line-strong`, y su descripción en cursiva. En una zona de una fila, el rótulo y el texto van en línea | Boceto |
 | Miniatura | `aspect-square border border-line bg-surface object-contain`, cinco por fila desde `md` | Material |
 | Barra del guion | Cuatro grupos con borde `line-strong` —énfasis, bloques, lo que viene de fuera y fórmulas—, en `role="toolbar"` | Guion |
 | Editor y vista previa | «Markdown» y «Vista previa» rotulan las dos mitades. El editor, sobre `surface`; la vista previa, con la clase `.prosa` de `index.css` | Pestaña «Guion» de los textos |
@@ -217,7 +219,8 @@ Mirado a 1280 y a 375 px, sin desborde horizontal.
   pasa a dos filas y la pista de estados, a dos columnas. El cuadro de
   materiales va arriba a la derecha, junto a las fechas; los textos, a todo
   el ancho, con las láminas en dos columnas y el caption junto a sus límites
-  desde `lg`.
+  desde `lg`; y debajo, el boceto, con sus láminas en una, dos o tres
+  columnas según el ancho.
 - La marca de la entrada encoge con la pantalla (`clamp`).
 - Lo largo —URLs, nombres de archivo, rutas, etiquetas— lleva `break-words` o
   `break-all`, y su contenedor `min-w-0`, para no desbordar.
@@ -240,6 +243,9 @@ Mirado a 1280 y a 375 px, sin desborde horizontal.
   orden del Tab; las flechas, Inicio y Fin eligen otra y le pasan el foco.
 - **Mover una lámina lleva el foco con ella**, para seguir moviéndola; en un
   extremo, al botón del otro sentido.
+- **El boceto se lee por peso.** Los elementos van en el DOM del peso 1 al 4,
+  que es el orden del lector de pantalla, y la rejilla los pone en su zona. El
+  aspa es `aria-hidden`: la dice el rótulo «Figura».
 - **Los colores que hay que distinguir difieren también en luminosidad** (§2).
 - Las confirmaciones son las del navegador y funcionan con teclado.
 
