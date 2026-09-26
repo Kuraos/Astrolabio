@@ -34,7 +34,9 @@ SECCION_MOC = "## Piezas (generado por Astrolabio)"
 
 
 class NotaAjena(Exception):
-    """El archivo existe y no lo escribió Astrolabio."""
+    """El archivo existe y no es de esta pieza: lo escribió una persona, o es
+    la nota de otra pieza.
+    """
 
 
 class Exportacion(BaseModel):
@@ -184,17 +186,25 @@ def exportar(pieza: Pieza, base: Path) -> Path:
     destino = carpeta / f"{nombre}.md"
     previa = _nota_previa(carpeta, pieza.id)
 
+    # Antes de mover nada: `rename` pisaría sin avisar lo que haya en el destino.
+    if destino.is_file():
+        existente = destino.read_text(encoding="utf-8")
+        if MARCA not in existente:
+            raise NotaAjena(
+                f"«{destino.name}» existe y no lleva la marca de generada: "
+                "lo escribió una persona y Astrolabio no lo sobrescribe."
+            )
+        if _frontmatter(existente).get("astrolabio_id") != pieza.id:
+            raise NotaAjena(
+                f"«{destino.name}» ya es la nota de otra pieza: "
+                "cambia el título de una de las dos."
+            )
+
     # El título cambió: se mueve la nota anterior en vez de dejar dos.
     anterior = None
     if previa is not None and previa != destino:
         previa.rename(destino)
         anterior = previa.stem
-
-    if destino.is_file() and MARCA not in destino.read_text(encoding="utf-8"):
-        raise NotaAjena(
-            f"«{destino.name}» existe y no lleva la marca de generada: "
-            "lo escribió una persona y Astrolabio no lo sobrescribe."
-        )
 
     destino.write_text(_nota(pieza), encoding="utf-8")
     _enlazar_en_moc(base, nombre, anterior)

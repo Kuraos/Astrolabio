@@ -73,6 +73,12 @@ avisa. Significa que alguien la escribió a mano, y la regla de una sola
 dirección del ADR 0001 no autoriza a Astrolabio a decidir que su versión es
 la buena.
 
+Desde el 2026-09-25, tampoco se toca la nota generada de otra pieza, la de otro
+`astrolabio_id`: dos títulos que quedan iguales sin lo que Windows no admite dan
+el mismo nombre, y la segunda pieza no puede quedarse con la nota de la
+primera. Las dos comprobaciones van antes de renombrar, porque `rename` pisa el
+destino sin avisar.
+
 ## Alternativas descartadas
 
 - **Identificador opaco como nombre de archivo** (`pieza-42.md`). Sobrevive a

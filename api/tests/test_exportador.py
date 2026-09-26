@@ -304,6 +304,37 @@ def test_se_niega_a_pisar_una_nota_escrita_a_mano(vault: Path, pieza: Pieza):
     assert "Escrito a mano" in a_mano.read_text(encoding="utf-8")
 
 
+def test_renombrar_no_pisa_una_nota_escrita_a_mano(vault: Path, pieza: Pieza):
+    """I5 también al renombrar: `rename` pisa el destino sin avisar. La nota
+    escrita a mano se queda, y la generada, con su nombre de antes.
+    """
+    exportador.exportar(pieza, vault)
+    a_mano = vault / "Contenido" / "Las Pleyades, revisado.md"
+    a_mano.write_text("---\ntype: contenido\n---\n\nEscrito a mano.\n", encoding="utf-8")
+    pieza.titulo = "Las Pleyades, revisado"
+
+    with pytest.raises(exportador.NotaAjena):
+        exportador.exportar(pieza, vault)
+
+    assert "Escrito a mano" in a_mano.read_text(encoding="utf-8")
+    assert (vault / "Contenido" / "Las Pleyades.md").is_file()
+
+
+def test_no_pisa_la_nota_de_otra_pieza(vault: Path, pieza: Pieza, sesion_db: Session):
+    """Dos títulos que quedan iguales sin lo que Windows no admite dan el mismo
+    nombre. La segunda pieza no se queda con la nota de la primera.
+    """
+    primera = exportador.exportar(pieza, vault)
+    otra = Pieza(titulo="Las Pleyades?", creada_por="johan")
+    sesion_db.add(otra)
+    sesion_db.flush()
+
+    with pytest.raises(exportador.NotaAjena):
+        exportador.exportar(otra, vault)
+
+    assert _frontmatter(primera.read_text(encoding="utf-8"))["astrolabio_id"] == pieza.id
+
+
 def test_no_escribe_fuera_de_contenido_y_el_moc(vault: Path, pieza: Pieza):
     otros = {
         p: p.stat().st_mtime_ns
