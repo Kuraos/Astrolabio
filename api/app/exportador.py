@@ -9,6 +9,7 @@ Escribe en exactamente dos sitios: la carpeta `Contenido/` y el archivo
 ahí no puede escribir aunque el código se equivoque (ADR 0007).
 """
 
+import re
 from datetime import date, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -31,6 +32,11 @@ CARPETA = "Contenido"
 MOC = "MOC-VozDelCosmos.md"
 MARCA = "<!-- generado por Astrolabio — no editar -->"
 SECCION_MOC = "## Piezas (generado por Astrolabio)"
+
+# Lo que Obsidian lee como sintaxis de un enlace: su ayuda avisa de `# | ^ : %%
+# [[ ]]`, y `|` y `:` ya los quita `nombre_sin_prohibidos`. Van también los
+# corchetes sueltos: uno al final del nombre cierra el `[[…]]` antes de tiempo.
+_ROMPEN_ENLACES = re.compile(r"[#^\[\]]|%%")
 
 
 class NotaAjena(Exception):
@@ -181,8 +187,9 @@ def exportar(pieza: Pieza, base: Path) -> Path:
     carpeta = base / CARPETA
     carpeta.mkdir(parents=True, exist_ok=True)
 
-    # El vault vive en Windows, y un `/` sacaría la nota de `Contenido/` (ADR 0007).
-    nombre = nombre_sin_prohibidos(pieza.titulo)
+    # Sin lo que Windows no admite —el vault vive ahí, y un `/` sacaría la nota
+    # de `Contenido/`— ni lo que rompe el enlace del MOC (ADR 0007).
+    nombre = nombre_sin_prohibidos(_ROMPEN_ENLACES.sub("", pieza.titulo))
     destino = carpeta / f"{nombre}.md"
     previa = _nota_previa(carpeta, pieza.id)
 

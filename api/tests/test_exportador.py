@@ -233,7 +233,7 @@ def test_cambiar_el_titulo_renombra_la_nota(vault: Path, pieza: Pieza):
     assert archivos == ["Las Pleyades, revisado.md"]
 
 
-# --- El nombre, sin lo que Windows no admite (ADR 0007 y 0010) ---
+# --- El nombre, sin lo que no admiten Windows ni los enlaces (ADR 0007 y 0010) ---
 
 
 @pytest.mark.parametrize(
@@ -241,16 +241,21 @@ def test_cambiar_el_titulo_renombra_la_nota(vault: Path, pieza: Pieza):
     [
         ("¿Qué es un año luz?", "¿Qué es un año luz"),
         ("GWTC-5.0: 390 ondas gravitacionales", "GWTC-5.0 390 ondas gravitacionales"),
+        ("El #1 de las galaxias", "El 1 de las galaxias"),
+        ("10^24 estrellas", "1024 estrellas"),
+        ("La constante de Hubble [revisada]", "La constante de Hubble revisada"),
+        ("Materia oscura %%borrador%%", "Materia oscura borrador"),
         ("???", "sin título"),
     ],
 )
-def test_el_nombre_pierde_lo_que_windows_no_admite(
+def test_el_nombre_pierde_lo_que_no_admiten_windows_ni_los_enlaces(
     vault: Path, pieza: Pieza, titulo: str, nombre: str
 ):
     """El vault vive en Windows, y desde el contenedor la escritura no falla:
     el montaje de Docker Desktop guarda el `?` como U+F03F, un carácter de uso
-    privado, y el enlace del MOC ya no encuentra la nota. El título, entero,
-    sigue en el encabezado.
+    privado, y el enlace del MOC ya no encuentra la nota. Tampoco la encuentra
+    si el nombre lleva lo que Obsidian lee como sintaxis del enlace. El título,
+    entero, sigue en el encabezado.
     """
     pieza.titulo = titulo
 

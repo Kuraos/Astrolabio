@@ -35,6 +35,12 @@ además, la sacaba de `Contenido/`. El título entero sigue en el encabezado de 
 nota, y el enlace del MOC apunta al nombre del archivo, que es lo que Obsidian
 resuelve.
 
+El nombre tampoco lleva lo que Obsidian lee como sintaxis de un enlace: `#`,
+`^`, corchetes y `%%` ([ayuda de Obsidian](https://obsidian.md/help/links)). Con
+ellos, la nota se escribe, pero el enlace del MOC no llega a ella. La carpeta de
+Syncthing sí los admite, porque nadie la enlaza. Se quitan y no se sustituyen,
+como el resto: «10^24 estrellas» se llama `1024 estrellas`.
+
 ### La escritura se acota en el montaje, hasta donde se puede
 
 El contenedor monta `03-Negocios/Voz-del-Cosmos/` en escritura, y encima
