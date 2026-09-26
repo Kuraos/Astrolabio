@@ -29,11 +29,23 @@ lo que en el vault dependa de los valores viejos.
 | `proposito`, `nivel` | `proposito:` y `nivel:`, detrás de `formato` |
 | `plataforma` | `plataforma:` como lista de YAML, vacía si no hay |
 | `copy_grafico` | `## Copy gráfico`, un `### Lámina N` por lámina |
-| `caption` | `## Caption`, el texto tal cual |
+| `caption` | `## Caption`, el texto tal cual dentro de un bloque de código |
 
 Las dos secciones van después de `## Guion`, en el orden en que se trabajan.
-Sin contenido, salen con el encabezado y vacías, como el respaldo: la
-estructura de la nota no depende de lo que esté relleno.
+Sin contenido, salen con el encabezado y vacías, como el guion: la
+estructura de la nota no depende de lo que esté relleno. Una lámina en blanco
+sale con su número, para que la lámina 3 del vault sea la 3 de la app.
+
+**El caption va en un bloque de código** porque un caption lleva hashtags, y
+Obsidian lee `#astronomia` en el cuerpo de una nota como una etiqueta del
+vault: cada pieza sembraría las de redes en el panel de etiquetas que ordenó
+el [ADR 0011](0011-las-etiquetas-viajan-al-vault.md). Dentro del bloque el
+texto llega sin tocar, saltos de línea y emojis incluidos, y Obsidian le pone
+un botón para copiarlo. La valla es más larga que cualquier racha de acentos
+graves del caption, para que ninguno la cierre antes de tiempo.
+
+El copy gráfico no va en bloque: lleva fórmulas, y en el vault tienen que
+verse con KaTeX, como las del guion.
 
 Los identificadores y no las palabras, por lo mismo que el estado (ADR
 0009): una consulta de Dataview que filtre por `formato = "short"` no se
@@ -50,6 +62,12 @@ rompe si mañana la pantalla dice «Reel» otra vez.
 - **Mantener los valores viejos de `formato` en el vault y traducir al
   exportar.** Dos vocabularios para lo mismo, y el viejo es justo el que el
   editor no usa.
+- **El caption como texto suelto.** Es lo que decía la primera versión de
+  este ADR, y se vio al leer una nota exportada: cada hashtag se volvía una
+  etiqueta del vault.
+- **Escapar los hashtags (`\#astronomia`).** Obsidian no los leería como
+  etiquetas, pero quien copiara el caption desde el vault se llevaría las
+  barras.
 
 ## Consecuencias
 

@@ -52,9 +52,11 @@ def pieza(sesion_db: Session) -> Pieza:
         titulo="Las Pleyades",
         creada_por="johan",
         guion="## Guion\n\nUna masa solar es $M_\\odot$.\n",
-        formato="video",
+        formato="video_largo",
+        proposito="divulgar",
+        nivel="basico",
         tema="Galaxias y cosmología",
-        plataforma="YouTube",
+        plataforma=["youtube"],
         respaldo=["GWTC-5"],
     )
     sesion_db.add(p)
@@ -85,10 +87,13 @@ def test_el_frontmatter_cumple_la_plantilla(vault: Path, pieza: Pieza):
     assert datos["type"] == "contenido"
     # Fecha sin comillas: un `date` de YAML, como en la plantilla escrita a mano.
     assert isinstance(datos["fecha"], date)
-    assert datos["formato"] == "video"
+    assert datos["formato"] == "video_largo"
     # AA1: el tema con su valor de la lista, tilde incluida.
     assert datos["tema"] == "Galaxias y cosmología"
-    assert datos["plataforma"] == "YouTube"
+    # AQ1: el resto del cuadro, con los identificadores de la base.
+    assert datos["proposito"] == "divulgar"
+    assert datos["nivel"] == "basico"
+    assert datos["plataforma"] == ["youtube"]
     # Sin etiquetas, el tag de siempre y nada más.
     assert datos["tags"] == ["voz-del-cosmos"]
     assert datos["investigacion"] == ["GWTC-5"]
@@ -529,3 +534,103 @@ def test_no_duplica_el_encabezado_si_el_guion_ya_lo_trae(
     texto = exportador.exportar(pieza, vault).read_text(encoding="utf-8")
 
     assert texto.count("## Guion") == 1
+
+
+# --- AQ: el cuadro de materiales (ADR 0015) ---
+
+
+def test_proposito_y_nivel_van_detras_del_formato(vault: Path, pieza: Pieza):
+    """AQ1: el cuadro junto, en el orden en que lo lee el editor."""
+    datos = _frontmatter(exportador.exportar(pieza, vault).read_text(encoding="utf-8"))
+
+    claves = list(datos)
+    assert claves[claves.index("formato") :][:4] == ["formato", "proposito", "nivel", "tema"]
+
+
+def test_varios_destinos_salen_como_lista_de_yaml(
+    vault: Path, pieza: Pieza, sesion_db: Session
+):
+    """Una lista, no texto con comas: Dataview solo la entiende así."""
+    pieza.plataforma = ["instagram", "tiktok"]
+    sesion_db.flush()
+
+    texto = exportador.exportar(pieza, vault).read_text(encoding="utf-8")
+
+    assert _frontmatter(texto)["plataforma"] == ["instagram", "tiktok"]
+    assert "plataforma:\n- instagram\n- tiktok\n" in texto
+
+
+def test_sin_cuadro_salen_vacios(vault: Path, sesion_db: Session):
+    """Una pieza recién creada: nulos lo que no se ha decidido, la lista de
+    destinos vacía, y las dos secciones con su encabezado.
+    """
+    p = Pieza(titulo="Recién creada", creada_por="johan")
+    sesion_db.add(p)
+    sesion_db.flush()
+
+    texto = exportador.exportar(p, vault).read_text(encoding="utf-8")
+    datos = _frontmatter(texto)
+
+    assert (datos["proposito"], datos["nivel"], datos["plataforma"]) == (None, None, [])
+    assert "## Copy gráfico\n\n" in texto
+    assert "## Caption\n\n" in texto
+
+
+def test_el_copy_grafico_sale_lamina_por_lamina(
+    vault: Path, pieza: Pieza, sesion_db: Session
+):
+    """AQ2: numeradas como en la app, la de en blanco incluida, y con el LaTeX
+    intacto.
+    """
+    pieza.copy_grafico = ["La luz que ves", "", "  $d = c\\,t$  "]
+    sesion_db.flush()
+
+    texto = exportador.exportar(pieza, vault).read_text(encoding="utf-8")
+
+    assert (
+        "## Copy gráfico\n\n"
+        "### Lámina 1\n\nLa luz que ves\n\n"
+        "### Lámina 2\n\n"
+        "### Lámina 3\n\n$d = c\\,t$\n\n"
+        "## Caption"
+    ) in texto
+
+
+def test_los_textos_van_entre_el_guion_y_la_verificacion(
+    vault: Path, pieza: Pieza, sesion_db: Session
+):
+    pieza.copy_grafico = ["Una lámina"]
+    pieza.caption = "Un caption"
+    sesion_db.flush()
+
+    texto = exportador.exportar(pieza, vault).read_text(encoding="utf-8")
+
+    secciones = ["## Guion", "## Copy gráfico", "## Caption", "## Verificación antes de publicar"]
+    posiciones = [texto.index(s) for s in secciones]
+    assert posiciones == sorted(posiciones)
+
+
+def test_los_hashtags_del_caption_no_son_etiquetas_del_vault(
+    vault: Path, pieza: Pieza, sesion_db: Session
+):
+    """ADR 0015: dentro de un bloque de código, Obsidian no lee `#astronomia`
+    como etiqueta, y el texto llega tal cual, emojis incluidos.
+    """
+    pieza.caption = "¿Lo sabías? ☀️🔭\n\n#astronomia #ciencia"
+    sesion_db.flush()
+
+    texto = exportador.exportar(pieza, vault).read_text(encoding="utf-8")
+
+    assert "## Caption\n\n```\n¿Lo sabías? ☀️🔭\n\n#astronomia #ciencia\n```\n" in texto
+
+
+def test_la_valla_del_caption_es_mas_larga_que_sus_acentos_graves(
+    vault: Path, pieza: Pieza, sesion_db: Session
+):
+    """Un caption con tres acentos graves cerraría una valla de tres."""
+    pieza.caption = "Código: ```raro``` y ya"
+    sesion_db.flush()
+
+    texto = exportador.exportar(pieza, vault).read_text(encoding="utf-8")
+
+    assert "````\nCódigo: ```raro``` y ya\n````\n" in texto

@@ -110,8 +110,9 @@ Las letras siguen después de la AM de la Fase 7.
   detrás de `formato`, y `plataforma` como lista de YAML
   ([ADR 0015](adr/0015-el-cuadro-de-materiales-viaja-al-vault.md)).
 - **AQ2** Después de `## Guion`, dos secciones: `## Copy gráfico`, con un
-  `### Lámina N` por lámina, y `## Caption`. Sin copy o sin caption, la
-  sección sale vacía, como hoy el respaldo.
+  `### Lámina N` por lámina, y `## Caption`, dentro de un bloque de código
+  para que sus hashtags no se vuelvan etiquetas del vault (§10). Sin copy o
+  sin caption, la sección sale vacía, como el guion.
 
 ### AR. Las pruebas y los documentos
 
@@ -185,3 +186,17 @@ fusione, junto con cualquier consulta de Dataview que filtre por
 3. La pieza (AO).
 4. Las pestañas (AP).
 5. Los documentos (AR2).
+
+## 10. Lo que apareció por el camino
+
+- **Los hashtags del caption se volvían etiquetas del vault.** Obsidian lee
+  `#astronomia` en el cuerpo de una nota como una etiqueta, así que el
+  caption, exportado como texto suelto, habría llenado de etiquetas de redes
+  el panel que ordenó el ADR 0011. Se vio al leer una nota exportada de
+  prueba. Va dentro de un bloque de código, donde llega tal cual y Obsidian
+  le pone un botón para copiarlo; el ADR 0015 lo cuenta.
+- **Un texto asignado a una columna de lista se guarda letra a letra.**
+  `plataforma = "YouTube"` llega a la base como `['Y', 'o', 'u', …]`, sin
+  error. Por la API no pasa, porque pydantic exige una lista; solo lo hacían
+  las fixtures de pruebas escritas para la plataforma de texto, que ya usan
+  listas.
