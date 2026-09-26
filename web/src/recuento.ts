@@ -9,9 +9,16 @@
  * de la red.
  */
 
-const GRAFEMAS = new Intl.Segmenter('es', { granularity: 'grapheme' })
+// `Intl.Segmenter` llegó a Firefox en 2024. Sin él, se cuentan puntos de
+// código, que solo se equivocan con los emojis compuestos y las tildes
+// combinantes; y la app no se cae por un recuento.
+const GRAFEMAS =
+  typeof Intl.Segmenter === 'function'
+    ? new Intl.Segmenter('es', { granularity: 'grapheme' })
+    : null
 
 export function caracteres(texto: string): number {
+  if (!GRAFEMAS) return [...texto].length
   let total = 0
   for (const _ of GRAFEMAS.segment(texto)) total++
   return total
@@ -34,9 +41,9 @@ export function formulas(texto: string): number {
 
 /**
  * El texto de una lámina sin sus fórmulas, que es lo que se lee como texto:
- * el LaTeX de `$t = d/c \approx 499\,\mathrm{s}$` son 30 caracteres, y en la
- * pieza se ven 11. Las fórmulas se cuentan aparte, y la lámina las enseña
- * pintadas. Sin fórmulas, el texto vuelve tal cual.
+ * el LaTeX de `$t = d/c \approx 499\,\mathrm{s}$` son 33 caracteres, y en la
+ * pieza se ven 10 símbolos. Las fórmulas se cuentan aparte, y la lámina las
+ * enseña pintadas. Sin fórmulas, el texto vuelve tal cual.
  */
 export function sinFormulas(texto: string): string {
   if (!formulas(texto)) return texto
@@ -46,8 +53,12 @@ export function sinFormulas(texto: string): string {
 /**
  * Un `#` seguido de letras, marcas, cifras o `_`, con al menos una letra, y
  * que no va pegado a lo anterior: ni `C#`, ni `&#39;`, ni el `#` de una URL.
+ *
+ * Lo anterior se consume en vez de mirarlo con `(?<!…)`: Safari no entiende
+ * esa sintaxis hasta la 16.4, y en un literal el error de sintaxis tumbaría
+ * la app entera al cargarla, no solo este recuento.
  */
-const HASHTAG = /(?<![\p{L}\p{M}\p{N}_&/#])#(?=[\p{N}_]*\p{L})[\p{L}\p{M}\p{N}_]+/gu
+const HASHTAG = /(?:^|[^\p{L}\p{M}\p{N}_&/#])#(?=[\p{N}_]*\p{L})[\p{L}\p{M}\p{N}_]+/gu
 
 export function hashtags(texto: string): number {
   return texto.match(HASHTAG)?.length ?? 0

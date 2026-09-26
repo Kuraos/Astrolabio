@@ -76,6 +76,11 @@ describe('hashtags', () => {
     expect(hashtags('#eclipse2026 #2026eclipse #2026')).toBe(2)
   })
 
+  it('cuenta los que van seguidos, y los de dentro de una frase', () => {
+    expect(hashtags('#a #b\n#c')).toBe(3)
+    expect(hashtags('Mira (#jwst) y «#hubble»')).toBe(2)
+  })
+
   it('no cuenta lo que no es un hashtag', () => {
     expect(hashtags('Escrito en C# y &#39; en https://ejemplo.org/#seccion')).toBe(0)
     expect(hashtags('# Un título')).toBe(0)
