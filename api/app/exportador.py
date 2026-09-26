@@ -142,10 +142,11 @@ def _nota_previa(carpeta: Path, pieza_id: int) -> Path | None:
     return None
 
 
-def _enlazar_en_moc(base: Path, nombre: str) -> None:
+def _enlazar_en_moc(base: Path, nombre: str, anterior: str | None = None) -> None:
     """Añade el enlace en la sección propia, sin tocar las escritas a mano.
 
-    Al nombre del archivo, no al título: es lo que Obsidian resuelve.
+    Al nombre del archivo, no al título: es lo que Obsidian resuelve. Si la
+    nota se renombró, el enlace a su nombre `anterior` sale de la sección.
     """
     moc = base / MOC
     if not moc.is_file():
@@ -154,17 +155,24 @@ def _enlazar_en_moc(base: Path, nombre: str) -> None:
     texto = moc.read_text(encoding="utf-8")
     enlace = f"- [[{nombre}]]"
 
-    if enlace in texto:
+    if SECCION_MOC not in texto:
+        if enlace not in texto:
+            texto = f"{texto.rstrip()}\n\n{SECCION_MOC}\n\n{enlace}\n"
+            moc.write_text(texto, encoding="utf-8")
         return
 
-    if SECCION_MOC in texto:
+    cabeza, resto = texto.split(SECCION_MOC, 1)
+    # La sección acaba en el encabezado siguiente: lo que venga después es de Johan.
+    seccion, corte, cola = resto.partition("\n#")
+    if anterior is not None:
+        seccion = seccion.replace(f"\n- [[{anterior}]]", "")
+    if enlace not in texto:
         # El nuevo, primero, y cada enlace en su línea.
-        cabeza, resto = texto.split(SECCION_MOC, 1)
-        texto = f"{cabeza}{SECCION_MOC}\n\n{enlace}\n" + resto.lstrip("\n")
-    else:
-        texto = f"{texto.rstrip()}\n\n{SECCION_MOC}\n\n{enlace}\n"
+        seccion = f"\n\n{enlace}\n" + seccion.lstrip("\n")
 
-    moc.write_text(texto, encoding="utf-8")
+    nuevo = f"{cabeza}{SECCION_MOC}{seccion}{corte}{cola}"
+    if nuevo != texto:
+        moc.write_text(nuevo, encoding="utf-8")
 
 
 def exportar(pieza: Pieza, base: Path) -> Path:
@@ -177,8 +185,10 @@ def exportar(pieza: Pieza, base: Path) -> Path:
     previa = _nota_previa(carpeta, pieza.id)
 
     # El título cambió: se mueve la nota anterior en vez de dejar dos.
+    anterior = None
     if previa is not None and previa != destino:
         previa.rename(destino)
+        anterior = previa.stem
 
     if destino.is_file() and MARCA not in destino.read_text(encoding="utf-8"):
         raise NotaAjena(
@@ -187,7 +197,7 @@ def exportar(pieza: Pieza, base: Path) -> Path:
         )
 
     destino.write_text(_nota(pieza), encoding="utf-8")
-    _enlazar_en_moc(base, nombre)
+    _enlazar_en_moc(base, nombre, anterior)
 
     return destino
 

@@ -56,7 +56,8 @@ acotado a esta carpeta: el diario está fuera y es inalcanzable.
 
 Decisión de Johan. La nota generada se enlaza desde
 `## Piezas (generado por Astrolabio)`, una sección que crea y mantiene la
-aplicación y que **no toca ninguna sección escrita a mano**.
+aplicación y que **no toca ninguna sección escrita a mano**. La sección llega
+hasta el encabezado siguiente: lo que venga después es de Johan.
 
 Queda registrado que esto puede ser innecesario: el MOC ya rastrea
 `Contenido/` con Dataview, y la plantilla de contenido cierra con
@@ -87,8 +88,9 @@ la buena.
 
 - Exportar es **idempotente**: la misma pieza produce el mismo archivo, y
   reexportar lo actualiza en vez de duplicarlo.
-- Renombrar una pieza mueve su nota. Los wikilinks que apunten al nombre viejo
-  se rompen igual — eso Obsidian lo resuelve al renombrar desde su interfaz, y
-  Astrolabio no puede. Es el coste aceptado de nombrar por título.
+- Renombrar una pieza mueve su nota, y su enlace en la sección del MOC. Los
+  demás wikilinks que apunten al nombre viejo se rompen igual — eso Obsidian lo
+  resuelve al renombrar desde su interfaz, y Astrolabio no puede. Es el coste
+  aceptado de nombrar por título.
 - El editor no exporta. El destino es el vault personal de Johan, y el ADR
   0001 se lo asigna a él; la comprobación es un 403 en el servidor.

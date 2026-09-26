@@ -352,6 +352,24 @@ def test_cada_enlace_del_moc_va_en_su_linea(vault: Path, sesion_db: Session):
     )
 
 
+def test_renombrar_cambia_el_enlace_de_la_seccion_y_nada_mas(vault: Path, pieza: Pieza):
+    """El enlace al nombre viejo sale de la sección de Astrolabio. El que
+    Johan escribió en una sección suya, debajo, se queda (ADR 0007).
+    """
+    exportador.exportar(pieza, vault)
+    moc = vault / "MOC-VozDelCosmos.md"
+    with moc.open("a", encoding="utf-8") as archivo:
+        archivo.write("\n## Pendientes\n\n- [[Las Pleyades]]\n")
+    pieza.titulo = "Las Pleyades, revisado"
+
+    exportador.exportar(pieza, vault)
+
+    assert moc.read_text(encoding="utf-8").endswith(
+        f"{exportador.SECCION_MOC}\n\n- [[Las Pleyades, revisado]]\n"
+        "\n## Pendientes\n\n- [[Las Pleyades]]\n"
+    )
+
+
 def test_no_toca_las_secciones_escritas_a_mano(vault: Path, pieza: Pieza):
     """La sección de Astrolabio es suya; el resto del MOC es de Johan."""
     exportador.exportar(pieza, vault)
