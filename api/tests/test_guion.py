@@ -75,7 +75,8 @@ def test_la_pieza_tiene_su_forma_completa():
 
     `estado` entró en K1, cuando la conversación que pide el §2.8 ya estaba
     escrita en `docs/estados-del-flujo.md`. Hasta entonces esta prueba afirmaba
-    que no estaba. `etiquetas`, en Y2, y las dos fechas, en AC1.
+    que no estaba. `etiquetas`, en Y2; las dos fechas, en AC1; y el resto del
+    cuadro de materiales del editor, en AN.
     """
     columnas = set(Pieza.__table__.columns.keys())
 
@@ -87,7 +88,11 @@ def test_la_pieza_tiene_su_forma_completa():
         "guion",
         "formato",
         "tema",
+        "proposito",
+        "nivel",
         "plataforma",
+        "copy_grafico",
+        "caption",
         "respaldo",
         "estado",
         "etiquetas",
@@ -108,9 +113,9 @@ def test_una_pieza_nace_sin_guion(cliente: TestClient):
     assert creada["formato"] is None
 
 
-def test_el_formato_se_limita_a_los_de_la_plantilla(cliente: TestClient):
-    """La plantilla del vault pregunta «reel/carrusel/video/post». Aceptar
-    cualquier cadena dejaría que un dedazo llegara al frontmatter.
+def test_el_formato_se_limita_a_los_tipos_de_pieza(cliente: TestClient):
+    """Los cinco tipos de pieza del editor (AN1). Aceptar cualquier cadena
+    dejaría que un dedazo llegara al frontmatter.
     """
     _entrar_como(cliente, "johan")
 
@@ -263,8 +268,12 @@ def pieza(sesion_db: Session) -> Pieza:
         titulo="Ondas gravitacionales",
         creada_por="johan",
         guion="Primer borrador",
-        formato="video",
-        plataforma="YouTube",
+        formato="video_largo",
+        proposito="divulgar",
+        nivel="avanzado",
+        plataforma=["youtube"],
+        copy_grafico=["Dos agujeros negros"],
+        caption="Se oyó el choque.",
         respaldo=["GWTC-5"],
     )
     sesion_db.add(p)
@@ -272,12 +281,15 @@ def pieza(sesion_db: Session) -> Pieza:
     return p
 
 
-@pytest.mark.parametrize("campo", ["titulo", "guion", "respaldo"])
-def test_titulo_guion_y_respaldo_no_se_pueden_anular(
+@pytest.mark.parametrize(
+    "campo", ["titulo", "guion", "respaldo", "plataforma", "copy_grafico", "caption"]
+)
+def test_lo_que_no_admite_nulos_no_se_puede_anular(
     cliente: TestClient, sesion_db: Session, pieza: Pieza, campo: str
 ):
     """Como `etiquetas` (Y2): sus columnas no admiten nulos, así que un `null`
-    explícito es 422 y no un 500 de la base. Y un 422 no guarda nada.
+    explícito es 422 y no un 500 de la base. Y un 422 no guarda nada. Una
+    lista se vacía con `[]`, y un texto, con `""`.
     """
     _entrar_como(cliente, "johan")
 
@@ -288,10 +300,13 @@ def test_titulo_guion_y_respaldo_no_se_pueden_anular(
     assert pieza.titulo == "Ondas gravitacionales"
     assert pieza.guion == "Primer borrador"
     assert pieza.respaldo == ["GWTC-5"]
+    assert pieza.plataforma == ["youtube"]
+    assert pieza.copy_grafico == ["Dos agujeros negros"]
+    assert pieza.caption == "Se oyó el choque."
 
 
-@pytest.mark.parametrize("campo", ["formato", "plataforma"])
-def test_formato_y_plataforma_si_se_pueden_anular(
+@pytest.mark.parametrize("campo", ["formato", "proposito", "nivel"])
+def test_formato_proposito_y_nivel_si_se_pueden_anular(
     cliente: TestClient, sesion_db: Session, pieza: Pieza, campo: str
 ):
     """La otra cara, como el tema (Y1): una pieza puede no tenerlos todavía.

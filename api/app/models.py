@@ -119,12 +119,28 @@ class Pieza(Base):
     # especial, es una pieza recién creada.
     guion: Mapped[str] = mapped_column(Text, server_default="", default="")
 
-    # Los tres salen de la plantilla del vault, no de nuestra imaginación.
-    # Nulos mientras no se decidan: al crear una pieza rara vez se sabe ya en
-    # qué plataforma acaba.
+    # El cuadro de materiales del editor (Fase 8, AN1–AN4): «tipo de pieza»
+    # es `formato`, y «destino», `plataforma`. En pantalla, sus palabras; aquí
+    # y en el vault, los identificadores (ADR 0015). Las listas cerradas las
+    # impone la API, como el tema. Nulos mientras no se decidan: al crear una
+    # pieza rara vez se sabe ya para qué es o a qué nivel va.
     formato: Mapped[str | None] = mapped_column(String(20), default=None)
     tema: Mapped[str | None] = mapped_column(String(100), default=None)
-    plataforma: Mapped[str | None] = mapped_column(String(50), default=None)
+    proposito: Mapped[str | None] = mapped_column(String(20), default=None)
+    nivel: Mapped[str | None] = mapped_column(String(20), default=None)
+    # Una lista y no un valor: lo que va a TikTok se publica tal cual en
+    # Instagram (fase 8, §8.1). Sin destino todavía, la lista vacía.
+    plataforma: Mapped[list[str]] = mapped_column(
+        ARRAY(String(20)), server_default="{}", default=list
+    )
+
+    # AN5: los textos del cuadro, aparte del guion. El copy gráfico, uno por
+    # lámina —el largo se cuenta por lámina, que es donde el editor lo sufre
+    # (§8.2)—, y el caption de la publicación. `Text`, como el guion.
+    copy_grafico: Mapped[list[str]] = mapped_column(
+        ARRAY(Text), server_default="{}", default=list
+    )
+    caption: Mapped[str] = mapped_column(Text, server_default="", default="")
 
     # Nombres de notas `literature` del vault, que alimentan `investigacion:`
     # y `## Respaldo científico` al exportar (ADR 0001).
