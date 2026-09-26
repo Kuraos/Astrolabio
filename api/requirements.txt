@@ -32,6 +32,11 @@ pyyaml==6.0.3
 # sistema.
 pillow==12.3.0
 
+# Fase 9: los bocetos se le piden a Claude con el SDK oficial (ADR 0016), que
+# trae las salidas estructuradas y los reintentos. Sin clave en el entorno no
+# se usa, pero se instala igual: la imagen es una sola.
+anthropic==1.8.0
+
 # `docker compose run api pytest` está documentado en CLAUDE.md §5, así que
 # las pruebas corren dentro de esta misma imagen y sus dependencias viven aquí.
 pytest==9.1.1
