@@ -13,8 +13,8 @@ import {
   type Usuario,
 } from './api'
 import PanelBocetos from './Bocetos'
-import PanelCuadro from './Cuadro'
 import { esDeUnaLamina, faltaDelCuadro, resumen } from './cuadro'
+import PanelCuadro from './CuadroDeMateriales'
 import { fechaYHora } from './fechas'
 import { aQuienLeToca, confirmacion, enPalabras, vuelveAtras } from './flujo'
 import Guion from './Guion'

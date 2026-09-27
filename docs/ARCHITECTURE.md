@@ -105,7 +105,7 @@ correo, ni analítica, ni almacenamiento en la nube.
 │   │   ├── App.tsx           entrada, tablero, semanas y pieza nueva
 │   │   ├── ui.tsx            botones, campos, estación, pestañas y aviso: lo que se repite
 │   │   ├── Pieza.tsx         la vista de una pieza y sus paneles
-│   │   ├── Cuadro.tsx        el cuadro de materiales: tipo, propósito, nivel y destino
+│   │   ├── CuadroDeMateriales.tsx  tipo de pieza, propósito, nivel y destino
 │   │   ├── Guion.tsx         el guion: barra, campo y vista previa
 │   │   ├── Textos.tsx        el copy gráfico, lámina por lámina, y el caption
 │   │   ├── Bocetos.tsx       pide el boceto y dibuja sus láminas
