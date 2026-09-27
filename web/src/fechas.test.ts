@@ -15,6 +15,7 @@ import {
   type Linea,
   type Semana,
 } from './fechas'
+import { piezaDePrueba } from './piezaDePrueba'
 
 // El cliente no carga los tipos de Node, y por una línea no vale la pena una
 // dependencia: basta con decirle a TypeScript que `process` existe.
@@ -69,23 +70,15 @@ function pieza(
   estado: string,
   fechas: { fecha_entrega?: string; fecha_publicacion_prevista?: string },
 ): Pieza {
-  return {
+  return piezaDePrueba({
     id,
     titulo: `Pieza ${id}`,
     creada_en: '2026-09-01T00:00:00Z',
-    creada_por: 'johan',
-    guion: '',
-    formato: null,
-    tema: null,
-    plataforma: null,
-    respaldo: [],
-    etiquetas: [],
     fecha_entrega: fechas.fecha_entrega ?? null,
     fecha_publicacion_prevista: fechas.fecha_publicacion_prevista ?? null,
     estado,
     de_quien_es: null,
-    transiciones: [],
-  }
+  })
 }
 
 function entradas(lista: Semana[]): [string, string, number][] {

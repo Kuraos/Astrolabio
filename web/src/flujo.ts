@@ -8,13 +8,14 @@
 
 import type { Pieza, Rol, Usuario } from './api'
 
+// Con mayúscula inicial: en pantalla son rótulos, no palabras a media frase.
 const PALABRAS: Record<string, string> = {
-  investigacion: 'investigación',
-  solicitud_entregada: 'solicitud entregada',
-  material_aprobado: 'material aprobado',
-  finalizada: 'finalizada',
-  diseno_aprobado: 'diseño aprobado',
-  publicada: 'publicada',
+  investigacion: 'Investigación',
+  solicitud_entregada: 'Solicitud entregada',
+  material_aprobado: 'Material aprobado',
+  finalizada: 'Finalizada',
+  diseno_aprobado: 'Diseño aprobado',
+  publicada: 'Publicada',
 
   entregar: 'Entregar',
   aprobar_material: 'Aprobar el material',

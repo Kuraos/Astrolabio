@@ -1,5 +1,5 @@
-"""Exportador al vault (criterios I1–I5, O1, AA1 y AF1, ADR 0001, 0007, 0009, 0011
-y 0012).
+"""Exportador al vault (criterios I1–I5, O1, AA1, AF1 y AQ, ADR 0001, 0007, 0009,
+0011, 0012 y 0015).
 
 La mitad «Astrolabio → vault». Una sola dirección: el vault recibe una copia
 marcada como generada que nunca se edita a mano.
@@ -100,12 +100,43 @@ def _cuerpo_del_guion(guion: str) -> str:
     return texto
 
 
+def _copy_grafico(laminas: list[str]) -> str:
+    """AQ2: una subsección por lámina, numerada como en la app. La lámina en
+    blanco sale con su número: sin él, la 3 del vault sería la 4 de la app.
+    """
+    return "\n\n".join(
+        f"### Lámina {numero}\n\n{texto.strip()}".rstrip()
+        for numero, texto in enumerate(laminas, 1)
+    )
+
+
+def _caption(caption: str) -> str:
+    """AQ2, en un bloque de código (ADR 0015): Obsidian leería cada hashtag
+    del caption como una etiqueta del vault, y el panel que ordenó el ADR 0011
+    se llenaría de las de redes. Dentro del bloque el texto llega tal cual, y
+    Obsidian le pone un botón para copiarlo.
+
+    La valla, más larga que cualquier racha de acentos graves del texto: una
+    de tres la cerraría un caption que trajera tres.
+    """
+    texto = caption.strip()
+    if not texto:
+        return ""
+    racha = max((len(r) for r in re.findall(r"`+", texto)), default=0)
+    valla = "`" * max(3, racha + 1)
+    return f"{valla}\n{texto}\n{valla}"
+
+
 def _nota(pieza: Pieza) -> str:
     """La nota completa, con el frontmatter que pide la plantilla del vault."""
     cabecera = {
         "type": "contenido",
         "cssclasses": ["vh-contenido"],
         "formato": pieza.formato,
+        # AQ1: el resto del cuadro de materiales, con los identificadores de la
+        # base, como el estado (ADR 0015).
+        "proposito": pieza.proposito,
+        "nivel": pieza.nivel,
         "tema": pieza.tema,
         # El estado al exportar, con el mismo identificador de la base y sin
         # traducirlo (ADR 0009). Es una copia: envejece hasta la exportación
@@ -113,7 +144,9 @@ def _nota(pieza: Pieza) -> str:
         "status": pieza.estado,
         "fecha": _dia_local(pieza.creada_en),
         "fecha_publicacion": _fecha_publicacion(pieza),
-        "plataforma": pieza.plataforma,
+        # Una lista de YAML y no texto con comas: `contains(plataforma, …)` de
+        # Dataview solo la entiende así (ADR 0015).
+        "plataforma": list(pieza.plataforma),
         "investigacion": list(pieza.respaldo),
         "metricas": {"vistas": None, "alcance": None},
         # Cada etiqueta, anidada bajo el tag de siempre, que se queda: el panel
@@ -134,6 +167,10 @@ def _nota(pieza: Pieza) -> str:
         + f"# {pieza.titulo}\n\n"
         + f"## Respaldo científico\n\n{enlaces}\n\n"
         + f"## Guion\n\n{_cuerpo_del_guion(pieza.guion)}\n\n"
+        # AQ2: los textos del cuadro, en el orden en que se trabajan. Vacíos,
+        # con su encabezado, como el guion.
+        + f"## Copy gráfico\n\n{_copy_grafico(pieza.copy_grafico)}\n\n"
+        + f"## Caption\n\n{_caption(pieza.caption)}\n\n"
         # La checklist es parte del flujo descrito en el `CLAUDE.md` de la
         # carpeta; perderla al exportar la borraría del proceso.
         + f"## Verificación antes de publicar\n\n{CHECKLIST}\n"

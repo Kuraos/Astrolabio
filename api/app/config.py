@@ -50,5 +50,13 @@ class Settings(BaseSettings):
     # material dice por qué no hay imágenes y los enlaces funcionan igual (Q1).
     material_path: str | None = None
 
+    # Los bocetos con Claude (ADR 0016). Opcional, como el vault: sin clave el
+    # panel dice que no están configurados y el resto de la app no cambia. La
+    # clave vive solo en el `.env` (AGENTS §2.4).
+    anthropic_api_key: str | None = None
+
+    # Cambiarlo cambia la calidad y el coste de cada boceto, sin tocar código.
+    bocetos_modelo: str = "claude-opus-5"
+
 
 settings = Settings()

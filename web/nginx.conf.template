@@ -21,6 +21,12 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Un boceto con Claude (ADR 0016) tarda de medio minuto a varios, y la
+        # API no responde hasta tenerlo: con los 60 s de nginx, el navegador
+        # recibiría un 504 de un boceto que sí se hizo y se cobró. El resto de
+        # la API responde en milisegundos, así que el límite vale para toda.
+        proxy_read_timeout 600s;
     }
 
     # Los assets llevan un hash de contenido en el nombre, así que un archivo

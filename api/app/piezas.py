@@ -1,4 +1,4 @@
-"""Piezas y su autorización (criterios C1–C5, H1–H3, K4, Y1–Y4 y AC1–AC2).
+"""Piezas y su autorización (criterios C1–C5, H1–H3, K4, Y1–Y4, AC1–AC2 y AN).
 
 El §2.3 no admite matices: cada endpoint comprueba el rol **en el servidor**.
 Que la aplicación viva en una red privada no cambia nada — los dos roles del
@@ -9,7 +9,7 @@ mitad del valor del producto.
 import re
 import unicodedata
 from datetime import date, datetime
-from typing import Literal
+from typing import Literal, get_args
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, field_validator
@@ -22,9 +22,16 @@ from .traspasos import transiciones_posibles
 
 router = APIRouter(prefix="/api/piezas", tags=["piezas"])
 
-# Los cuatro que pregunta la plantilla del vault. Aceptar cualquier cadena
-# dejaría que un dedazo llegara al frontmatter de una nota generada.
-Formato = Literal["reel", "carrusel", "video", "post"]
+# AN1–AN4: el cuadro de materiales, con las palabras del editor en pantalla y
+# estos identificadores en la base y en el vault (ADR 0015). Aceptar cualquier
+# cadena dejaría que un dedazo llegara al frontmatter de una nota generada.
+# «Tipo de pieza», que el código llama `formato` desde la Fase 1.
+Formato = Literal["carrusel", "post_individual", "short", "poster", "video_largo"]
+Proposito = Literal["divulgar", "promocionar", "educar", "noticia", "comunidad"]
+Nivel = Literal["basico", "avanzado"]
+# «Destino». Una pieza puede tener varios: lo de TikTok va tal cual a Instagram.
+Plataforma = Literal["instagram", "tiktok", "youtube", "impreso"]
+PLATAFORMAS: tuple[str, ...] = get_args(Plataforma)
 
 # Y1: los cuatro temas de la Fase 5 (§7.1). El ADR 0004 pide pocos y fijos
 # para que las celdas tema × formato × plataforma junten `n`: un tema nuevo
@@ -58,11 +65,25 @@ def normalizar_etiqueta(texto: str) -> str:
     return etiqueta
 
 
+def ordenar_plataformas(plataformas: list[str]) -> list[str]:
+    """Sin repetidas y en el orden de la lista, no en el de los clics: la
+    misma pieza escribe siempre el mismo frontmatter.
+    """
+    return [p for p in PLATAFORMAS if p in plataformas]
+
+
 class PiezaNueva(BaseModel):
     titulo: str
     formato: Formato | None = None
     tema: Tema | None = None
-    plataforma: str | None = None
+    proposito: Proposito | None = None
+    nivel: Nivel | None = None
+    plataforma: list[Plataforma] = []
+
+    @field_validator("plataforma")
+    @classmethod
+    def _ordenar(cls, plataformas: list[str]) -> list[str]:
+        return ordenar_plataformas(plataformas)
 
 
 class PiezaEditada(BaseModel):
@@ -72,19 +93,26 @@ class PiezaEditada(BaseModel):
     guion por omitirlo del cuerpo sería una forma muy cara de aprender la
     diferencia.
 
-    Opcional no es anulable: solo `formato`, `tema`, `plataforma` y las dos
-    fechas admiten `null`, porque una pieza puede no tenerlos todavía, y `null`
-    es cómo se borran (AC2). En el resto la columna no admite nulos, y un
-    `null` explícito sería un 500 de la base en vez de un 422. Sus valores por
-    defecto no se escriben nunca —`exclude_unset` deja fuera lo que no vino—:
-    solo permiten omitirlos.
+    Opcional no es anulable: solo `formato`, `tema`, `proposito`, `nivel` y
+    las dos fechas admiten `null`, porque una pieza puede no tenerlos todavía,
+    y `null` es cómo se borran (AC2). En el resto la columna no admite nulos,
+    y un `null` explícito sería un 500 de la base en vez de un 422: una lista
+    se vacía con `[]`, y un texto, con `""`. Sus valores por defecto no se
+    escriben nunca —`exclude_unset` deja fuera lo que no vino—: solo permiten
+    omitirlos.
     """
 
     titulo: str = ""
     guion: str = ""
     formato: Formato | None = None
     tema: Tema | None = None
-    plataforma: str | None = None
+    proposito: Proposito | None = None
+    nivel: Nivel | None = None
+    plataforma: list[Plataforma] = []
+    # AN5: láminas en blanco incluidas. Mientras se escribe, una lámina vacía
+    # es un sitio reservado, no un error.
+    copy_grafico: list[str] = []
+    caption: str = ""
     respaldo: list[str] = []
     etiquetas: list[str] = []
     # AC2: los dos roles, y `null` la borra. Pydantic rechaza con 422 lo que no
@@ -99,6 +127,11 @@ class PiezaEditada(BaseModel):
         en que llegaron.
         """
         return list(dict.fromkeys(normalizar_etiqueta(e) for e in etiquetas))
+
+    @field_validator("plataforma")
+    @classmethod
+    def _ordenar(cls, plataformas: list[str]) -> list[str]:
+        return ordenar_plataformas(plataformas)
 
 
 class PiezaPublica(BaseModel):
@@ -118,7 +151,11 @@ class PiezaPublica(BaseModel):
     guion: str
     formato: str | None
     tema: str | None
-    plataforma: str | None
+    proposito: str | None
+    nivel: str | None
+    plataforma: list[str]
+    copy_grafico: list[str]
+    caption: str
     respaldo: list[str]
     etiquetas: list[str]
     fecha_entrega: date | None
@@ -189,6 +226,8 @@ def crear_pieza(
         titulo=nueva.titulo,
         formato=nueva.formato,
         tema=nueva.tema,
+        proposito=nueva.proposito,
+        nivel=nueva.nivel,
         plataforma=nueva.plataforma,
         creada_por=usuario.usuario,
     )

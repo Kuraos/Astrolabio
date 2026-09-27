@@ -64,6 +64,87 @@ export function Campo({
   )
 }
 
+/**
+ * La pestaña a la que lleva una tecla, o `null` si la tecla no mueve: las
+ * flechas pasan a la de al lado, dando la vuelta, e Inicio y Fin van a los
+ * extremos, como pide el patrón de pestañas de ARIA.
+ */
+export function pestanaTrasTecla(actual: number, total: number, tecla: string): number | null {
+  switch (tecla) {
+    case 'ArrowRight':
+      return (actual + 1) % total
+    case 'ArrowLeft':
+      return (actual - 1 + total) % total
+    case 'Home':
+      return 0
+    case 'End':
+      return total - 1
+    default:
+      return null
+  }
+}
+
+/** Los `id` que unen cada pestaña con su panel. */
+export const idsDePestana = (grupo: string, valor: string) => ({
+  pestana: `${grupo}-pestana-${valor}`,
+  panel: `${grupo}-panel-${valor}`,
+})
+
+/**
+ * Pestañas (Fase 8, AP1): la elegida, invertida, como todo lo seleccionado
+ * (DESIGN_SYSTEM §1). Con el teclado, Tab entra en la elegida y sale al
+ * panel, y las flechas eligen otra. Los paneles los pone quien las usa, con
+ * `role="tabpanel"` y los `id` de `idsDePestana`.
+ */
+export function Pestanas<T extends string>({
+  grupo,
+  nombre,
+  pestanas,
+  actual,
+  alElegir,
+}: {
+  grupo: string
+  nombre: string
+  pestanas: { valor: T; rotulo: string }[]
+  actual: T
+  alElegir: (valor: T) => void
+}) {
+  const indice = pestanas.findIndex((p) => p.valor === actual)
+
+  return (
+    <div role="tablist" aria-label={nombre} className="flex self-start border border-line-strong">
+      {pestanas.map((pestana) => {
+        const elegida = pestana.valor === actual
+        const ids = idsDePestana(grupo, pestana.valor)
+        return (
+          <button
+            key={pestana.valor}
+            id={ids.pestana}
+            type="button"
+            role="tab"
+            aria-selected={elegida}
+            aria-controls={ids.panel}
+            tabIndex={elegida ? 0 : -1}
+            onClick={() => alElegir(pestana.valor)}
+            onKeyDown={(e) => {
+              const destino = pestanaTrasTecla(indice, pestanas.length, e.key)
+              if (destino === null) return
+              e.preventDefault()
+              alElegir(pestanas[destino].valor)
+              document.getElementById(idsDePestana(grupo, pestanas[destino].valor).pestana)?.focus()
+            }}
+            className={`mono-label border-l border-line-strong px-3.5 py-2.5 first:border-l-0 ${
+              elegida ? 'bg-ink font-medium text-page' : 'text-ink-2 hover:bg-raised hover:text-ink'
+            }`}
+          >
+            {pestana.rotulo}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 /** D4: los errores se ven, en su caja, y con `role="alert"` también se oyen. */
 export function Aviso({ mensaje }: { mensaje: string }) {
   return (

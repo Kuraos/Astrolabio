@@ -12,11 +12,16 @@ import {
   type Traspaso,
   type Usuario,
 } from './api'
+import PanelBocetos from './Bocetos'
+import { esDeUnaLamina, faltaDelCuadro, resumen } from './cuadro'
+import PanelCuadro from './CuadroDeMateriales'
+import { fechaYHora } from './fechas'
 import { aQuienLeToca, confirmacion, enPalabras, vuelveAtras } from './flujo'
 import Guion from './Guion'
 import { ESTADOS } from './tablero'
 import ListaDeTareas, { quedan } from './Tareas'
 import PanelTemas from './Temas'
+import { Caption, CopyGrafico } from './Textos'
 import {
   ANCHO,
   Aviso,
@@ -26,12 +31,26 @@ import {
   CONTROL,
   Campo,
   Estacion,
+  Pestanas,
+  idsDePestana,
 } from './ui'
 
+type Texto = 'guion' | 'copy' | 'caption'
+
+const PESTANAS: { valor: Texto; rotulo: string }[] = [
+  { valor: 'guion', rotulo: 'Guion' },
+  { valor: 'copy', rotulo: 'Copy gráfico' },
+  { valor: 'caption', rotulo: 'Caption' },
+]
+
+const mismasLaminas = (a: string[], b: string[]) =>
+  a.length === b.length && a.every((lamina, i) => lamina === b[i])
+
 /**
- * Vista de una pieza: arriba el traspaso (N2, N3), las fechas (AC3), las
- * tareas (AD4), el material y el tema con sus etiquetas, y debajo el guion
- * con su barra y su vista previa (J1, J2 y la Fase 4). Desde la Fase 7, en
+ * Vista de una pieza: arriba el traspaso (N2, N3), el cuadro de materiales
+ * (AO), las fechas (AC3), las tareas (AD4), el material y el tema con sus
+ * etiquetas, y debajo los textos: el guion con su barra y su vista previa (J1,
+ * J2 y la Fase 4), el copy gráfico y el caption (AP). Desde la Fase 7, en
  * estaciones de dos columnas desde `lg` (AJ3).
  */
 export default function VistaPieza({
@@ -52,11 +71,19 @@ export default function VistaPieza({
   alVolver: () => void
 }) {
   const [pieza, setPieza] = useState(inicial)
+  // Los tres textos se escriben aquí y se guardan juntos, con «Guardar» o
+  // Ctrl+S; lo demás de la pieza se guarda solo, al elegirlo.
   const [guion, setGuion] = useState(inicial.guion)
+  const [laminas, setLaminas] = useState(inicial.copy_grafico)
+  const [caption, setCaption] = useState(inicial.caption)
+  const [texto, setTexto] = useState<Texto>('guion')
   const [error, setError] = useState<string | null>(null)
   const [guardando, setGuardando] = useState(false)
 
-  const sinGuardar = guion !== pieza.guion
+  const sinGuardar =
+    guion !== pieza.guion ||
+    !mismasLaminas(laminas, pieza.copy_grafico) ||
+    caption !== pieza.caption
 
   async function guardar() {
     setGuardando(true)
@@ -65,7 +92,7 @@ export default function VistaPieza({
       setPieza(
         await pedir<Pieza>(`/api/piezas/${pieza.id}`, {
           method: 'PATCH',
-          body: JSON.stringify({ guion }),
+          body: JSON.stringify({ guion, copy_grafico: laminas, caption }),
         }),
       )
     } catch (causa) {
@@ -114,8 +141,7 @@ export default function VistaPieza({
             {pieza.titulo}
           </h2>
           <p className="mono-label text-ink-2">
-            {[pieza.formato, pieza.tema, pieza.plataforma].filter(Boolean).join(' · ') ||
-              'sin formato ni tema todavía'}
+            {resumen(pieza) || 'Sin tipo de pieza ni tema todavía'}
           </p>
         </header>
 
@@ -130,6 +156,9 @@ export default function VistaPieza({
           />
 
           <div className="flex min-w-0 flex-col border-t border-line lg:border-l lg:pl-7">
+            {/* AO: lo que pide el cuadro del editor, junto a su fecha. */}
+            <PanelCuadro pieza={pieza} alCambiar={setPieza} />
+
             <PanelFechas pieza={pieza} alCambiar={setPieza} />
 
             {/* AD4: la checklist de la pieza. */}
@@ -152,29 +181,75 @@ export default function VistaPieza({
           </div>
 
           <Estacion
-            titulo="Guion"
+            titulo="Textos"
             extra={
               <span className="mono-data text-ink-3 max-md:hidden">
-                ctrl+s guarda · mk y dm abren una fórmula
+                {texto === 'guion' ? 'ctrl+s guarda · mk y dm abren una fórmula' : 'ctrl+s guarda'}
               </span>
             }
             className="col-span-full border-t border-line pt-5"
           >
+            {/* AP1: el guion, el copy de cada lámina y el caption. */}
+            <Pestanas
+              grupo="textos"
+              nombre="Textos de la pieza"
+              pestanas={PESTANAS}
+              actual={texto}
+              alElegir={setTexto}
+            />
+
             {error && <Aviso mensaje={error} />}
 
-            {/* U4: Ctrl+S hace lo mismo que el botón, y nada si no hay cambios
-                o ya se está guardando. */}
-            <Guion
-              valor={guion}
-              alCambiar={setGuion}
-              alGuardar={() => {
-                if (sinGuardar && !guardando) void guardar()
-              }}
-            />
+            {/* Los tres paneles siguen montados y solo se esconden: el guion
+                conserva su pila de deshacer (U2), y Ctrl+S, que escucha el
+                guion, guarda desde cualquier pestaña. */}
+            <PanelDeTexto valor="guion" actual={texto}>
+              {/* U4: Ctrl+S hace lo mismo que el botón, y nada si no hay
+                  cambios o ya se está guardando. */}
+              <Guion
+                valor={guion}
+                alCambiar={setGuion}
+                alGuardar={() => {
+                  if (sinGuardar && !guardando) void guardar()
+                }}
+              />
+            </PanelDeTexto>
+            <PanelDeTexto valor="copy" actual={texto}>
+              <CopyGrafico
+                laminas={laminas}
+                deUnaLamina={esDeUnaLamina(pieza.formato)}
+                alCambiar={setLaminas}
+              />
+            </PanelDeTexto>
+            <PanelDeTexto valor="caption" actual={texto}>
+              <Caption texto={caption} destinos={pieza.plataforma} alCambiar={setCaption} />
+            </PanelDeTexto>
           </Estacion>
+
+          {/* Fase 9: el boceto de cada lámina, con el copy de arriba. */}
+          <PanelBocetos pieza={pieza} haySinGuardar={sinGuardar} />
+
         </div>
       </div>
     </main>
+  )
+}
+
+/** El panel de una pestaña de los textos: escondido, no desmontado. */
+function PanelDeTexto({
+  valor,
+  actual,
+  children,
+}: {
+  valor: Texto
+  actual: Texto
+  children: React.ReactNode
+}) {
+  const ids = idsDePestana('textos', valor)
+  return (
+    <div id={ids.panel} role="tabpanel" aria-labelledby={ids.pestana} hidden={valor !== actual}>
+      {children}
+    </div>
   )
 }
 
@@ -218,16 +293,6 @@ function Pista({ pieza, usuario }: { pieza: Pieza; usuario: Usuario }) {
   )
 }
 
-/** AJ5: «12 de sept, 16:30», en 24 h. */
-function fechaYHora(iso: string): string {
-  return new Date(iso).toLocaleString('es-CO', {
-    day: 'numeric',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-    hourCycle: 'h23',
-  })
-}
 
 /**
  * El traspaso: qué puede hacer quien mira y cómo llegó aquí (N2, N3). De quién
@@ -327,11 +392,11 @@ function PanelTraspaso({
               </button>
             ))}
           </div>
-          {/* Mover la pieza con el guion a medias le pasaría al otro la
+          {/* Mover la pieza con los textos a medias le pasaría al otro la
               versión anterior. */}
           {haySinGuardar && (
             <p className="text-[13px] leading-snug text-alert">
-              Guarda el guion antes de moverla: el otro vería la versión anterior.
+              Guarda los textos antes de moverla: el otro vería la versión anterior.
             </p>
           )}
           {/* AD7: la checklist informa y no bloquea (Fase 6, §7.2). Los
@@ -339,6 +404,14 @@ function PanelTraspaso({
           {tareas.some((tarea) => !tarea.hecha) && (
             <p className="text-[13px] leading-snug text-alert">
               Checklist: {quedan(tareas)}. Se puede mover igual.
+            </p>
+          )}
+          {/* AO2, donde se decide: al entregar la solicitud, que es cuando el
+              editor recibe el cuadro. Tampoco bloquea. */}
+          {pieza.transiciones.includes('entregar') && faltaDelCuadro(pieza).length > 0 && (
+            <p className="text-[13px] leading-snug text-alert">
+              Cuadro de materiales: falta {faltaDelCuadro(pieza).join(', ')}. Se puede entregar
+              igual.
             </p>
           )}
         </div>
@@ -417,7 +490,7 @@ function PanelFechas({
   }
 
   return (
-    <Estacion titulo="Fechas" className="pt-5 pb-6">
+    <Estacion titulo="Fechas" className="border-t border-line pt-5 pb-6">
       <div className="grid gap-3 sm:grid-cols-2">
         {/* «Entrega del diseño» y no «Fecha de entrega», que es la palabra del
             editor: junto al botón «Entregar» de Johan, que es la otra
@@ -886,14 +959,22 @@ function PanelRespaldo({
 }) {
   const [estado, setEstado] = useState<EstadoDelRespaldo | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [consultando, setConsultando] = useState(false)
 
-  useEffect(() => {
+  // Una nota que se crea en el vault con la pieza abierta no llega sola: se
+  // vuelve a mirar con «Actualizar», como la carpeta de Syncthing.
+  const consultar = useCallback(() => {
+    setConsultando(true)
+    setError(null)
     pedir<EstadoDelRespaldo>('/api/respaldo')
       .then(setEstado)
       .catch((causa: unknown) =>
         setError(causa instanceof ErrorDeApi ? causa.message : 'No se pudo consultar'),
       )
+      .finally(() => setConsultando(false))
   }, [])
+
+  useEffect(consultar, [consultar])
 
   const alternar = useCallback(
     async (archivo: string) => {
@@ -916,7 +997,15 @@ function PanelRespaldo({
   )
 
   return (
-    <Estacion titulo="Respaldo científico" className="border-t border-line pt-5 pb-7">
+    <Estacion
+      titulo="Respaldo científico"
+      extra={
+        <button type="button" onClick={consultar} disabled={consultando} className={BOTON_DE_TEXTO}>
+          Actualizar
+        </button>
+      }
+      className="border-t border-line pt-5 pb-7"
+    >
       {error && <Aviso mensaje={error} />}
 
       {/* G4, la mitad de interfaz: si el vault no está montado la aplicación
@@ -950,6 +1039,15 @@ function PanelRespaldo({
             ))}
           </ul>
         ))}
+
+      {/* §2.1: el respaldo lo escribe el vault y aquí solo se enlaza. Dicho en
+          pantalla, porque «no deja añadir» se lee como un fallo. */}
+      {estado?.disponible && (
+        <p className="text-[13px] leading-snug text-ink-3">
+          Son las notas literature de Investigacion/Recursos, en el vault. Una nota nueva
+          aparece aquí al actualizar.
+        </p>
+      )}
     </Estacion>
   )
 }

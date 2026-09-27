@@ -32,9 +32,16 @@ export type Pieza = {
   creada_en: string
   creada_por: string
   guion: string
+  // AN1–AN5: el cuadro de materiales del editor, con los identificadores de
+  // la API. Sus palabras en pantalla salen de `cuadro.ts`. `formato` es el
+  // «tipo de pieza», y `plataforma`, los destinos.
   formato: string | null
   tema: string | null
-  plataforma: string | null
+  proposito: string | null
+  nivel: string | null
+  plataforma: string[]
+  copy_grafico: string[]
+  caption: string
   respaldo: string[]
   // Y2 y Y3: ya normalizadas por el servidor.
   etiquetas: string[]
@@ -108,6 +115,46 @@ export type NotaDeRespaldo = {
   fuente_tipo: string | null
   autor: string | null
   fecha: string | null
+}
+
+/** Un rectángulo de celdas de la rejilla, contado desde 1 (Fase 9, §7.4). */
+export type Zona = { fila: number; col: number; filas: number; cols: number }
+
+export type ElementoDelBoceto = {
+  tipo: string
+  peso: 1 | 2 | 3 | 4
+  contenido: string
+  zona: Zona
+}
+
+export type LaminaDelBoceto = {
+  numero: number
+  idea: string
+  elementos: ElementoDelBoceto[]
+  nota_para_la_edicion: string
+}
+
+/** Un boceto válido, como lo guardó la API tras validarlo (AT, AU). */
+export type Boceto = {
+  id: number
+  creado_por: string
+  creado_en: string
+  modelo: string
+  columnas: number
+  filas: number
+  // El copy con que se hizo, para saber si el de la pieza cambió después.
+  copy_grafico: string[]
+  laminas: LaminaDelBoceto[]
+  avisos: string[]
+  tokens_entrada: number
+  tokens_salida: number
+}
+
+/** AU2: si se puede pedir uno y por qué no, como el respaldo, y los válidos. */
+export type EstadoDeLosBocetos = {
+  disponible: boolean
+  motivo: string | null
+  bocetos: Boceto[]
 }
 
 /** El vault puede no estar montado, y eso no es un error (criterio G4). */

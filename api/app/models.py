@@ -10,7 +10,18 @@ pasar antes por ese documento.
 
 from datetime import date, datetime
 
-from sqlalchemy import ARRAY, CheckConstraint, Date, DateTime, ForeignKey, String, Text, func
+from sqlalchemy import (
+    ARRAY,
+    CheckConstraint,
+    Date,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    func,
+)
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -119,12 +130,28 @@ class Pieza(Base):
     # especial, es una pieza recién creada.
     guion: Mapped[str] = mapped_column(Text, server_default="", default="")
 
-    # Los tres salen de la plantilla del vault, no de nuestra imaginación.
-    # Nulos mientras no se decidan: al crear una pieza rara vez se sabe ya en
-    # qué plataforma acaba.
+    # El cuadro de materiales del editor (Fase 8, AN1–AN4): «tipo de pieza»
+    # es `formato`, y «destino», `plataforma`. En pantalla, sus palabras; aquí
+    # y en el vault, los identificadores (ADR 0015). Las listas cerradas las
+    # impone la API, como el tema. Nulos mientras no se decidan: al crear una
+    # pieza rara vez se sabe ya para qué es o a qué nivel va.
     formato: Mapped[str | None] = mapped_column(String(20), default=None)
     tema: Mapped[str | None] = mapped_column(String(100), default=None)
-    plataforma: Mapped[str | None] = mapped_column(String(50), default=None)
+    proposito: Mapped[str | None] = mapped_column(String(20), default=None)
+    nivel: Mapped[str | None] = mapped_column(String(20), default=None)
+    # Una lista y no un valor: lo que va a TikTok se publica tal cual en
+    # Instagram (fase 8, §8.1). Sin destino todavía, la lista vacía.
+    plataforma: Mapped[list[str]] = mapped_column(
+        ARRAY(String(20)), server_default="{}", default=list
+    )
+
+    # AN5: los textos del cuadro, aparte del guion. El copy gráfico, uno por
+    # lámina —el largo se cuenta por lámina, que es donde el editor lo sufre
+    # (§8.2)—, y el caption de la publicación. `Text`, como el guion.
+    copy_grafico: Mapped[list[str]] = mapped_column(
+        ARRAY(Text), server_default="{}", default=list
+    )
+    caption: Mapped[str] = mapped_column(Text, server_default="", default="")
 
     # Nombres de notas `literature` del vault, que alimentan `investigacion:`
     # y `## Respaldo científico` al exportar (ADR 0001).
@@ -250,3 +277,47 @@ class Enlace(Base):
     creado_en: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+
+
+class Boceto(Base):
+    """Un boceto de la pieza, pedido a Claude (Fase 9, ADR 0016).
+
+    Cada intento que llegó a tener respuesta, también el que falló: los dos
+    cuestan, y el gasto que se ve tiene que ser el real (AU1). Uno válido
+    guarda sus láminas; uno fallido, por qué falló. Nunca los dos, ni ninguno.
+    No es historia del §2.6, pero tampoco se edita: se pide otro.
+    """
+
+    __tablename__ = "boceto"
+    __table_args__ = (
+        CheckConstraint(
+            "(laminas IS NULL) <> (error IS NULL)", name="ck_boceto_laminas_o_error"
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    pieza_id: Mapped[int] = mapped_column(ForeignKey("pieza.id"), index=True)
+    # Como `creada_por` en la pieza: sale de la sesión, nunca del cuerpo.
+    creado_por: Mapped[str] = mapped_column(String(50))
+    creado_en: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    # El que respondió, que con el respaldo ante una negativa puede no ser el
+    # que se pidió.
+    modelo: Mapped[str] = mapped_column(String(100))
+    # La rejilla con que se pidió: el boceto se dibuja con ella aunque la
+    # pieza cambie de tipo después.
+    columnas: Mapped[int] = mapped_column(Integer)
+    filas: Mapped[int] = mapped_column(Integer)
+    # El copy con que se hizo, para decir si el de la pieza cambió después.
+    copy_grafico: Mapped[list[str]] = mapped_column(ARRAY(Text))
+    # `none_as_null`: sin él, un `None` se guarda como el JSON `null`, que para
+    # Postgres no es nulo, y la restricción de arriba lo rechazaría.
+    laminas: Mapped[list | None] = mapped_column(JSONB(none_as_null=True), default=None)
+    # AT5: las cifras del boceto que no están en el guion ni en el copy.
+    avisos: Mapped[list[str]] = mapped_column(
+        ARRAY(Text), server_default="{}", default=list
+    )
+    error: Mapped[str | None] = mapped_column(Text, default=None)
+    tokens_entrada: Mapped[int] = mapped_column(Integer)
+    tokens_salida: Mapped[int] = mapped_column(Integer)

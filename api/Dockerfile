@@ -1,6 +1,6 @@
 # Por digest, como todas las imágenes base (ADR 0013): el tag dice qué línea se
 # sigue y el digest, en qué punto de ella. Docker solo usa el digest.
-FROM python:3.12-slim@sha256:2f17fc044b579bab302c2e8054d3a686e2cb9a83de48e70534b94cd8ebbe06a9 AS base
+FROM python:3.12-slim@sha256:f77ac9e44ae96ef2c90b8053ea08c31f8be030f824196b0ae4db6d462c84e51f AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1

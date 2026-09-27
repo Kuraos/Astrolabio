@@ -98,12 +98,16 @@ Lo que pide el cuadro de materiales (P1), frente a lo que `pieza` tiene hoy:
 
 | Pide | Sus palabras | En `pieza` |
 |---|---|---|
-| Copys | «los copys in graphic» | ¿`guion`? (§6.4) |
-| Propósito | «propósito de comunicación» | — |
-| Tipo de pieza | «tipo de pieza» | `formato`: `reel`, `carrusel`, `video`, `post` |
-| Formato y tamaño | «tamaño, formato» | — |
-| Destino | «red social a usar o si es un impreso» | `plataforma` |
-| Fecha | «las desarrollo antes de los deadlines» | — |
+| Copys | «los copys in graphic» | `copy_grafico`, uno por lámina, y `caption` (fase 8) |
+| Propósito | «propósito de comunicación» | `proposito` (fase 8), y aparte `nivel` |
+| Tipo de pieza | «tipo de pieza» | `formato`: `carrusel`, `post_individual`, `short`, `poster`, `video_largo` (fase 8) |
+| Formato y tamaño | «tamaño, formato» | — (fase 8, §8.6) |
+| Destino | «red social a usar o si es un impreso» | `plataforma`, una lista: `instagram`, `tiktok`, `youtube`, `impreso` (fase 8) |
+| Fecha | «las desarrollo antes de los deadlines» | `fecha_entrega` (fase 6) |
+
+Así quedó con la [fase 8](fase-8-cuadro-de-materiales.md), del 2026-09-26. La
+tabla de antes decía `reel`, `carrusel`, `video` y `post` en el tipo, y nada
+en el propósito ni en la fecha.
 
 Lo que le ha faltado a solicitudes que llegaban «listas» (P6, P2):
 
@@ -112,9 +116,9 @@ Lo que le ha faltado a solicitudes que llegaban «listas» (P6, P2):
 - «copys excesivamente largos que no son buenos para ciertas piezas»
 - que «la comunicación tenga sentido y sea coherente»
 
-**Choque de nombres**: lo que él llama «tipo de pieza» es lo que el código
-llama `formato`, y lo que él llama «formato» no existe en el modelo. Hay que
-resolverlo antes de que las dos palabras convivan en pantalla.
+**Choque de nombres**, resuelto en la fase 8: lo que él llama «tipo de pieza»
+es lo que el código llama `formato`, y en pantalla se lee «Tipo de pieza».
+Ninguna pantalla dice «formato».
 
 ### A `finalizada`
 
@@ -176,10 +180,12 @@ cambia, y sirve de agenda para la conversación en vivo:
    compartidos. La métrica del §2.6 dice «guion cerrado»; lo más parecido en
    este flujo es `solicitud entregada`.
 4. **Copys y guion.** ¿Los «copys in graphic» son el `guion` o un texto
-   aparte?
+   aparte? *Resuelta con Johan (fase 8): un texto aparte, el copy gráfico,
+   lámina por lámina, junto al caption.*
 5. **Impresos.** Habla de «piezas de impresos» (P1, P11) y `formato` no
    tiene ese valor. ¿Voz del Cosmos hace impresos, o habla de su trabajo en
-   general?
+   general? *Resuelta con Johan (fase 8): a largo plazo, si se ve viable
+   hacer mercancía. «Impreso» es un destino, y «Póster», un tipo de pieza.*
 6. **El rol.** ¿Le sirve ver «editor» en pantalla?
 
 ## 7. Después

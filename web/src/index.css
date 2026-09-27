@@ -64,6 +64,15 @@
     color: var(--color-ink);
   }
 
+  /* La lista de un <select> la pinta el navegador en su propia ventana. Sin
+     colores propios, las opciones heredan la tinta del campo y quedan sobre
+     un fondo blanco: blanco sobre blanco, visto en Chrome y Edge. */
+  option,
+  optgroup {
+    background-color: var(--color-page);
+    color: var(--color-ink);
+  }
+
   /* El foco se ve siempre que se llega con el teclado (AG4). Los campos lo
      dicen además aclarando su borde. */
   :focus-visible {

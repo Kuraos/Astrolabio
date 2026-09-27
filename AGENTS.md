@@ -136,6 +136,7 @@ demasiado pronto.
 | Red | Tailscale | El editor entra por red privada cifrada, sin nube y sin abrir puertos |
 | Auth | Sesión en cookie `HttpOnly` + Argon2 | Dos usuarios; un proveedor OAuth externo sería infraestructura sin beneficio |
 | Guion | Markdown + KaTeX | El contenido lleva fórmulas y deben conservarse en LaTeX real |
+| Bocetos | Claude, con el SDK `anthropic` | Opcional: sin clave en el `.env` no se usa. El único servicio de fuera ([ADR 0016](docs/adr/0016-bocetos-con-claude.md)) |
 
 **Tauri no se usa**, a diferencia de Grimoire, y es deliberado: el cliente
 del editor tiene que ser un navegador. Si más adelante hace falta una
@@ -168,7 +169,9 @@ está en [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
   portafolio; el historial se lee.
 - **Reutiliza antes de crear.** En el cliente, toda llamada a la API pasa por
   `pedir`, y sus errores llegan como `ErrorDeApi` (`web/src/api.ts`); las
-  palabras de estados y transiciones salen de `web/src/flujo.ts`. En la API,
+  palabras de estados y transiciones salen de `web/src/flujo.ts`, y las del
+  cuadro de materiales, de `web/src/cuadro.ts`. Una prueba del cliente que
+  necesite una pieza la pide a `piezaDePrueba`. En la API,
   cada endpoint recibe al usuario con `Depends(usuario_actual)`, y toda ruta
   de archivo que venga de fuera se comprueba con `respaldo.dentro_de`.
 - **Interfaz**: sigue [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md). Un
@@ -264,8 +267,13 @@ sesiones en `.claude/worktrees/`.
 - Hoja de ruta, fases 3 a 6: `docs/hoja-de-ruta.md`
 - Fase 6, `docs/fase-6-tablero.md`: el código está terminado y falta su
   prueba en el uso.
-- **Alcance vigente: `docs/fase-7-identidad.md`**, la identidad «Control»,
-  con el código terminado: falta que el editor la vea en su máquina.
+- Fase 7, `docs/fase-7-identidad.md`: la identidad «Control», con el código
+  terminado: falta que el editor la vea en su máquina.
+- Fase 8, `docs/fase-8-cuadro-de-materiales.md`: lo que pide el cuadro de
+  materiales del editor, con el código terminado: falta la prueba con una
+  pieza real.
+- **Alcance vigente: `docs/fase-9-bocetos.md`**, los bocetos de cada lámina
+  pedidos a Claude: el primer servicio externo de la app.
 
 Registros de decisión:
 
@@ -283,3 +291,5 @@ Registros de decisión:
 - `docs/adr/0012-la-fecha-de-publicacion-viaja-al-vault.md`
 - `docs/adr/0013-transitivas-e-imagenes-fijadas.md`
 - `docs/adr/0014-identidad-con-tokens-y-fuentes-propias.md`
+- `docs/adr/0015-el-cuadro-de-materiales-viaja-al-vault.md`
+- `docs/adr/0016-bocetos-con-claude.md`

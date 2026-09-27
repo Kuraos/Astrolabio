@@ -40,6 +40,11 @@ services:
       SEED_EDITOR_PASSWORD: ${SEED_EDITOR_PASSWORD}
       VAULT_VOZ_DEL_COSMOS_PATH: /vault
       MATERIAL_PATH: /material
+      # Los bocetos con Claude (ADR 0016). Con valor por defecto, como
+      # Syncthing: un `.env` de antes de la Fase 9 no las tiene, y sin clave la
+      # app arranca igual y el panel dice que no están configurados.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      BOCETOS_MODELO: ${BOCETOS_MODELO:-claude-opus-5}
     volumes:
       # Solo `03-Negocios/Voz-del-Cosmos/`, nunca la raíz del vault: el §2.5
       # prohíbe el acceso al vault personal completo, donde está el diario.
