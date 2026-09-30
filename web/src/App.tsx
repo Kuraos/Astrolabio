@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 
-import { ErrorDeApi, pedir, type Pieza, type Tarea, type Usuario } from './api'
+import { ErrorDeApi, pedir, type Atasco, type Pieza, type Tarea, type Usuario } from './api'
+import { atascadas, enDias, segundosEn, vueltas } from './atasco'
 import { catalogo, type Entrada } from './catalogo'
 import {
   diaDeHoy,
@@ -11,7 +12,8 @@ import {
   semanas,
   type Semana,
 } from './fechas'
-import { aQuienLeToca, duenoDelEstado, enPalabras } from './flujo'
+import { aQuienLeToca, cuantasTeTocan, duenoDelEstado, enPalabras } from './flujo'
+import { recargarMientrasSeVe, tituloDeLaPestana } from './pestana'
 import VistaPieza from './Pieza'
 import { ESTADOS, tablero } from './tablero'
 import ListaDeTareas, { quedan } from './Tareas'
@@ -136,6 +138,7 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
   const [error, setError] = useState<string | null>(null)
   const [filtro, setFiltro] = useState<string | null>(null)
   const [tareas, setTareas] = useState<Tarea[]>([])
+  const [atasco, setAtasco] = useState<Atasco[]>([])
   // Dónde estaba el tablero al abrir la pieza, para devolverlo al volver.
   const desplazamiento = useRef(0)
 
@@ -153,18 +156,25 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
     window.scrollTo(0, abierta ? 0 : desplazamiento.current)
   }, [abierta])
 
-  const cargar = useCallback(async () => {
+  // `silenciosa` es la recarga que nadie pidió (AZ3): si falla, se queda lo
+  // último bueno y lo intenta en el siguiente turno. Un corte de un minuto no
+  // puede dejar el tablero en blanco con un error que nadie provocó.
+  const cargar = useCallback(async (silenciosa = false) => {
     try {
       // AD2: las tareas, todas de una vez. El tablero cuenta las de cada
       // pieza, la pieza abierta recibe las suyas y las sueltas tienen panel.
-      const [nuevas, todas] = await Promise.all([
+      // AX1: y los tiempos, en el mismo turno, para que casen con las piezas.
+      const [nuevas, todas, tiempos] = await Promise.all([
         pedir<Pieza[]>('/api/piezas'),
         pedir<Tarea[]>('/api/tareas'),
+        pedir<Atasco[]>('/api/atasco'),
       ])
       setPiezas(nuevas)
       setTareas(todas)
+      setAtasco(tiempos)
       setError(null)
     } catch (causa) {
+      if (silenciosa) return
       setError(causa instanceof ErrorDeApi ? causa.message : 'No se pudo conectar')
     }
   }, [])
@@ -172,6 +182,24 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
   useEffect(() => {
     void cargar()
   }, [cargar])
+
+  // AZ2: la lista se recarga sola mientras la pestaña se ve, para que el
+  // título diga lo que te toca sin que nadie mande un mensaje. La pieza
+  // abierta es una copia aparte (`abierta`) y no se toca (AZ4).
+  //
+  // ponytail: una recarga que salió antes de marcar una tarea puede volver
+  // después y enseñarla sin marcar hasta la siguiente. En la base está bien;
+  // si se ve en el uso, se descarta la respuesta de una recarga que empezó
+  // antes del último cambio.
+  useEffect(() => recargarMientrasSeVe(() => void cargar(true)), [cargar])
+
+  // AZ1: lo que te toca, en el título. Al salir, la marca a secas.
+  useEffect(() => {
+    document.title = tituloDeLaPestana(piezas ? cuantasTeTocan(piezas, usuario) : 0)
+    return () => {
+      document.title = tituloDeLaPestana(0)
+    }
+  }, [piezas, usuario])
 
   // Z1: el catálogo sale de la lista que ya está cargada.
   const entradas = catalogo(piezas ?? [])
@@ -250,10 +278,7 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
               {activo && <SoloLasDe etiqueta={activo} alQuitar={() => setFiltro(null)} />}
               <div className="grid md:grid-cols-3 lg:grid-cols-[200px_repeat(6,minmax(0,1fr))]">
                 <div className="flex flex-col gap-8 pb-8 max-lg:col-span-full lg:pr-4">
-                  <TeToca
-                    cuantas={piezas.filter((p) => p.de_quien_es === usuario.rol).length}
-                    total={piezas.length}
-                  />
+                  <TeToca cuantas={cuantasTeTocan(piezas, usuario)} total={piezas.length} />
                   {/*
                     D3: al editor no se le enseña el formulario. Es **además**
                     del 403 del servidor, nunca en su lugar: §2.3 dice que
@@ -274,6 +299,20 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
           >
             {activo && <SoloLasDe etiqueta={activo} alQuitar={() => setFiltro(null)} />}
             <Semanas piezas={visibles} alAbrir={abrir} />
+          </Estacion>
+
+          {/* AX6: dónde se atasca cada pieza (PRD §8.2). */}
+          <Estacion
+            titulo="Atasco"
+            extra={<span className="mono-label text-ink-3">Días en cada estado</span>}
+          >
+            {activo && <SoloLasDe etiqueta={activo} alQuitar={() => setFiltro(null)} />}
+            {/* Mientras carga, «Todavía no hay piezas» sería mentira. */}
+            {piezas === null ? (
+              <p className="mono-label text-ink-3">Cargando…</p>
+            ) : (
+              <Atascos piezas={visibles} atasco={atasco} usuario={usuario} alAbrir={abrir} />
+            )}
           </Estacion>
 
           {/* AD5 y AH5: lo que no es de ninguna pieza. */}
@@ -674,6 +713,154 @@ function ListaDeSemanas({ lista, alAbrir }: { lista: Semana[]; alAbrir: (pieza: 
           </ul>
         </section>
       ))}
+    </div>
+  )
+}
+
+/** Las etapas donde se espera a alguien: todas menos `publicada`. */
+const ETAPAS = ESTADOS.filter((estado) => estado !== 'publicada')
+
+/**
+ * AX6: dónde se atasca cada pieza. Arriba, las que siguen en curso, la que
+ * lleva más tiempo donde está primero, con de quién es. Abajo, las
+ * publicadas, con los días de cada etapa en su columna —en cuál se tarda se
+ * lee hacia abajo— y su ciclo, de entregada a publicada. Sin medias ni
+ * totales (decisión 4): con pocas piezas medirían el azar.
+ */
+function Atascos({
+  piezas,
+  atasco,
+  usuario,
+  alAbrir,
+}: {
+  piezas: Pieza[]
+  atasco: Atasco[]
+  usuario: Usuario
+  alAbrir: (pieza: Pieza) => void
+}) {
+  const { enCurso, publicadas } = atascadas(piezas, atasco)
+  if (enCurso.length + publicadas.length === 0) {
+    return <p className="text-sm text-ink-2">Todavía no hay piezas.</p>
+  }
+  // La barra entera es la etapa más larga de todas las publicadas: así las
+  // barras se comparan entre piezas y entre etapas.
+  const mayor = Math.max(
+    1,
+    ...publicadas.flatMap((fila) => ETAPAS.map((estado) => segundosEn(fila.atasco, estado))),
+  )
+
+  return (
+    <div className="flex flex-col gap-8">
+      {enCurso.length > 0 && (
+        <section aria-label="En curso" className="flex flex-col">
+          <h3 className="mono-label border-b border-line pb-2 text-ink-2">
+            En curso · <span className="text-ink-3">días en su estado de ahora</span>
+          </h3>
+          <ul>
+            {enCurso.map(({ pieza, atasco }) => {
+              const turno = aQuienLeToca(pieza, usuario)
+              const otras = vueltas(atasco)
+              return (
+                <li key={pieza.id}>
+                  {/* Los días primero, como la fecha en la lista de semanas: al
+                      final de una fila de 1440 px quedaban lejos del título. */}
+                  <button
+                    type="button"
+                    onClick={() => alAbrir(pieza)}
+                    className="-mx-2 grid w-[calc(100%+1rem)] grid-cols-[7rem_minmax(0,1fr)] items-baseline gap-x-4 border-b border-line-faint px-2 py-2.5 text-left hover:bg-raised"
+                  >
+                    <span className="mono-data text-ink">{enDias(atasco.en_estado ?? 0)}</span>
+                    <span className="flex min-w-0 flex-col gap-1">
+                      <span className="text-sm font-medium break-words">{pieza.titulo}</span>
+                      <span className="mono-data text-ink-2">
+                        {enPalabras(pieza.estado)}
+                        {turno && (
+                          <>
+                            {' · '}
+                            <span className={pieza.de_quien_es === usuario.rol ? 'text-signal' : ''}>
+                              {turno}
+                            </span>
+                          </>
+                        )}
+                        {otras && ` · ${otras}`}
+                      </span>
+                    </span>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </section>
+      )}
+
+      {publicadas.length > 0 && (
+        <section aria-label="Publicadas" className="flex flex-col">
+          <h3 className="mono-label border-b border-line pb-2 text-ink-2 md:hidden">Publicadas</h3>
+          {/* Los rótulos de las columnas, desde `md`. Andamio: cada dato lleva
+              el suyo para el lector de pantalla, visible por debajo de `md`. */}
+          <div
+            aria-hidden
+            className="mono-label grid grid-cols-[minmax(0,2fr)_minmax(0,6fr)] gap-x-4 border-b border-line pb-2 text-ink-2 max-md:hidden"
+          >
+            <span>Publicadas</span>
+            <span className="grid grid-cols-6 gap-x-4">
+              {ETAPAS.map((estado) => (
+                <span key={estado}>{enPalabras(estado)}</span>
+              ))}
+              <span>Ciclo</span>
+            </span>
+          </div>
+          <ul>
+            {publicadas.map(({ pieza, atasco }) => {
+              const otras = vueltas(atasco)
+              return (
+                <li
+                  key={pieza.id}
+                  className="grid gap-x-4 gap-y-2 border-b border-line-faint py-2.5 md:grid-cols-[minmax(0,2fr)_minmax(0,6fr)]"
+                >
+                  <button
+                    type="button"
+                    onClick={() => alAbrir(pieza)}
+                    className="group -mx-2 flex min-w-0 flex-col gap-1 self-start px-2 text-left hover:bg-raised"
+                  >
+                    <span className="flex items-baseline gap-2">
+                      <span className="text-sm break-words">{pieza.titulo}</span>
+                      <span aria-hidden className="text-sm leading-none text-ink-3 group-hover:text-ink">
+                        →
+                      </span>
+                    </span>
+                    {otras && <span className="mono-data text-ink-3">{otras}</span>}
+                  </button>
+                  <dl className="grid grid-cols-3 gap-x-4 gap-y-2 sm:grid-cols-6">
+                    {ETAPAS.map((estado) => {
+                      const segundos = segundosEn(atasco, estado)
+                      return (
+                        <div key={estado} className="flex min-w-0 flex-col gap-1">
+                          <dt className="mono-label text-ink-3 md:sr-only">{enPalabras(estado)}</dt>
+                          <dd className="mono-data flex flex-col gap-1 text-ink-2">
+                            {enDias(segundos)}
+                            <span
+                              aria-hidden
+                              className="h-[3px] bg-control"
+                              style={{ width: `${(segundos / mayor) * 100}%` }}
+                            />
+                          </dd>
+                        </div>
+                      )
+                    })}
+                    <div className="flex min-w-0 flex-col gap-1">
+                      <dt className="mono-label text-ink-3 md:sr-only">Ciclo</dt>
+                      <dd className="mono-data font-medium text-ink">
+                        {atasco.ciclo === null ? '—' : enDias(atasco.ciclo)}
+                      </dd>
+                    </div>
+                  </dl>
+                </li>
+              )
+            })}
+          </ul>
+        </section>
+      )}
     </div>
   )
 }

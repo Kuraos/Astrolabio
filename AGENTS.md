@@ -212,6 +212,20 @@ desde cualquier shell.
 arriba son para generar una migración nueva o aplicarlas a mano. **El esquema
 no se crea con `create_all` en ningún sitio**, y hay una prueba que lo vigila.
 
+Copias de la base (ADR 0017). `docker compose up` levanta el servicio
+`copias`, que las deja en `COPIAS_HOST_PATH`:
+
+```bash
+docker compose ps copias                               # sana si hay una reciente
+docker compose logs copias                             # cuáles hizo, o por qué falló
+docker compose run --rm copias una                     # una copia ahora
+docker compose run --rm copias restaurar <archivo> <base>
+```
+
+`restaurar` toma el nombre del archivo, sin carpeta, y solo escribe en una base
+vacía o que no existe. Cómo se vuelve de un volumen perdido está en
+ARCHITECTURE §8.
+
 Dependencias de la api (ADR 0013). `requirements.txt` lo edita una persona;
 `constraints.txt` fija todo lo que instala la imagen, transitivas incluidas, y
 se regenera cuando cambia el primero:
@@ -265,15 +279,16 @@ sesiones en `.claude/worktrees/`.
 - Sistema de diseño: [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md)
 - Estados del flujo (§2.8): `docs/estados-del-flujo.md`
 - Hoja de ruta, fases 3 a 6: `docs/hoja-de-ruta.md`
-- Fase 6, `docs/fase-6-tablero.md`: el código está terminado y falta su
-  prueba en el uso.
-- Fase 7, `docs/fase-7-identidad.md`: la identidad «Control», con el código
-  terminado: falta que el editor la vea en su máquina.
-- Fase 8, `docs/fase-8-cuadro-de-materiales.md`: lo que pide el cuadro de
-  materiales del editor, con el código terminado: falta la prueba con una
-  pieza real.
-- **Alcance vigente: `docs/fase-9-bocetos.md`**, los bocetos de cada lámina
-  pedidos a Claude: el primer servicio externo de la app.
+- Fases 6 a 8, aprobadas con el editor: `docs/fase-6-tablero.md`,
+  `docs/fase-7-identidad.md` y `docs/fase-8-cuadro-de-materiales.md`.
+- Fase 9, `docs/fase-9-bocetos.md`: los bocetos de cada lámina pedidos a
+  Claude, el primer servicio externo de la app. El código está terminado; su
+  prueba con la clave de Johan se hace al final.
+- **Alcance vigente: `docs/fase-10-atasco-copias-aviso.md`**: dónde se
+  atasca cada pieza, la copia de seguridad de la base y el aviso de «te
+  toca». El código está terminado; falta su prueba en el uso.
+- `docs/fase-11-guion-grafico.md`: bocetos de short y video largo. Solo las
+  preguntas para el editor; no se modela hasta que las conteste (§2.8).
 
 Registros de decisión:
 

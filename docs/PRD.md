@@ -47,13 +47,14 @@ sirve en pantalla sigue abierto ([estados §6](estados-del-flujo.md)).
 | 0 — Esqueleto | Sesión con cookie, dos roles sembrados desde el entorno, autorización comprobada en el servidor | A–E · [fase 0](fase-0-esqueleto.md) |
 | 1 — Fuente de verdad dividida | Piezas con guion en markdown y LaTeX, con vista previa. El respaldo científico del vault, en solo lectura y solo para Johan. Exportar la pieza al vault | F–J · [fase 1](fase-1-vault.md) |
 | 2 — El traspaso | Seis estados, transiciones con reglas por rol, historia de solo inserción, de quién es cada pieza, el estado en el vault | K–O · [fase 2](fase-2-traspaso.md) |
-| 3 — El material | Enlaces de referencia en la pieza, y la carpeta de cada pieza en Syncthing con sus archivos, las miniaturas de las imágenes y la ruta de cada uno para copiarla. Falta la prueba con el editor desde su máquina | P–S · [fase 3](fase-3-material.md) |
-| 4 — Escribir con herramientas | Una barra de diez botones y atajos para el guion, que Ctrl+Z deshace de un paso; `mk` y `dm` abren fórmula; tablas y notas al pie en la vista previa; la pieza a 1024 px. Falta su prueba en el uso | T–X · [fase 4](fase-4-escritura.md) |
-| 5 — Temas y etiquetas | Cuatro temas fijos, etiquetas libres con un catálogo de qué se ha hablado que filtra la lista, y las etiquetas en el vault como tags anidados bajo `voz-del-cosmos`. Falta su prueba en el uso | Y–AA · [fase 5](fase-5-temas.md) |
-| 6 — Tablero, tareas y fechas | Un tablero por estado en lugar de la lista; tareas por pieza y sueltas, con lo que falta en cada tarjeta; fechas de entrega y de publicación, lo pendiente por semanas y la fecha de publicación en el vault. Falta su prueba en el uso | AB–AF · [fase 6](fase-6-tablero.md) |
-| 7 — Identidad «Control» | La interfaz gana una identidad propia sin cambiar lo que hace: sus colores y sus fuentes, un bloque naranja con lo que te toca, las semanas en una línea de tiempo y la pieza en estaciones. Falta que el editor la vea en su máquina | AG–AM · [fase 7](fase-7-identidad.md) |
-| 8 — El cuadro de materiales | La pieza lleva lo que pide el cuadro del editor, con sus palabras: tipo de pieza, propósito, nivel y destinos, lo que falta del cuadro, el copy de cada lámina con su largo y el caption con los límites de cada red. Todo viaja al vault. Falta la prueba con una pieza real | AN–AR · [fase 8](fase-8-cuadro-de-materiales.md) |
+| 3 — El material | Enlaces de referencia en la pieza, y la carpeta de cada pieza en Syncthing con sus archivos, las miniaturas de las imágenes y la ruta de cada uno para copiarla. Aprobada con el editor | P–S · [fase 3](fase-3-material.md) |
+| 4 — Escribir con herramientas | Una barra de diez botones y atajos para el guion, que Ctrl+Z deshace de un paso; `mk` y `dm` abren fórmula; tablas y notas al pie en la vista previa; la pieza a 1024 px. Aprobada con el editor | T–X · [fase 4](fase-4-escritura.md) |
+| 5 — Temas y etiquetas | Cuatro temas fijos, etiquetas libres con un catálogo de qué se ha hablado que filtra la lista, y las etiquetas en el vault como tags anidados bajo `voz-del-cosmos`. Aprobada con el editor | Y–AA · [fase 5](fase-5-temas.md) |
+| 6 — Tablero, tareas y fechas | Un tablero por estado en lugar de la lista; tareas por pieza y sueltas, con lo que falta en cada tarjeta; fechas de entrega y de publicación, lo pendiente por semanas y la fecha de publicación en el vault. Aprobada con el editor | AB–AF · [fase 6](fase-6-tablero.md) |
+| 7 — Identidad «Control» | La interfaz gana una identidad propia sin cambiar lo que hace: sus colores y sus fuentes, un bloque naranja con lo que te toca, las semanas en una línea de tiempo y la pieza en estaciones. Aprobada con el editor | AG–AM · [fase 7](fase-7-identidad.md) |
+| 8 — El cuadro de materiales | La pieza lleva lo que pide el cuadro del editor, con sus palabras: tipo de pieza, propósito, nivel y destinos, lo que falta del cuadro, el copy de cada lámina con su largo y el caption con los límites de cada red. Todo viaja al vault. Aprobada con una pieza real | AN–AR · [fase 8](fase-8-cuadro-de-materiales.md) |
 | 9 — Bocetos con Claude | Un botón le pide a Claude el boceto de cada lámina de un carrusel, un post o un póster: qué elementos, cuánto pesa cada uno y dónde va. La API lo valida y lo guarda con lo que costó, y la pieza lo dibuja en su rejilla, con las cifras sin fuente avisadas. Falta la prueba con la clave de Johan | AS–AW · [fase 9](fase-9-bocetos.md) |
+| 10 — Atasco, copias y aviso | Una estación con los días de cada pieza en su estado y los de cada etapa de las publicadas, sin medias; una copia diaria de la base en una carpeta del PC, probada restaurando; y el título de la pestaña con lo que te toca, que se recarga solo mientras se ve. Falta su prueba en el uso | AX–BA · [fase 10](fase-10-atasco-copias-aviso.md) |
 
 Quién puede qué, hoy:
 
@@ -181,7 +182,9 @@ vuelo y no se guardan ([ADR 0010](adr/0010-la-carpeta-de-cada-pieza.md)).
 2. **Dónde se atasca.** Cuánto tarda una pieza entre `solicitud entregada`
    —lo más parecido al «guion cerrado» del §2.6— y `publicada`, y en qué etapa
    se detiene. Sale de la tabla `traspaso`, que es de solo inserción justo
-   para eso. Hoy se registra; ninguna pantalla lo muestra todavía.
+   para eso, y lo muestra la estación «Atasco» del tablero
+   ([fase 10](fase-10-atasco-copias-aviso.md)): los días de cada pieza en su
+   estado, y los de cada etapa de las publicadas, sin medias.
 3. **Cómo le va a lo publicado.** El panel de métricas de plataforma aún no
    existe. Cuando llegue, conteos y curvas individuales, sin rankings de tema
    con menos de ~5 piezas por combinación
@@ -202,15 +205,17 @@ Lo que se descartó dentro de cada fase está en su documento.
 
 ## 10. Lo que viene
 
-Con la fase 6, la [hoja de ruta](hoja-de-ruta.md) está hecha en código; falta
-probar las fases 3 a 6 en el uso. La fase 7 no salió de ella sino de pedirle
-personalidad a la interfaz, y la 8 y la 9, de la prueba de Johan del
-2026-09-25: las tres están hechas en código. La 9, los bocetos con Claude, es
-el primer servicio externo de la app, y su prueba de verdad necesita la clave
-de Johan.
+Las fases 2 a 8 están aprobadas con el editor (2026-09-29). La 9, los bocetos
+con Claude, es el primer servicio externo de la app, y su prueba de verdad
+necesita la clave de Johan: se hace al final, cuando lo demás esté cerrado.
 
-Quedan fuera de ella los bocetos de short y de video largo, que son guion
-gráfico y no lámina. El panel de métricas de §8 todavía no tiene fase.
+Lo que sigue, [fase 10](fase-10-atasco-copias-aviso.md): la pantalla de «dónde
+se atasca» (§8.2), la copia de seguridad de la base y el aviso de «te toca»
+dentro de la app. Los bocetos de short y de video largo, que son guion gráfico
+y no lámina, esperan una conversación con el editor
+([fase 11](fase-11-guion-grafico.md)). El panel de métricas de plataforma de
+§8.3 sigue sin fase: pide la ingesta de las APIs de cada red y suficientes
+piezas publicadas por combinación (ADR 0004).
 
 ## 11. Preguntas abiertas
 

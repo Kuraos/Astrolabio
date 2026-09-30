@@ -1,7 +1,7 @@
 # Fase 6 — Tablero, tareas y fechas
 
-**Código terminado el 2026-09-25**, con las decisiones de §7; queda su prueba
-de terminado (§5), que se hace en el uso. Resuelve el problema 4 de la
+**Código terminado el 2026-09-25**, con las decisiones de §7; su prueba
+de terminado (§5) está hecha y aprobada (Johan, 2026-09-29). Resuelve el problema 4 de la
 [hoja de ruta](hoja-de-ruta.md), y es la última fase que ella ordena: lo que
 venga después saldrá de ese uso, con su propio documento.
 

@@ -1,0 +1,4 @@
+# Los scripts que corren dentro de un contenedor, siempre con LF. Con
+# `core.autocrlf` en Windows saldrían con CRLF, y `sh` lee el `\r` como parte
+# de cada orden.
+*.sh text eol=lf

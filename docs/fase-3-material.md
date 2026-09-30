@@ -1,7 +1,7 @@
 # Fase 3 — El material viaja con la pieza
 
-**Código terminado el 2026-09-23**, con las decisiones de §7; queda la prueba
-con el editor (§5), que se hace en el uso. Resuelve el problema 1 de la
+**Código terminado el 2026-09-23**, con las decisiones de §7; su prueba
+con el editor (§5) está hecha y aprobada (Johan, 2026-09-29). Resuelve el problema 1 de la
 [hoja de ruta](hoja-de-ruta.md). El alcance vigente está en
 [`AGENTS.md`](../AGENTS.md) §7.
 

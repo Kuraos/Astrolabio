@@ -45,6 +45,14 @@ export function aQuienLeToca(pieza: Pieza, usuario: Usuario): string | null {
 }
 
 /**
+ * AH2 y AZ1: cuántas piezas le tocan a quien mira. Un solo sitio para el
+ * bloque naranja y el título de la pestaña, que no pueden decir otra cosa.
+ */
+export function cuantasTeTocan(piezas: Pieza[], usuario: Usuario): number {
+  return piezas.filter((pieza) => pieza.de_quien_es === usuario.rol).length
+}
+
+/**
  * De quién es cada estado: el mismo `DE_QUIEN_ES` de `api/app/models.py`. El
  * servidor lo dice pieza a pieza, y la franja del tablero lo necesita también
  * en las columnas vacías (AH2). Si cambia allí, cambia aquí.

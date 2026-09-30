@@ -9,6 +9,7 @@ from fastapi import FastAPI, Response, status
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
+from .atasco import router as atasco_router
 from .auth import router as auth_router
 from .bocetos import router as bocetos_router
 from .db import engine
@@ -33,6 +34,7 @@ app.include_router(traspasos_router)
 app.include_router(material_router)
 app.include_router(tareas_router)
 app.include_router(bocetos_router)
+app.include_router(atasco_router)
 
 
 def _sondear_base() -> tuple[bool, str | None]:

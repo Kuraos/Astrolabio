@@ -19,7 +19,10 @@ flowchart LR
         web["web · nginx<br/>sirve el build<br/>y hace de proxy"]
         api["api · FastAPI"]
         db[("db · Postgres 18")]
+        copias["copias · pg_dump"]
     end
+
+    carpeta[("carpeta de copias<br/>en el PC, fuera de Docker")]
 
     vault[("vault de Obsidian<br/>solo 03-Negocios/Voz-del-Cosmos")]
     compartida[("carpeta de Syncthing<br/>una carpeta por pieza")]
@@ -35,6 +38,8 @@ flowchart LR
     compartida <-->|"Syncthing"| copia
     editor -.->|"abre los originales"| copia
     api -.->|"pide un boceto,<br/>con un botón"| claude
+    copias -->|"lee"| db
+    copias -->|"una al día"| carpeta
 ```
 
 - **Un solo origen.** El navegador conoce una dirección y un puerto: `web`
@@ -79,8 +84,11 @@ correo, ni analítica, ni almacenamiento en la nube.
 ```text
 .
 ├── AGENTS.md                 instrucciones para agentes (CLAUDE.md lo importa)
-├── compose.yaml              los tres servicios y sus montajes
+├── compose.yaml              los cuatro servicios y sus montajes
 ├── .env.example              todas las variables, sin valores reales
+├── .gitattributes            LF en los .sh, que corren en un contenedor
+├── db/
+│   └── copias.sh             copia la base cada día, y la restaura (ADR 0017)
 ├── api/
 │   ├── app/
 │   │   ├── main.py           monta los routers y /api/health
@@ -94,6 +102,7 @@ correo, ni analítica, ni almacenamiento en la nube.
 │   │   ├── traspasos.py      la máquina de estados y su historia
 │   │   ├── material.py       enlaces y la carpeta de la pieza en Syncthing
 │   │   ├── tareas.py         la checklist de cada pieza y las tareas sueltas
+│   │   ├── atasco.py         cuánto estuvo cada pieza en cada estado
 │   │   ├── respaldo.py       lee las notas literature del vault
 │   │   ├── exportador.py     escribe la pieza en el vault
 │   │   └── bocetos.py        pide el boceto a Claude, lo valida y lo guarda
@@ -102,7 +111,7 @@ correo, ni analítica, ni almacenamiento en la nube.
 ├── web/
 │   ├── src/
 │   │   ├── main.tsx          punto de entrada, y las fuentes
-│   │   ├── App.tsx           entrada, tablero, semanas y pieza nueva
+│   │   ├── App.tsx           entrada, tablero, semanas, atasco y pieza nueva
 │   │   ├── ui.tsx            botones, campos, estación, pestañas y aviso: lo que se repite
 │   │   ├── Pieza.tsx         la vista de una pieza y sus paneles
 │   │   ├── CuadroDeMateriales.tsx  tipo de pieza, propósito, nivel y destino
@@ -112,12 +121,14 @@ correo, ni analítica, ni almacenamiento en la nube.
 │   │   ├── Temas.tsx         el tema y las etiquetas de la pieza
 │   │   ├── Tareas.tsx        la lista de tareas: la checklist y las sueltas
 │   │   ├── api.ts            pedir(), ErrorDeApi y los tipos de la API
+│   │   ├── atasco.ts         los días de cada pieza en palabras, y en qué orden, puro
 │   │   ├── barra.ts          las acciones de la barra del guion, puras
 │   │   ├── boceto.ts         el orden de lectura del boceto y si se quedó viejo, puro
 │   │   ├── catalogo.ts       el catálogo de etiquetas, puro
 │   │   ├── cuadro.ts         las palabras del cuadro, lo que falta y los límites del caption
 │   │   ├── fechas.ts         fechas de calendario, semanas y su línea de tiempo
-│   │   ├── flujo.ts          las palabras de estados y transiciones
+│   │   ├── flujo.ts          las palabras de estados y transiciones, y cuántas te tocan
+│   │   ├── pestana.ts        el título de la pestaña y la recarga mientras se ve
 │   │   ├── recuento.ts       caracteres, palabras, fórmulas y hashtags, puros
 │   │   ├── tablero.ts        las piezas repartidas por estado, puro
 │   │   ├── piezaDePrueba.ts  la pieza de las pruebas del cliente
@@ -235,11 +246,32 @@ ruta del `.env` no es la compartida y la app no crea nada en ella.
   arrancar; con varios, pasarían a un paso de despliegue aparte.
 - **Las miniaturas se generan al vuelo** (ADR 0010). Si algún día pesan, se
   guardan y el ADR se revisa.
+- **El aviso de «te toca» es un sondeo, no un empuje**
+  ([fase 10](fase-10-atasco-copias-aviso.md), AZ). Cada navegador con la app
+  a la vista pide piezas, tareas y atasco cada minuto y al volver a la
+  pestaña, y pone lo que le toca en el título: `(1) Astrolabio`. Oculta, no
+  pide nada; cerrada, no avisa. Con dos usuarios son dos pedidos por minuto;
+  WebSockets o eventos del servidor serían otra pieza que mantener para eso.
 - **Disponibilidad**: la del PC de Johan. `/api/health` comprueba la
   conexión real con Postgres y responde 503 si falla; compose espera a que la
   base esté sana antes de arrancar la API.
-- **Copias de seguridad: el repositorio no programa ninguna.** Los datos
-  viven en el volumen `db-data`. El ADR 0003 cuenta con que la base es
-  pequeña y cabe en un `pg_dump`, pero nada aquí lo ejecuta: si se borra el
-  volumen —por ejemplo, restaurando Docker Desktop a fábrica—, se pierden las
-  piezas y su historia.
+- **Copias de seguridad**
+  ([ADR 0017](adr/0017-copias-de-la-base.md)). Los datos viven en el volumen
+  `db-data`, y el servicio `copias` hace un `pg_dump` a `COPIAS_HOST_PATH`,
+  una carpeta del PC fuera de Docker: uno cuando el último tiene más de
+  `COPIAS_CADA_HORAS`, y guarda `COPIAS_GUARDAR`. Sin las filas de `sesion`,
+  que son cookies. Los nombres llevan la hora en UTC:
+  `astrolabio-20260929-153000.dump`.
+
+  **Restaurar después de perder el volumen**, con la app parada:
+
+  1. `docker compose up -d db` levanta una base vacía. La api todavía no:
+     crearía las tablas y la restauración se negaría.
+  2. `docker compose run --rm copias restaurar <archivo> <POSTGRES_DB>`, con
+     el nombre del archivo, sin carpeta, y el de la base del `.env`. Restaura
+     todo o nada, y se niega si la base ya tiene tablas.
+  3. `docker compose up -d`. Las migraciones ya están al día, y cada uno
+     vuelve a entrar con su contraseña.
+
+  Para comprobar una copia sin tocar nada, se restaura en una base nueva
+  —`restaurar <archivo> prueba`— y se mira con `psql`.
