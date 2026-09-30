@@ -19,8 +19,8 @@ de las piezas. Todo lo demás es infraestructura alrededor de eso.
 
 ## Estado
 
-Las fases 0 a 2 están cerradas. De la 3 a la 6 el código está terminado y
-falta su prueba en el uso.
+Las fases 0 a 8 están cerradas y aprobadas con el editor. La 9 espera la
+clave de Johan, y la 10 está en curso.
 
 - **Fase 0, el esqueleto**: sesión con cookie, dos roles y autorización
   comprobada en el servidor.
@@ -30,17 +30,15 @@ falta su prueba en el uso.
 - **Fase 2, el traspaso**: seis estados con las palabras del editor, reglas
   de quién mueve la pieza y una historia que no se puede reescribir.
 - **Fase 3, el material**: enlaces de referencia y la carpeta de cada pieza
-  en Syncthing, con las miniaturas de sus imágenes. Falta probarla con el
-  editor desde su máquina.
+  en Syncthing, con las miniaturas de sus imágenes.
 - **Fase 4, escribir con herramientas**: una barra y atajos para el guion,
-  tablas en la vista previa y más espacio para escribir. Falta escribir un
-  guion de verdad con ella y compararlo en Obsidian.
+  tablas en la vista previa y más espacio para escribir.
 - **Fase 5, temas y etiquetas**: cuatro temas fijos, y etiquetas libres con
   un catálogo de qué se ha hablado, que llegan a Obsidian como tags
-  anidados. Falta usarla con piezas de verdad y verlas en Obsidian.
+  anidados.
 - **Fase 6, tablero, tareas y fechas**: un tablero por estado en lugar de
   la lista, tareas por pieza y sueltas, fechas de entrega y de publicación,
-  y lo pendiente por semanas. Falta que el editor lo use desde su máquina.
+  y lo pendiente por semanas.
 
 La [hoja de ruta](docs/hoja-de-ruta.md) terminaba en la Fase 6: lo que venga
 después saldrá del uso.
@@ -48,12 +46,11 @@ después saldrá del uso.
 - **Fase 7, identidad «Control»**: la interfaz gana una identidad propia sin
   cambiar lo que hace —sus colores y sus fuentes, un bloque naranja con lo que
   te toca, las semanas en una línea de tiempo y la pieza en estaciones—. El
-  código está terminado; falta que el editor la vea en su máquina. Su alcance
-  está en [`docs/fase-7-identidad.md`](docs/fase-7-identidad.md).
+  editor la vio y la aprobó. Su alcance está en [`docs/fase-7-identidad.md`](docs/fase-7-identidad.md).
 - **Fase 8, el cuadro de materiales**: la pieza lleva lo que pide el cuadro
   del editor —tipo de pieza, propósito, nivel y destinos—, el copy de cada
   lámina con su largo y el caption con los límites de cada red, y todo viaja
-  al vault. Falta la prueba con una pieza real. Su alcance está en
+  al vault. Probado con una pieza real. Su alcance está en
   [`docs/fase-8-cuadro-de-materiales.md`](docs/fase-8-cuadro-de-materiales.md).
 - **Fase 9, bocetos con Claude**: un botón le pide a Claude el boceto de cada
   lámina —qué elementos, cuánto pesa cada uno y dónde va—, la API lo valida y

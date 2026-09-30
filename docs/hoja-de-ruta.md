@@ -7,9 +7,9 @@ escribir código. Este documento solo fija el orden, el contorno de cada fase y
 lo que hay que decidir antes de empezarla.
 
 La Fase 2 se cerró el 2026-09-21: sus criterios están hechos y verificados,
-incluida la exportación al vault real. Queda su prueba de terminado —el editor
-desde su máquina, por Tailscale—, que se hace en el uso y no bloquea lo que
-sigue.
+incluida la exportación al vault real. Su prueba de terminado —el editor desde
+su máquina, por Tailscale— está hecha y aprobada, como la de las fases 3 a 6
+(Johan, 2026-09-29).
 
 ## 1. Los problemas, en palabras de Johan
 

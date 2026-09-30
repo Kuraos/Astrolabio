@@ -1,7 +1,8 @@
 # Fase 8 — El cuadro de materiales
 
 **Código terminado el 2026-09-26**, con todas las decisiones de §7 y §8
-acordadas con Johan; queda su prueba de terminado (§5): una pieza real. Es
+acordadas con Johan; su prueba de terminado (§5), una pieza real, está hecha y aprobada (Johan,
+2026-09-29). Es
 alcance nuevo, como la Fase 7: nace de la prueba de Johan del 2026-09-25, no
 de la [hoja de ruta](hoja-de-ruta.md).
 

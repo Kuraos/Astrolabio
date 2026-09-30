@@ -1,7 +1,8 @@
 # Fase 7 — Identidad «Control»
 
-**Código terminado el 2026-09-25**, con las decisiones de §7; queda su prueba
-de terminado (§5): que el editor la vea en su máquina. Es alcance nuevo: la
+**Código terminado el 2026-09-25**, con las decisiones de §7; su prueba
+de terminado (§5), que el editor la vea en su máquina, está hecha y aprobada
+(Johan, 2026-09-29). Es alcance nuevo: la
 [hoja de ruta](hoja-de-ruta.md) terminó en la Fase 6, y esta nace de pedirle
 personalidad a la interfaz, no de un problema de uso.
 

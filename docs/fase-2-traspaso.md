@@ -1,7 +1,7 @@
 # Fase 2 — El traspaso
 
 **Cerrada el 2026-09-21**, con las decisiones de §7; su prueba con el editor
-(§5) se hace en el uso. Implementa [estados-del-flujo.md](estados-del-flujo.md),
+(§5) está hecha y aprobada (Johan, 2026-09-29). Implementa [estados-del-flujo.md](estados-del-flujo.md),
 el resultado del §2.8. El alcance vigente está en [`AGENTS.md`](../AGENTS.md)
 §7.
 

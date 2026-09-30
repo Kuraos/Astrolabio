@@ -1,7 +1,7 @@
 # Fase 4 — Escribir con herramientas
 
-**Código terminado el 2026-09-24**, con las decisiones de §7; queda su prueba
-de terminado (§5), que se hace en el uso. Resuelve el problema 2 de la
+**Código terminado el 2026-09-24**, con las decisiones de §7; su prueba
+de terminado (§5) está hecha y aprobada (Johan, 2026-09-29). Resuelve el problema 2 de la
 [hoja de ruta](hoja-de-ruta.md). El alcance vigente está en
 [`AGENTS.md`](../AGENTS.md) §7.
 
