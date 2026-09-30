@@ -12,7 +12,8 @@ import {
   semanas,
   type Semana,
 } from './fechas'
-import { aQuienLeToca, duenoDelEstado, enPalabras } from './flujo'
+import { aQuienLeToca, cuantasTeTocan, duenoDelEstado, enPalabras } from './flujo'
+import { recargarMientrasSeVe, tituloDeLaPestana } from './pestana'
 import VistaPieza from './Pieza'
 import { ESTADOS, tablero } from './tablero'
 import ListaDeTareas, { quedan } from './Tareas'
@@ -155,7 +156,10 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
     window.scrollTo(0, abierta ? 0 : desplazamiento.current)
   }, [abierta])
 
-  const cargar = useCallback(async () => {
+  // `silenciosa` es la recarga que nadie pidió (AZ3): si falla, se queda lo
+  // último bueno y lo intenta en el siguiente turno. Un corte de un minuto no
+  // puede dejar el tablero en blanco con un error que nadie provocó.
+  const cargar = useCallback(async (silenciosa = false) => {
     try {
       // AD2: las tareas, todas de una vez. El tablero cuenta las de cada
       // pieza, la pieza abierta recibe las suyas y las sueltas tienen panel.
@@ -170,6 +174,7 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
       setAtasco(tiempos)
       setError(null)
     } catch (causa) {
+      if (silenciosa) return
       setError(causa instanceof ErrorDeApi ? causa.message : 'No se pudo conectar')
     }
   }, [])
@@ -177,6 +182,24 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
   useEffect(() => {
     void cargar()
   }, [cargar])
+
+  // AZ2: la lista se recarga sola mientras la pestaña se ve, para que el
+  // título diga lo que te toca sin que nadie mande un mensaje. La pieza
+  // abierta es una copia aparte (`abierta`) y no se toca (AZ4).
+  //
+  // ponytail: una recarga que salió antes de marcar una tarea puede volver
+  // después y enseñarla sin marcar hasta la siguiente. En la base está bien;
+  // si se ve en el uso, se descarta la respuesta de una recarga que empezó
+  // antes del último cambio.
+  useEffect(() => recargarMientrasSeVe(() => void cargar(true)), [cargar])
+
+  // AZ1: lo que te toca, en el título. Al salir, la marca a secas.
+  useEffect(() => {
+    document.title = tituloDeLaPestana(piezas ? cuantasTeTocan(piezas, usuario) : 0)
+    return () => {
+      document.title = tituloDeLaPestana(0)
+    }
+  }, [piezas, usuario])
 
   // Z1: el catálogo sale de la lista que ya está cargada.
   const entradas = catalogo(piezas ?? [])
@@ -255,10 +278,7 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
               {activo && <SoloLasDe etiqueta={activo} alQuitar={() => setFiltro(null)} />}
               <div className="grid md:grid-cols-3 lg:grid-cols-[200px_repeat(6,minmax(0,1fr))]">
                 <div className="flex flex-col gap-8 pb-8 max-lg:col-span-full lg:pr-4">
-                  <TeToca
-                    cuantas={piezas.filter((p) => p.de_quien_es === usuario.rol).length}
-                    total={piezas.length}
-                  />
+                  <TeToca cuantas={cuantasTeTocan(piezas, usuario)} total={piezas.length} />
                   {/*
                     D3: al editor no se le enseña el formulario. Es **además**
                     del 403 del servidor, nunca en su lugar: §2.3 dice que

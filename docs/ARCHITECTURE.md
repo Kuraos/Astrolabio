@@ -127,7 +127,8 @@ correo, ni analítica, ni almacenamiento en la nube.
 │   │   ├── catalogo.ts       el catálogo de etiquetas, puro
 │   │   ├── cuadro.ts         las palabras del cuadro, lo que falta y los límites del caption
 │   │   ├── fechas.ts         fechas de calendario, semanas y su línea de tiempo
-│   │   ├── flujo.ts          las palabras de estados y transiciones
+│   │   ├── flujo.ts          las palabras de estados y transiciones, y cuántas te tocan
+│   │   ├── pestana.ts        el título de la pestaña y la recarga mientras se ve
 │   │   ├── recuento.ts       caracteres, palabras, fórmulas y hashtags, puros
 │   │   ├── tablero.ts        las piezas repartidas por estado, puro
 │   │   ├── piezaDePrueba.ts  la pieza de las pruebas del cliente
@@ -245,6 +246,12 @@ ruta del `.env` no es la compartida y la app no crea nada en ella.
   arrancar; con varios, pasarían a un paso de despliegue aparte.
 - **Las miniaturas se generan al vuelo** (ADR 0010). Si algún día pesan, se
   guardan y el ADR se revisa.
+- **El aviso de «te toca» es un sondeo, no un empuje**
+  ([fase 10](fase-10-atasco-copias-aviso.md), AZ). Cada navegador con la app
+  a la vista pide piezas, tareas y atasco cada minuto y al volver a la
+  pestaña, y pone lo que le toca en el título: `(1) Astrolabio`. Oculta, no
+  pide nada; cerrada, no avisa. Con dos usuarios son dos pedidos por minuto;
+  WebSockets o eventos del servidor serían otra pieza que mantener para eso.
 - **Disponibilidad**: la del PC de Johan. `/api/health` comprueba la
   conexión real con Postgres y responde 503 si falla; compose espera a que la
   base esté sana antes de arrancar la API.

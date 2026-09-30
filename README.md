@@ -20,7 +20,7 @@ de las piezas. Todo lo demás es infraestructura alrededor de eso.
 ## Estado
 
 Las fases 0 a 8 están cerradas y aprobadas con el editor. La 9 espera la
-clave de Johan, y la 10 está en curso.
+clave de Johan, y a la 10 le falta su prueba en el uso.
 
 - **Fase 0, el esqueleto**: sesión con cookie, dos roles y autorización
   comprobada en el servidor.
@@ -57,6 +57,13 @@ después saldrá del uso.
   la pieza lo dibuja en su rejilla. Es opcional: sin `ANTHROPIC_API_KEY` en el
   `.env`, la app es la de siempre. Falta la prueba con la clave de Johan. Su
   alcance está en [`docs/fase-9-bocetos.md`](docs/fase-9-bocetos.md).
+- **Fase 10, atasco, copias y aviso**: una estación con cuántos días lleva
+  cada pieza donde está y cuánto tardó cada etapa de las publicadas; una
+  copia diaria de la base en una carpeta del PC, que se probó restaurando; y
+  el título de la pestaña con lo que te toca, `(1) Astrolabio`, que se pone
+  al día solo mientras la pestaña se ve. Con la pestaña cerrada no hay aviso.
+  Falta su prueba en el uso. Su alcance está en
+  [`docs/fase-10-atasco-copias-aviso.md`](docs/fase-10-atasco-copias-aviso.md).
 
 ---
 
@@ -84,7 +91,7 @@ cp .env.example .env
 docker compose up --build
 ```
 
-Los tres servicios quedan arriba sin ningún paso manual adicional, y la
+Los cuatro servicios quedan arriba sin ningún paso manual adicional, y la
 aplicación queda en `http://localhost:8080`.
 
 El esquema lo crean **las migraciones**: el contenedor de `api` corre
@@ -107,6 +114,13 @@ Las contraseñas salen del entorno (`SEED_*`), nunca del código.
 El respaldo científico y la carpeta de material leen dos carpetas del host:
 `VAULT_HOST_PATH` y `SYNCTHING_HOST_PATH`, en `.env`. Sin ellas la aplicación
 arranca igual y cada panel dice qué falta.
+
+Las copias de la base caen en `COPIAS_HOST_PATH`, una al día, y se guardan
+catorce ([ADR 0017](docs/adr/0017-copias-de-la-base.md)). Por defecto es
+`./copias`, dentro del repositorio: si el repositorio vive en una carpeta
+sincronizada con la nube, las copias también suben, con los hashes de las
+contraseñas. Apúntala a una carpeta fuera de ella, y mejor en otro disco.
+Cómo se restaura está en [`ARCHITECTURE.md`](docs/ARCHITECTURE.md) §8.
 
 Los demás comandos —pruebas, `check` del cliente, migraciones— están en
 [`AGENTS.md`](AGENTS.md) §5.

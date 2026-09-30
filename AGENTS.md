@@ -286,7 +286,7 @@ sesiones en `.claude/worktrees/`.
   prueba con la clave de Johan se hace al final.
 - **Alcance vigente: `docs/fase-10-atasco-copias-aviso.md`**: dónde se
   atasca cada pieza, la copia de seguridad de la base y el aviso de «te
-  toca».
+  toca». El código está terminado; falta su prueba en el uso.
 - `docs/fase-11-guion-grafico.md`: bocetos de short y video largo. Solo las
   preguntas para el editor; no se modela hasta que las conteste (§2.8).
 

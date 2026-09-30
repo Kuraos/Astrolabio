@@ -1,6 +1,8 @@
 # Fase 10 — Dónde se atasca, copias y aviso
 
-**Aprobada el 2026-09-29**, con todas las decisiones de §7. Nace de que
+**Código terminado el 2026-09-30**, con todas las decisiones de §7; queda su
+prueba de terminado (§5) en el uso, y que Johan elija dónde caen las copias en
+su `.env`. Nace de que
 las fases 2 a 8 quedaron aprobadas con el editor y de tres huecos que el PRD ya
 nombraba: la métrica de §8.2, que se registra y no se ve; la copia de
 seguridad, que [ARCHITECTURE §8](ARCHITECTURE.md) dice que nadie programa; y el
@@ -269,3 +271,29 @@ Y las que se propusieron con el documento, aprobadas con él:
   1280 y a 375 px, como Johan y como el editor, sin desborde horizontal: los
   días de cada etapa cuadran con las historias, y el editor lee «Te toca» solo
   en la suya y nunca «editor».
+
+### El aviso
+
+- **La vigilancia de la pestaña es una función aparte**, `recargarMientrasSeVe`
+  en `pestana.ts`, que recibe el documento: vitest corre sin navegador, y así
+  se prueba con uno de mentira y el reloj de vitest que oculta no pide nada y
+  que al volver pide enseguida. Quitarle la condición de visibilidad hace
+  fallar dos pruebas.
+- **El conteo sale de `cuantasTeTocan`**, en `flujo.ts`: el bloque naranja y
+  el título no pueden decir cosas distintas.
+- **Un techo conocido**, con su comentario `ponytail:` en `App.tsx`: una
+  recarga que salió antes de marcar una tarea puede volver después y
+  enseñarla sin marcar hasta la siguiente. En la base está bien. Si se ve en
+  el uso, se descarta la respuesta de una recarga que empezó antes del último
+  cambio.
+- **Probado el 2026-09-30 en un navegador de verdad**, contra la pila aparte,
+  con el reloj de Playwright para no esperar minutos: el editor entra con
+  `(1) Astrolabio`; Johan, desde su sesión, le aprueba el material de otra
+  pieza, y al minuto el título pasa a `(2)` sin que nadie recargue; oculta,
+  diez minutos sin un pedido, y al volver, uno enseguida; con `/api/piezas`
+  cortado, la recarga falla sin aviso y el tablero y el título se quedan; con
+  una pieza abierta, el guion y la nota del traspaso a medio escribir siguen
+  igual tras la recarga, y «Sin guardar» también.
+- **Mirar la captura destapó un fallo de la prueba, no de la app**: el primer
+  campo de la pieza es la nota del traspaso, no el guion, y la primera versión
+  del script escribía ahí. Ahora escribe en los dos.

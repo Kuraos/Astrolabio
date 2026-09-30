@@ -54,6 +54,7 @@ sirve en pantalla sigue abierto ([estados §6](estados-del-flujo.md)).
 | 7 — Identidad «Control» | La interfaz gana una identidad propia sin cambiar lo que hace: sus colores y sus fuentes, un bloque naranja con lo que te toca, las semanas en una línea de tiempo y la pieza en estaciones. Aprobada con el editor | AG–AM · [fase 7](fase-7-identidad.md) |
 | 8 — El cuadro de materiales | La pieza lleva lo que pide el cuadro del editor, con sus palabras: tipo de pieza, propósito, nivel y destinos, lo que falta del cuadro, el copy de cada lámina con su largo y el caption con los límites de cada red. Todo viaja al vault. Aprobada con una pieza real | AN–AR · [fase 8](fase-8-cuadro-de-materiales.md) |
 | 9 — Bocetos con Claude | Un botón le pide a Claude el boceto de cada lámina de un carrusel, un post o un póster: qué elementos, cuánto pesa cada uno y dónde va. La API lo valida y lo guarda con lo que costó, y la pieza lo dibuja en su rejilla, con las cifras sin fuente avisadas. Falta la prueba con la clave de Johan | AS–AW · [fase 9](fase-9-bocetos.md) |
+| 10 — Atasco, copias y aviso | Una estación con los días de cada pieza en su estado y los de cada etapa de las publicadas, sin medias; una copia diaria de la base en una carpeta del PC, probada restaurando; y el título de la pestaña con lo que te toca, que se recarga solo mientras se ve. Falta su prueba en el uso | AX–BA · [fase 10](fase-10-atasco-copias-aviso.md) |
 
 Quién puede qué, hoy:
 

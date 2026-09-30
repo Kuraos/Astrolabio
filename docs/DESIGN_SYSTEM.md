@@ -149,6 +149,7 @@ Las piezas que se repiten viven en `web/src/ui.tsx`: `ANCHO`, `BOTON`,
 | Hecho | Caja con borde `control`, el rótulo «Escrito en» y la ruta en `mono-data`, con `role="status"` | Exportar al vault |
 | Te toca, el bloque | `TeToca`: fondo `signal`, el número en grande y «de N piezas» | Tablero, arriba a la izquierda |
 | Te toca, la marca | Un cuadrado de 8 px en `bg-signal` y el texto en `mono-label text-signal` | Tarjeta |
+| Te toca, el título | `(N) Astrolabio` en la pestaña, con el mismo conteo que el bloque (`cuantasTeTocan`); sin nada que te toque, `Astrolabio`. Se ve desde otra pestaña, que es para lo que está | Pestaña del navegador |
 | Turno del otro | `mono-label text-ink-3`: «Le toca a Johan», «Le toca al editor» | Tarjeta |
 | Franja de estados | Por columna, su número, su nombre, cuántas piezas tiene y de quién es, dicho desde quien mira (`duenoDelEstado`, en `flujo.ts`) | Tablero |
 | Tarjeta | Botón con la marca de turno, el título con la flecha y los datos en `mono-data`. La entrega y la publicación vencidas —anteriores a hoy—, en `text-alert`; las publicadas, en `ink-2` | Tablero |
