@@ -164,6 +164,8 @@ Las piezas que se repiten viven en `web/src/ui.tsx`: `ANCHO`, `BOTON`,
 | Límites del caption | Por destino, su nombre en `text-sm font-medium`, dónde va el caption si no es el pie, y las medidas en `mono-data`. Pasarse va en `text-alert` y en palabras, «1 de más»: el color solo no se oye. Sin límite comprobado, se dice | Caption |
 | Lámina del boceto | Una `figure`: «Lámina N» en `mono-label` y la idea en `text-sm` encima; la lámina, una rejilla de CSS en su proporción, sobre `surface`, con líneas `line` cada celda y borde `line-strong`; debajo, «Para la edición» en `mono-label` y la nota en `ink-2`. Tres por fila desde `xl`, dos desde `sm` | Boceto |
 | Elemento del boceto | En su zona de la rejilla, con «Tipo · peso» en `mono-data`. El peso, en el borde y la letra: 1, borde de 2 px en tinta sobre `raised` y 15 px en negrita; 2, borde `ink-2` y 13 px; 3, borde `control` y 12 px; 4, borde discontinuo `line-strong` y 11 px en `ink-2`. Figura y gráfica llevan el aspa, un SVG en `line-strong`, y su descripción en cursiva. En una zona de una fila, el rótulo y el texto van en línea | Boceto |
+| Fila del atasco | Los días en `mono-data` en una primera columna de 7 rem, como la fecha en la lista de semanas; al lado, el título y, debajo, el estado, el turno —«Te toca» en `text-signal`— y las vueltas atrás en `mono-data`. Toda la fila es un botón que abre la pieza | Atasco, en curso |
+| Etapas por columna | Una fila por pieza: el título a la izquierda y una lista de definición con una celda por etapa. Cada celda, los días en `mono-data` y una barra de 3 px en `control`, con la etapa más larga de toda la lista como el ancho entero, para que las barras se comparen entre piezas y entre etapas. Desde `md`, los rótulos van una vez arriba, `aria-hidden`, y el de cada celda pasa a `sr-only`; por debajo, cada celda lleva el suyo visible, en tres columnas. Sin fila de totales ni medias | Atasco, publicadas |
 | Miniatura | `aspect-square border border-line bg-surface object-contain`, cinco por fila desde `md` | Material |
 | Barra del guion | Cuatro grupos con borde `line-strong` —énfasis, bloques, lo que viene de fuera y fórmulas—, en `role="toolbar"` | Guion |
 | Editor y vista previa | «Markdown» y «Vista previa» rotulan las dos mitades. El editor, sobre `surface`; la vista previa, con la clase `.prosa` de `index.css` | Pestaña «Guion» de los textos |
@@ -214,6 +216,9 @@ Mirado a 1280 y a 375 px, sin desborde horizontal.
   En la lista, la fecha y el tipo de una entrada vencida van en rosa, y el
   tipo dice «atrasada», como en la línea: el color solo no lo oye el lector
   de pantalla.
+- **El atasco** pone las etapas de las publicadas en columnas desde `md`,
+  con sus rótulos arriba; por debajo, cada pieza lleva sus seis datos en
+  tres columnas, con el rótulo en cada uno.
 - **La pieza** pone sus estaciones en dos columnas desde `lg`, y el guion con
   su vista previa, lado a lado desde `md`. En pantalla estrecha, su barra
   pasa a dos filas y la pista de estados, a dos columnas. El cuadro de

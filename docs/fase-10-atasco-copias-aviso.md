@@ -68,10 +68,11 @@ Las letras siguen después de la AW de la Fase 9.
 
 ### AX. Dónde se atasca
 
-- **AX1** `GET /api/atasco` devuelve, por pieza, su id, su título, su estado,
-  si está publicada, los días que estuvo o lleva en cada estado, su ciclo y
-  cuántas veces la devolvieron o reformularon. Los dos roles pueden; sin
-  sesión, 401.
+- **AX1** `GET /api/atasco` devuelve, por pieza, su id, los segundos que
+  estuvo en cada estado, los que lleva en el de ahora —o nada si ya se
+  publicó—, su ciclo y cuántas veces la devolvieron y cuántas la
+  reformularon. El título, el estado y el turno ya los trae `/api/piezas`, y
+  el cliente los junta por id (§8). Los dos roles pueden; sin sesión, 401.
 - **AX2** El tiempo en un estado va de un traspaso al siguiente, empezando en
   `creada_en` para el primero y terminando en el momento de la consulta para el
   estado actual (la publicación cierra la cuenta: de `publicada` no sale
@@ -80,8 +81,10 @@ Las letras siguen después de la AW de la Fase 9.
 - **AX3** Si la pieza vuelve a un estado —«Devolver», «Reformular»—, ese
   tiempo se suma al del estado, y la devolución se cuenta aparte. La suma de
   las etapas es siempre el tiempo entre `creada_en` y ahora (o la publicación).
-- **AX4** Ninguna duración sale negativa: la diferencia entre dos `creado_en`
-  se acota en cero (§3). Una prueba lo fuerza con marcas invertidas.
+- **AX4** Ninguna duración sale negativa (§3), y la suma de AX3 sigue
+  siendo exacta: cada tramo se cuenta desde la marca más alta vista hasta
+  ahí, no desde la del traspaso anterior (§8). Una prueba lo fuerza con
+  marcas invertidas.
 - **AX5** El ciclo de una pieza va de su **primer** traspaso `entregar`
   —«solicitud entregada», lo más parecido al «guion cerrado» del §2.6— hasta
   `publicar`. Una pieza que nunca se entregó no tiene ciclo; una en curso lo
@@ -91,12 +94,13 @@ Las letras siguen después de la AW de la Fase 9.
   - **En curso**: las piezas sin publicar, la que lleva más días en su estado
     actual primero. Cada una dice su título, su estado, de quién es y cuántos
     días lleva ahí.
-  - **Publicadas**: cada una con su ciclo en días y una barra partida por
-    etapas, con el estado escrito en cada tramo, no solo el color.
+  - **Publicadas**: una fila por pieza con una columna por etapa —los días y
+    una barra proporcional— y su ciclo, con el nombre de cada etapa escrito,
+    no solo el color (§8).
   Pulsar una pieza la abre. El filtro por etiqueta (AB4) también filtra esta
   estación.
-- **AX7** Los días se leen como «hoy», «1 día» y «N días», y una pieza sin
-  datos dice «sin entregar». Es una función pura, con vitest.
+- **AX7** Los días se leen como «menos de 1 día», «1 día» y «N días», los
+  enteros que caben (§8). Es una función pura, con vitest.
 
 ### AY. Las copias
 
@@ -204,6 +208,8 @@ Y las que se propusieron con el documento, aprobadas con él:
 
 ## 8. Lo que apareció por el camino
 
+### Las copias
+
 - **Las copias no llevan las sesiones.** El `id` de `sesion` es la cookie tal
   cual (ADR 0006): con esas filas, una copia dejaría entrar como cualquiera de
   los dos. `pg_dump --exclude-table-data=sesion` copia la tabla vacía, y
@@ -232,3 +238,34 @@ Y las que se propusieron con el documento, aprobadas con él:
   no copia; con `COPIAS_GUARDAR=2` quedan dos; un `pg_dump` con la contraseña
   mala no deja parcial ni borra nada; la salud es mala sin copias o con una de
   hace tres días.
+
+### El atasco
+
+- **Contar desde la marca más alta, no desde la anterior.** Acotar cada tramo
+  en cero, como decía AX4, dejaba de restar tiempo pero lo inventaba: tras un
+  traspaso con marca invertida, el siguiente tramo empezaba antes y la suma
+  pasaba de la vida de la pieza. Contando desde el máximo visto, cada tramo es
+  cero o más y la suma sale exacta. La prueba de las marcas invertidas falla
+  si se quita.
+- **La API devuelve solo los tiempos.** El título, el estado, el turno y las
+  etiquetas ya llegan con `/api/piezas`, en el mismo turno de carga; repetirlos
+  sería otra forma de que se separen.
+- **Columnas por etapa en lugar de una barra partida.** Con una barra por
+  pieza, comparar el tramo del medio entre dos piezas es adivinar; con una
+  columna por etapa, en cuál se tarda se lee hacia abajo. Sin colores por
+  etapa, que la paleta no tiene (DESIGN_SYSTEM §1): cada columna lleva su
+  nombre y una barra en `control`, medida contra la etapa más larga de la
+  lista.
+- **«Menos de 1 día», no «hoy».** Una pieza que llegó anoche lleva menos de un
+  día, pero llegó ayer. «Sin entregar» no hizo falta: las en curso muestran lo
+  que llevan en su estado, y toda publicada pasó por una entrega.
+- **Mientras carga, «Cargando…».** La estación se pinta antes de que lleguen
+  las piezas, y decía «Todavía no hay piezas.». Se vio en la primera captura.
+- **Los días, primero en la fila.** Al final de una fila de 1440 px quedaban
+  lejos del título; delante, como la fecha en la lista de semanas, se leen de
+  un vistazo y ordenados.
+- **Mirado el 2026-09-29** en una pila aparte, con dos piezas publicadas y
+  cinco en curso de historias escritas a mano —una devuelta y reformulada—, a
+  1280 y a 375 px, como Johan y como el editor, sin desborde horizontal: los
+  días de cada etapa cuadran con las historias, y el editor lee «Te toca» solo
+  en la suya y nunca «editor».

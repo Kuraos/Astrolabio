@@ -181,7 +181,9 @@ vuelo y no se guardan ([ADR 0010](adr/0010-la-carpeta-de-cada-pieza.md)).
 2. **Dónde se atasca.** Cuánto tarda una pieza entre `solicitud entregada`
    —lo más parecido al «guion cerrado» del §2.6— y `publicada`, y en qué etapa
    se detiene. Sale de la tabla `traspaso`, que es de solo inserción justo
-   para eso. Hoy se registra; ninguna pantalla lo muestra todavía.
+   para eso, y lo muestra la estación «Atasco» del tablero
+   ([fase 10](fase-10-atasco-copias-aviso.md)): los días de cada pieza en su
+   estado, y los de cada etapa de las publicadas, sin medias.
 3. **Cómo le va a lo publicado.** El panel de métricas de plataforma aún no
    existe. Cuando llegue, conteos y curvas individuales, sin rankings de tema
    con menos de ~5 piezas por combinación

@@ -19,7 +19,10 @@ flowchart LR
         web["web · nginx<br/>sirve el build<br/>y hace de proxy"]
         api["api · FastAPI"]
         db[("db · Postgres 18")]
+        copias["copias · pg_dump"]
     end
+
+    carpeta[("carpeta de copias<br/>en el PC, fuera de Docker")]
 
     vault[("vault de Obsidian<br/>solo 03-Negocios/Voz-del-Cosmos")]
     compartida[("carpeta de Syncthing<br/>una carpeta por pieza")]
@@ -35,6 +38,8 @@ flowchart LR
     compartida <-->|"Syncthing"| copia
     editor -.->|"abre los originales"| copia
     api -.->|"pide un boceto,<br/>con un botón"| claude
+    copias -->|"lee"| db
+    copias -->|"una al día"| carpeta
 ```
 
 - **Un solo origen.** El navegador conoce una dirección y un puerto: `web`
@@ -79,8 +84,11 @@ correo, ni analítica, ni almacenamiento en la nube.
 ```text
 .
 ├── AGENTS.md                 instrucciones para agentes (CLAUDE.md lo importa)
-├── compose.yaml              los tres servicios y sus montajes
+├── compose.yaml              los cuatro servicios y sus montajes
 ├── .env.example              todas las variables, sin valores reales
+├── .gitattributes            LF en los .sh, que corren en un contenedor
+├── db/
+│   └── copias.sh             copia la base cada día, y la restaura (ADR 0017)
 ├── api/
 │   ├── app/
 │   │   ├── main.py           monta los routers y /api/health
@@ -94,6 +102,7 @@ correo, ni analítica, ni almacenamiento en la nube.
 │   │   ├── traspasos.py      la máquina de estados y su historia
 │   │   ├── material.py       enlaces y la carpeta de la pieza en Syncthing
 │   │   ├── tareas.py         la checklist de cada pieza y las tareas sueltas
+│   │   ├── atasco.py         cuánto estuvo cada pieza en cada estado
 │   │   ├── respaldo.py       lee las notas literature del vault
 │   │   ├── exportador.py     escribe la pieza en el vault
 │   │   └── bocetos.py        pide el boceto a Claude, lo valida y lo guarda
@@ -102,7 +111,7 @@ correo, ni analítica, ni almacenamiento en la nube.
 ├── web/
 │   ├── src/
 │   │   ├── main.tsx          punto de entrada, y las fuentes
-│   │   ├── App.tsx           entrada, tablero, semanas y pieza nueva
+│   │   ├── App.tsx           entrada, tablero, semanas, atasco y pieza nueva
 │   │   ├── ui.tsx            botones, campos, estación, pestañas y aviso: lo que se repite
 │   │   ├── Pieza.tsx         la vista de una pieza y sus paneles
 │   │   ├── CuadroDeMateriales.tsx  tipo de pieza, propósito, nivel y destino
@@ -112,6 +121,7 @@ correo, ni analítica, ni almacenamiento en la nube.
 │   │   ├── Temas.tsx         el tema y las etiquetas de la pieza
 │   │   ├── Tareas.tsx        la lista de tareas: la checklist y las sueltas
 │   │   ├── api.ts            pedir(), ErrorDeApi y los tipos de la API
+│   │   ├── atasco.ts         los días de cada pieza en palabras, y en qué orden, puro
 │   │   ├── barra.ts          las acciones de la barra del guion, puras
 │   │   ├── boceto.ts         el orden de lectura del boceto y si se quedó viejo, puro
 │   │   ├── catalogo.ts       el catálogo de etiquetas, puro

@@ -109,6 +109,20 @@ export type Traspaso = {
   nota: string | null
 }
 
+/**
+ * Dónde se atasca una pieza (AX1), en segundos. Solo los tiempos: lo demás de
+ * la pieza viene de `/api/piezas`, y se junta por `pieza_id`. `en_estado` es
+ * `null` cuando ya se publicó, y `ciclo`, cuando nunca se entregó.
+ */
+export type Atasco = {
+  pieza_id: number
+  etapas: { estado: string; segundos: number }[]
+  en_estado: number | null
+  ciclo: number | null
+  devoluciones: number
+  reformulaciones: number
+}
+
 export type NotaDeRespaldo = {
   archivo: string
   fuente_titulo: string
