@@ -1,4 +1,4 @@
-# Astrolabio — los tres servicios de la Fase 0.
+# Astrolabio — los tres servicios de la Fase 0, y las copias de la Fase 10.
 #
 # Ninguna dirección ni puerto va escrito aquí como literal: todo sale de .env
 # (criterio A3). Copiar .env.example a .env y `docker compose up --build`.
@@ -7,7 +7,7 @@ services:
   db:
     # Por digest, como todas las imágenes base (ADR 0013): esta máquina y la CI
     # corren la misma, y cambiarla es un commit.
-    image: postgres:18-alpine@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873
+    image: &postgres postgres:18-alpine@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -77,6 +77,40 @@ services:
         condition: service_healthy
     expose:
       - "${API_PORT}"
+
+  # Las copias de la base (Fase 10, AY; ADR 0017). Sin ellas, borrar el volumen
+  # —restaurar Docker Desktop a fábrica, por ejemplo— se lleva las piezas y su
+  # historia.
+  copias:
+    # La misma imagen que `db`, por el ancla de arriba: pg_dump tiene que ser
+    # de la versión del servidor, y así un solo digest mueve las dos.
+    image: *postgres
+    entrypoint: ["sh", "/copias.sh"]
+    # Para que `docker compose stop` no espere diez segundos a un `sleep`.
+    init: true
+    environment:
+      PGHOST: db
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB}
+      # Con valor por defecto, como Syncthing: un `.env` de antes de la Fase 10
+      # no las tiene.
+      COPIAS_CADA_HORAS: ${COPIAS_CADA_HORAS:-24}
+      COPIAS_GUARDAR: ${COPIAS_GUARDAR:-14}
+    volumes:
+      - ./db/copias.sh:/copias.sh:ro
+      # Una carpeta del PC y no un volumen: lo que se quiere es que sobreviva
+      # a Docker.
+      - ${COPIAS_HOST_PATH:-./copias}:/copias
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      # AY4: sana si hay una copia de menos de dos periodos.
+      test: ["CMD", "sh", "/copias.sh", "sana"]
+      interval: 10m
+      start_period: 5m
+      start_interval: 10s
 
   web:
     build: ./web

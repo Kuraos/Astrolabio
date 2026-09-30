@@ -29,6 +29,23 @@ jobs:
       - name: docker compose run api pytest
         run: docker compose run --rm api pytest
 
+      # AY5 (ADR 0017): una copia que nunca se restauró es una suposición. Se
+      # copia la base que dejaron las migraciones, se restaura en otra y se
+      # comprueba que el trigger del ADR 0008 llegó con ella. Falla si subir
+      # el digest de Postgres rompe `pg_dump` o el script.
+      #
+      # Se busca el mensaje del trigger y no solo que `DELETE` falle: sin la
+      # base `restaurada`, psql también fallaría, y la prueba pasaría sin
+      # haber comprobado nada.
+      - name: Copia y restauración de la base
+        run: |
+          docker compose run --rm copias una
+          docker compose run --rm copias restaurar "$(ls copias | tail -n 1)" restaurada
+          salida=$(docker compose exec -T db sh -c \
+            'psql -U "$POSTGRES_USER" -d restaurada -c "DELETE FROM traspaso"' 2>&1 || true)
+          echo "$salida"
+          echo "$salida" | grep -q "append-only"
+
   frontend:
     name: tsc y build (E2)
     runs-on: ubuntu-latest

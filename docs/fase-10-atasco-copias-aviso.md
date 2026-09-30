@@ -101,10 +101,11 @@ Las letras siguen después de la AW de la Fase 9.
 ### AY. Las copias
 
 - **AY1** Un servicio `copias` en compose, con la imagen de Postgres ya fijada
-  por digest, que hace `pg_dump -Fc` de la base al arrancar y cada
-  `COPIAS_CADA_HORAS` horas (24 por defecto), en
-  `astrolabio-AAAAMMDD-HHMMSS.dump`. Guarda las últimas `COPIAS_GUARDAR`
-  (14 por defecto) y borra las demás.
+  por digest, que cada hora mira si la última copia tiene más de
+  `COPIAS_CADA_HORAS` horas (24 por defecto) y, si la tiene, hace un
+  `pg_dump -Fc` de la base en `astrolabio-AAAAMMDD-HHMMSS.dump`, con la hora en
+  UTC (§8). Guarda las últimas `COPIAS_GUARDAR` (14 por defecto) y borra las
+  demás. Sin las filas de `sesion` (§8).
 - **AY2** La copia se escribe con un nombre provisional y se renombra al
   terminar, y las viejas solo se borran si la nueva salió bien. Una copia a
   medias nunca cuenta como copia, ni hace perder la anterior.
@@ -200,3 +201,34 @@ Y las que se propusieron con el documento, aprobadas con él:
 9. **Los bocetos de short y video largo son la Fase 11**, aparte de esta: qué
    lleva un guion gráfico no está dicho, y la §2.8 pide que salga de las
    palabras del editor antes de modelar nada.
+
+## 8. Lo que apareció por el camino
+
+- **Las copias no llevan las sesiones.** El `id` de `sesion` es la cookie tal
+  cual (ADR 0006): con esas filas, una copia dejaría entrar como cualquiera de
+  los dos. `pg_dump --exclude-table-data=sesion` copia la tabla vacía, y
+  restaurar cuesta volver a entrar. Comprobado: la base viva tenía dos
+  sesiones y la restaurada, ninguna.
+- **Mirar cada hora en vez de copiar al arrancar y dormir un periodo.** Con
+  14 copias guardadas, catorce reinicios en un día habrían borrado las dos
+  semanas de historia; y un PC apagado tres días no copiaría hasta un día
+  después de encenderlo. Ahora un reinicio no copia si la última es reciente,
+  y el PC que vuelve copia enseguida.
+- **`COPIAS_GUARDAR=0` habría borrado la copia recién hecha.** El script
+  rechaza cualquier valor que no sea un entero desde 1, y no arranca.
+- **`restaurar` se niega si la base de destino tiene tablas.** Es la orden
+  que se teclea en el peor día, y no puede pisar la base viva por un nombre
+  equivocado. Después de perder el volumen, la base que crea Postgres está
+  vacía y se restaura en ella: el orden está en ARCHITECTURE §8.
+- **Git habría convertido el script a CRLF** en Windows (`core.autocrlf`), y
+  `sh` lee el `\r` como parte de cada orden. `.gitattributes` fija LF en los
+  `.sh`.
+- **La CI copia y restaura en cada push**, y comprueba el mensaje del trigger
+  del ADR 0008 en la restaurada, no solo que el `DELETE` falle: sin la base,
+  psql también fallaría y la prueba pasaría sin comprobar nada.
+- **Probado el 2026-09-29 en una pila aparte**, con piezas, traspasos, tareas,
+  usuarios y sesiones: los conteos, un guion con LaTeX y una nota con ñ salen
+  iguales; el trigger rechaza `UPDATE` y `DELETE` en la restaurada; un reinicio
+  no copia; con `COPIAS_GUARDAR=2` quedan dos; un `pg_dump` con la contraseña
+  mala no deja parcial ni borra nada; la salud es mala sin copias o con una de
+  hace tres días.

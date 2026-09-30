@@ -212,6 +212,20 @@ desde cualquier shell.
 arriba son para generar una migración nueva o aplicarlas a mano. **El esquema
 no se crea con `create_all` en ningún sitio**, y hay una prueba que lo vigila.
 
+Copias de la base (ADR 0017). `docker compose up` levanta el servicio
+`copias`, que las deja en `COPIAS_HOST_PATH`:
+
+```bash
+docker compose ps copias                               # sana si hay una reciente
+docker compose logs copias                             # cuáles hizo, o por qué falló
+docker compose run --rm copias una                     # una copia ahora
+docker compose run --rm copias restaurar <archivo> <base>
+```
+
+`restaurar` toma el nombre del archivo, sin carpeta, y solo escribe en una base
+vacía o que no existe. Cómo se vuelve de un volumen perdido está en
+ARCHITECTURE §8.
+
 Dependencias de la api (ADR 0013). `requirements.txt` lo edita una persona;
 `constraints.txt` fija todo lo que instala la imagen, transitivas incluidas, y
 se regenera cuando cambia el primero:

@@ -238,8 +238,23 @@ ruta del `.env` no es la compartida y la app no crea nada en ella.
 - **Disponibilidad**: la del PC de Johan. `/api/health` comprueba la
   conexión real con Postgres y responde 503 si falla; compose espera a que la
   base esté sana antes de arrancar la API.
-- **Copias de seguridad: el repositorio no programa ninguna.** Los datos
-  viven en el volumen `db-data`. El ADR 0003 cuenta con que la base es
-  pequeña y cabe en un `pg_dump`, pero nada aquí lo ejecuta: si se borra el
-  volumen —por ejemplo, restaurando Docker Desktop a fábrica—, se pierden las
-  piezas y su historia.
+- **Copias de seguridad**
+  ([ADR 0017](adr/0017-copias-de-la-base.md)). Los datos viven en el volumen
+  `db-data`, y el servicio `copias` hace un `pg_dump` a `COPIAS_HOST_PATH`,
+  una carpeta del PC fuera de Docker: uno cuando el último tiene más de
+  `COPIAS_CADA_HORAS`, y guarda `COPIAS_GUARDAR`. Sin las filas de `sesion`,
+  que son cookies. Los nombres llevan la hora en UTC:
+  `astrolabio-20260929-153000.dump`.
+
+  **Restaurar después de perder el volumen**, con la app parada:
+
+  1. `docker compose up -d db` levanta una base vacía. La api todavía no:
+     crearía las tablas y la restauración se negaría.
+  2. `docker compose run --rm copias restaurar <archivo> <POSTGRES_DB>`, con
+     el nombre del archivo, sin carpeta, y el de la base del `.env`. Restaura
+     todo o nada, y se niega si la base ya tiene tablas.
+  3. `docker compose up -d`. Las migraciones ya están al día, y cada uno
+     vuelve a entrar con su contraseña.
+
+  Para comprobar una copia sin tocar nada, se restaura en una base nueva
+  —`restaurar <archivo> prueba`— y se mira con `psql`.
