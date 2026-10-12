@@ -1,7 +1,8 @@
 # ADR 0016 — Los bocetos, con Claude: el primer servicio externo
 
 - **Fecha**: 2026-09-26
-- **Estado**: aceptada
+- **Estado**: aceptada; enmendada por el
+  [ADR 0018](0018-bocetos-por-openrouter.md) en por dónde viaja la petición
 - **Contexto**: criterios AS–AW de `docs/fase-9-bocetos.md`. Toca el
   [ADR 0002](0002-autoalojado-con-tailscale.md), que deja la app en el PC de
   Johan, sin nube, y el [ADR 0013](0013-transitivas-e-imagenes-fijadas.md),

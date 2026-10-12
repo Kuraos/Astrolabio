@@ -5,6 +5,9 @@ de cada lámina con una salida estructurada, lo valida y lo guarda; el cliente
 lo dibuja desde los datos. Sin clave, la app es la de siempre y el panel lo
 dice.
 
+La petición viaja por OpenRouter, que habla el formato de la API de Anthropic
+(ADR 0018): el SDK es el mismo, con otra dirección y la clave de OpenRouter.
+
 La llamada al SDK vive sola en `pedir_a_claude`, y el resto recibe una
 `Respuesta` sin nada del SDK: así las pruebas simulan a Claude sin red y sin
 gastar.
@@ -123,27 +126,31 @@ class Respuesta:
 Dibujante = Callable[[str], Respuesta]
 
 
+# El SDK le añade `/v1/messages`.
+OPENROUTER = "https://openrouter.ai/api"
+
+
 @lru_cache
 def _cliente(clave: str) -> anthropic.Anthropic:
-    return anthropic.Anthropic(api_key=clave)
+    # `auth_token` y no `api_key`: OpenRouter lee la clave de `Authorization:
+    # Bearer`, y `api_key` la mandaría en `x-api-key` (ADR 0018).
+    return anthropic.Anthropic(auth_token=clave, base_url=OPENROUTER)
 
 
 def pedir_a_claude(cliente: anthropic.Anthropic, modelo: str, mensaje: str) -> Respuesta:
     """AS3 y AS4: una petición, con la salida estructurada del esquema.
 
     En streaming, porque un carrusel largo, con razonamiento, no cabe en los
-    16.000 tokens de una petición sin él (fase 9, §7.11). Y con el respaldo
-    ante una negativa (§7.12): si el modelo declina, la API reintenta con otro
-    dentro de la misma petición, y `modelo` dice cuál respondió.
+    16.000 tokens de una petición sin él (fase 9, §7.11). Sin el respaldo ante
+    una negativa del §7.12, que es de la API de Anthropic y por OpenRouter no
+    existe con esa forma (ADR 0018): si el modelo declina, `fin` lo dice.
     """
-    with cliente.beta.messages.stream(
+    with cliente.messages.stream(
         model=modelo,
         max_tokens=64000,
         system=SISTEMA,
         messages=[{"role": "user", "content": mensaje}],
         output_config={"format": {"type": "json_schema", "schema": ESQUEMA}},
-        betas=["server-side-fallback-2026-07-01"],
-        fallbacks="default",
     ) as stream:
         final = stream.get_final_message()
 
@@ -158,9 +165,9 @@ def pedir_a_claude(cliente: anthropic.Anthropic, modelo: str, mensaje: str) -> R
 
 def dibujante() -> Dibujante | None:
     """AS5: sin clave no hay quien dibuje, y la app sigue igual."""
-    if not settings.anthropic_api_key:
+    if not settings.openrouter_api_key:
         return None
-    cliente = _cliente(settings.anthropic_api_key)
+    cliente = _cliente(settings.openrouter_api_key)
     return lambda mensaje: pedir_a_claude(cliente, settings.bocetos_modelo, mensaje)
 
 
@@ -196,7 +203,7 @@ def por_que_no(pieza: Pieza, dibujar: Dibujante | None) -> str | None:
     if dibujar is None:
         return (
             "Los bocetos no están configurados en este despliegue: falta "
-            "ANTHROPIC_API_KEY en el .env."
+            "OPENROUTER_API_KEY en el .env."
         )
     if not pieza.formato:
         return "Elige el tipo de pieza en el cuadro de materiales: el boceto se hace en su rejilla."
@@ -359,16 +366,21 @@ def ver_bocetos(
     )
 
 
-# AS7: lo que responde Anthropic, dicho para quien lo lee en la pieza.
-_FALLOS_DE_ANTHROPIC: list[tuple[type[Exception], str]] = [
-    (anthropic.AuthenticationError, "Anthropic no acepta la clave: revisa ANTHROPIC_API_KEY en el .env."),
-    (anthropic.RateLimitError, "Anthropic pide esperar: van demasiadas peticiones seguidas. Prueba en un minuto."),
-    (anthropic.APIStatusError, "La API de Anthropic falló. Prueba otra vez en un rato."),
+# AS7: lo que responde OpenRouter, dicho para quien lo lee en la pieza. Las
+# clases de error son las del SDK, que las elige por el código HTTP.
+_FALLOS_DE_OPENROUTER: list[tuple[type[Exception], str]] = [
+    (anthropic.AuthenticationError, "OpenRouter no acepta la clave: revisa OPENROUTER_API_KEY en el .env."),
+    (anthropic.RateLimitError, "OpenRouter pide esperar: van demasiadas peticiones seguidas. Prueba en un minuto."),
+    (anthropic.APIStatusError, "OpenRouter falló. Prueba otra vez en un rato."),
     (
         anthropic.APIConnectionError,
-        "No se pudo hablar con Anthropic: revisa la conexión a internet del PC donde corre Astrolabio.",
+        "No se pudo hablar con OpenRouter: revisa la conexión a internet del PC donde corre Astrolabio.",
     ),
 ]
+
+# El 402 no tiene clase propia en el SDK, y es el fallo más probable de una
+# cuenta de prepago.
+_SIN_SALDO = "OpenRouter no tiene saldo para este boceto: recarga créditos en openrouter.ai."
 
 
 @router.post(
@@ -386,7 +398,7 @@ def pedir_boceto(
 
     Se hace con lo que está guardado de la pieza, no con lo que alguien tenga
     a medio escribir. Un intento con respuesta se guarda aunque falle, porque
-    costó (AU1); uno que no llegó a Anthropic, no.
+    costó (AU1); uno que no llegó a OpenRouter, no.
     """
     pieza = _buscar(db, pieza_id)
     motivo = por_que_no(pieza, dibujar)
@@ -399,9 +411,11 @@ def pedir_boceto(
     except anthropic.APIError as exc:
         # La primera clase que coincide: de la más concreta a la más general.
         detalle = next(
-            (texto for clase, texto in _FALLOS_DE_ANTHROPIC if isinstance(exc, clase)),
-            "La API de Anthropic falló. Prueba otra vez en un rato.",
+            (texto for clase, texto in _FALLOS_DE_OPENROUTER if isinstance(exc, clase)),
+            "OpenRouter falló. Prueba otra vez en un rato.",
         )
+        if getattr(exc, "status_code", None) == 402:
+            detalle = _SIN_SALDO
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=detalle) from exc
 
     boceto = Boceto(

@@ -228,7 +228,7 @@ def test_la_peticion_pide_la_salida_estructurada():
         anotado.update(parametros)
         return Stream()
 
-    cliente = SimpleNamespace(beta=SimpleNamespace(messages=SimpleNamespace(stream=stream)))
+    cliente = SimpleNamespace(messages=SimpleNamespace(stream=stream))
 
     respuesta = bocetos.pedir_a_claude(cliente, "claude-opus-5", "el mensaje")
 
@@ -238,8 +238,9 @@ def test_la_peticion_pide_la_salida_estructurada():
     assert anotado["output_config"] == {
         "format": {"type": "json_schema", "schema": bocetos.ESQUEMA}
     }
-    assert anotado["fallbacks"] == "default"
-    assert anotado["betas"] == ["server-side-fallback-2026-07-01"]
+    # El respaldo ante una negativa es de la API de Anthropic (ADR 0018).
+    assert "fallbacks" not in anotado
+    assert "betas" not in anotado
     assert respuesta == bocetos.Respuesta(
         texto='{"laminas": []}',
         modelo="claude-opus-5",
@@ -267,6 +268,14 @@ def test_el_esquema_admite_solo_lo_que_valida_la_app():
     assert all(d["additionalProperties"] is False for d in definiciones.values())
 
 
+def test_el_cliente_habla_con_openrouter_y_manda_la_clave_como_bearer():
+    """ADR 0018: con `api_key` la clave iría en `x-api-key`, que OpenRouter no lee."""
+    cliente = bocetos._cliente("sk-or-de-prueba")
+
+    assert str(cliente.base_url) == "https://openrouter.ai/api/"
+    assert cliente.auth_headers == {"Authorization": "Bearer sk-or-de-prueba"}
+
+
 # --- AS5 y AS6: cuándo no se puede ---
 
 
@@ -278,7 +287,7 @@ def test_sin_clave_la_app_sigue_y_lo_dice(cliente: TestClient, pieza: Pieza):
     pedido = _pedir(cliente, pieza)
 
     assert estado["disponible"] is False
-    assert "ANTHROPIC_API_KEY" in estado["motivo"]
+    assert "OPENROUTER_API_KEY" in estado["motivo"]
     assert pedido.status_code == 409
     assert pedido.json()["detail"] == estado["motivo"]
 
@@ -452,9 +461,9 @@ def test_una_cifra_sin_fuente_avisa_y_no_rechaza(
     assert respuesta.json()["avisos"] == ["Lámina 2: 150 no está en el guion ni en el copy."]
 
 
-# --- AS7: lo que falla en Anthropic ---
+# --- AS7: lo que falla en OpenRouter ---
 
-_PETICION = httpx2.Request("POST", "https://api.anthropic.com/v1/messages")
+_PETICION = httpx2.Request("POST", "https://openrouter.ai/api/v1/messages")
 
 
 def _respuesta_http(codigo: int) -> httpx2.Response:
@@ -470,17 +479,21 @@ def _respuesta_http(codigo: int) -> httpx2.Response:
         ),
         (
             anthropic.RateLimitError("x", response=_respuesta_http(429), body=None),
-            "Anthropic pide esperar",
+            "OpenRouter pide esperar",
         ),
         (
             anthropic.InternalServerError("x", response=_respuesta_http(500), body=None),
-            "La API de Anthropic falló",
+            "OpenRouter falló",
+        ),
+        (
+            anthropic.APIStatusError("x", response=_respuesta_http(402), body=None),
+            "no tiene saldo",
         ),
         (anthropic.APIConnectionError(request=_PETICION), "revisa la conexión a internet"),
         (anthropic.APITimeoutError(request=_PETICION), "revisa la conexión a internet"),
     ],
 )
-def test_un_fallo_de_anthropic_es_502_en_espanol(
+def test_un_fallo_de_openrouter_es_502_en_espanol(
     cliente: TestClient, pieza: Pieza, sesion_db: Session, claude: Claude, error, detalle
 ):
     """No llegó respuesta, así que no hay tokens que guardar."""

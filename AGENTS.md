@@ -136,7 +136,7 @@ demasiado pronto.
 | Red | Tailscale | El editor entra por red privada cifrada, sin nube y sin abrir puertos |
 | Auth | Sesión en cookie `HttpOnly` + Argon2 | Dos usuarios; un proveedor OAuth externo sería infraestructura sin beneficio |
 | Guion | Markdown + KaTeX | El contenido lleva fórmulas y deben conservarse en LaTeX real |
-| Bocetos | Claude, con el SDK `anthropic` | Opcional: sin clave en el `.env` no se usa. El único servicio de fuera ([ADR 0016](docs/adr/0016-bocetos-con-claude.md)) |
+| Bocetos | Claude, por OpenRouter, con el SDK `anthropic` | Opcional: sin clave en el `.env` no se usa. El único servicio de fuera ([ADR 0016](docs/adr/0016-bocetos-con-claude.md) y [0018](docs/adr/0018-bocetos-por-openrouter.md)) |
 
 **Tauri no se usa**, a diferencia de Grimoire, y es deliberado: el cliente
 del editor tiene que ser un navegador. Si más adelante hace falta una
@@ -308,3 +308,5 @@ Registros de decisión:
 - `docs/adr/0014-identidad-con-tokens-y-fuentes-propias.md`
 - `docs/adr/0015-el-cuadro-de-materiales-viaja-al-vault.md`
 - `docs/adr/0016-bocetos-con-claude.md`
+- `docs/adr/0017-copias-de-la-base.md`
+- `docs/adr/0018-bocetos-por-openrouter.md`
