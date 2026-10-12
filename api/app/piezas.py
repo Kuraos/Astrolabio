@@ -8,7 +8,7 @@ mitad del valor del producto.
 
 import re
 import unicodedata
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from typing import Literal, get_args
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -162,6 +162,7 @@ class PiezaPublica(BaseModel):
     fecha_publicacion_prevista: date | None
     estado: str
     de_quien_es: str | None
+    archivada_en: datetime | None
     # La rellena `_publica`: depende de quién pregunta, y la pieza no lo sabe.
     transiciones: list[str] = []
 
@@ -191,13 +192,23 @@ def _publica(pieza: Pieza, usuario: Usuario) -> PiezaPublica:
 
 @router.get("", response_model=list[PiezaPublica])
 def listar_piezas(
+    archivadas: bool = False,
     usuario: Usuario = Depends(usuario_actual),
     db: Session = Depends(get_db),
 ) -> list[PiezaPublica]:
     """C3: los dos roles ven la misma lista. Solo cambian las `transiciones`,
     que dependen de quién pregunta (K4).
+
+    BD2: las del taller, o con `?archivadas=true`, solo las archivadas. Nunca
+    mezcladas: el tablero y el aviso de «te toca» cuentan lo que llega aquí.
     """
-    piezas = db.query(Pieza).order_by(Pieza.creada_en.desc()).all()
+    en_el_taller = Pieza.archivada_en.is_(None)
+    piezas = (
+        db.query(Pieza)
+        .filter(~en_el_taller if archivadas else en_el_taller)
+        .order_by(Pieza.creada_en.desc())
+        .all()
+    )
     return [_publica(pieza, usuario) for pieza in piezas]
 
 
@@ -267,6 +278,45 @@ def editar_pieza(
     for campo, valor in cambios_pedidos.items():
         setattr(pieza, campo, valor)
 
+    db.commit()
+    db.refresh(pieza)
+
+    return _publica(pieza, usuario)
+
+
+@router.post("/{pieza_id}/archivar", response_model=PiezaPublica)
+def archivar_pieza(
+    pieza_id: int,
+    usuario: Usuario = Depends(usuario_actual),
+    db: Session = Depends(get_db),
+) -> PiezaPublica:
+    """BD1: solo `investigador`, como crearla. No borra nada: la pieza, su
+    historia, sus tareas y sus bocetos siguen en la base (§2.6).
+
+    Archivar una ya archivada no mueve la fecha: cuenta la primera vez.
+    """
+    _solo_investigador(usuario)
+    pieza = _buscar(db, pieza_id)
+
+    if pieza.archivada_en is None:
+        pieza.archivada_en = datetime.now(timezone.utc)
+        db.commit()
+        db.refresh(pieza)
+
+    return _publica(pieza, usuario)
+
+
+@router.post("/{pieza_id}/desarchivar", response_model=PiezaPublica)
+def desarchivar_pieza(
+    pieza_id: int,
+    usuario: Usuario = Depends(usuario_actual),
+    db: Session = Depends(get_db),
+) -> PiezaPublica:
+    """BD3: vuelve al taller como estaba, en su estado y con su historia."""
+    _solo_investigador(usuario)
+    pieza = _buscar(db, pieza_id)
+
+    pieza.archivada_en = None
     db.commit()
     db.refresh(pieza)
 

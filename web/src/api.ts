@@ -52,6 +52,8 @@ export type Pieza = {
   // K4: los tres los decide el servidor. `transiciones` son las que puede dar
   // quien pregunta, y el cliente pinta esas y no otras (N2).
   estado: string
+  /** BD1: cuándo salió del taller, o `null` si sigue en él. */
+  archivada_en: string | null
   de_quien_es: Rol | null
   transiciones: string[]
 }

@@ -182,6 +182,12 @@ class Pieza(Base):
         String(30), server_default="investigacion", default="investigacion"
     )
 
+    # BD1: una pieza no se borra, se archiva: su historia es append-only y no
+    # se puede ir con ella (ADR 0008). Nula mientras está en el taller.
+    archivada_en: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), default=None
+    )
+
     # AF1: el exportador busca aquí el día en que se publicó. Solo lectura: la
     # historia se escribe en `traspasos.py`, y `viewonly` impide que la pieza
     # la toque, ni siquiera anulando su clave al borrarse, que sería un

@@ -8,6 +8,7 @@ import {
   diaDeLaSemana,
   diaYMes,
   entregaPendiente,
+  fechaYHora,
   lineaDeTiempo,
   semanas,
   type Semana,
@@ -139,6 +140,8 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
   const [filtro, setFiltro] = useState<string | null>(null)
   const [tareas, setTareas] = useState<Tarea[]>([])
   const [atasco, setAtasco] = useState<Atasco[]>([])
+  // BD3: las que salieron del taller. Solo las pide y las ve Johan.
+  const [archivadas, setArchivadas] = useState<Pieza[]>([])
   // Dónde estaba el tablero al abrir la pieza, para devolverlo al volver.
   const desplazamiento = useRef(0)
 
@@ -164,20 +167,22 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
       // AD2: las tareas, todas de una vez. El tablero cuenta las de cada
       // pieza, la pieza abierta recibe las suyas y las sueltas tienen panel.
       // AX1: y los tiempos, en el mismo turno, para que casen con las piezas.
-      const [nuevas, todas, tiempos] = await Promise.all([
+      const [nuevas, todas, tiempos, fuera] = await Promise.all([
         pedir<Pieza[]>('/api/piezas'),
         pedir<Tarea[]>('/api/tareas'),
         pedir<Atasco[]>('/api/atasco'),
+        usuario.rol === 'investigador' ? pedir<Pieza[]>('/api/piezas?archivadas=true') : [],
       ])
       setPiezas(nuevas)
       setTareas(todas)
       setAtasco(tiempos)
+      setArchivadas(fuera)
       setError(null)
     } catch (causa) {
       if (silenciosa) return
       setError(causa instanceof ErrorDeApi ? causa.message : 'No se pudo conectar')
     }
-  }, [])
+  }, [usuario.rol])
 
   useEffect(() => {
     void cargar()
@@ -327,6 +332,18 @@ function Taller({ usuario, alSalir }: { usuario: Usuario; alSalir: () => void })
               actualizar={setTareas}
             />
           </Estacion>
+
+          {/* BD3: lo que salió del taller, para abrirlo o devolverlo. Sin
+              ninguna archivada, la estación no está. */}
+          {archivadas.length > 0 && (
+            <Estacion
+              titulo="Archivadas"
+              extra={<span className="mono-label text-ink-3">Fuera del taller</span>}
+              className="max-w-xl"
+            >
+              <Archivadas piezas={archivadas} alAbrir={abrir} />
+            </Estacion>
+          )}
         </main>
       )}
     </>
@@ -874,6 +891,28 @@ function Pendientes({ tareas }: { tareas: Tarea[] }) {
   // `quedan` va en minúscula porque el traspaso lo usa a media frase; aquí
   // abre la línea.
   return texto ? <span>{texto[0].toUpperCase() + texto.slice(1)}</span> : null
+}
+
+/** BD3: cada archivada, con el día en que salió. Se recupera desde la pieza. */
+function Archivadas({ piezas, alAbrir }: { piezas: Pieza[]; alAbrir: (pieza: Pieza) => void }) {
+  return (
+    <ul>
+      {piezas.map((pieza) => (
+        <li key={pieza.id}>
+          <button
+            type="button"
+            onClick={() => alAbrir(pieza)}
+            className="-mx-2 grid w-[calc(100%+1rem)] grid-cols-[7rem_minmax(0,1fr)] items-baseline gap-2 border-b border-line-faint px-2 py-2.5 text-left hover:bg-raised"
+          >
+            <span className="mono-data text-ink-2">
+              {pieza.archivada_en && fechaYHora(pieza.archivada_en)}
+            </span>
+            <span className="text-sm break-words">{pieza.titulo}</span>
+          </button>
+        </li>
+      ))}
+    </ul>
+  )
 }
 
 /** AH3: la pieza nueva, en la columna de la izquierda. Solo la ve Johan (D3). */

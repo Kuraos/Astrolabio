@@ -62,11 +62,14 @@ está en este repo).
 Las piezas (`type: contenido`) se editan **solo aquí**. El vault de Obsidian
 recibe una copia exportada, marcada como generada, que nunca se edita a mano.
 El respaldo científico (`type: literature`) va al revés: se **lee** del vault
-y se muestra en solo lectura; Astrolabio nunca lo escribe.
+y se muestra en solo lectura. Astrolabio puede **crear** una nota de respaldo,
+y nada más: no la edita, no la renombra y no la borra. Desde que nace, manda
+el vault.
 
 Nunca propongas sincronización bidireccional de texto. Exige resolución de
 conflictos real y es la complejidad que hunde este tipo de proyecto.
-→ `docs/adr/0001-fuente-de-verdad-por-type.md`
+→ `docs/adr/0001-fuente-de-verdad-por-type.md` y
+`docs/adr/0019-astrolabio-crea-fuentes.md`
 
 ### 2.2 Los binarios pesados no entran a la aplicación
 
@@ -101,7 +104,7 @@ granularidad de carpeta: por eso Astrolabio es un repositorio separado.
 ### 2.6 Los registros de historia son append-only
 
 `traspaso`, `snapshot` y `version_pieza` se insertan, nunca se actualizan ni
-se borran. De ahí sale la métrica que ninguna herramienta comprada puede
+se borran. Por eso una pieza tampoco se borra: se archiva. De ahí sale la métrica que ninguna herramienta comprada puede
 dar: cuánto tarda una pieza entre «guion cerrado» y «publicada», y en qué
 etapa se atasca.
 
@@ -173,7 +176,9 @@ está en [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
   cuadro de materiales, de `web/src/cuadro.ts`. Una prueba del cliente que
   necesite una pieza la pide a `piezaDePrueba`. En la API,
   cada endpoint recibe al usuario con `Depends(usuario_actual)`, y toda ruta
-  de archivo que venga de fuera se comprueba con `respaldo.dentro_de`.
+  de archivo que venga de fuera se comprueba con `respaldo.dentro_de`. Lo que
+  lee el vault vive en `respaldo.py`, que no escribe; lo único que crea una
+  nota de respaldo, en `fuentes.py`.
 - **Interfaz**: sigue [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md). Un
   panel, botón, campo o aviso nuevo usa las clases de los que ya existen; un
   patrón nuevo se documenta allí antes de repetirse.
@@ -284,9 +289,12 @@ sesiones en `.claude/worktrees/`.
 - Fase 9, `docs/fase-9-bocetos.md`: los bocetos de cada lámina pedidos a
   Claude, el primer servicio externo de la app. El código está terminado; su
   prueba con la clave de Johan se hace al final.
-- **Alcance vigente: `docs/fase-10-atasco-copias-aviso.md`**: dónde se
-  atasca cada pieza, la copia de seguridad de la base y el aviso de «te
-  toca». El código está terminado; falta su prueba en el uso.
+- `docs/fase-10-atasco-copias-aviso.md`: dónde se atasca cada pieza, la
+  copia de seguridad de la base y el aviso de «te toca». El código está
+  terminado; falta su prueba en el uso.
+- **Alcance vigente: `docs/fase-12-fuentes-y-archivo.md`**: crear una fuente
+  desde la pieza, ver cuáles son de cada pieza y archivar la que sobra. El
+  código está terminado; falta su prueba con el vault de Johan.
 - `docs/fase-11-guion-grafico.md`: bocetos de short y video largo. Solo las
   preguntas para el editor; no se modela hasta que las conteste (§2.8).
 
@@ -310,3 +318,4 @@ Registros de decisión:
 - `docs/adr/0016-bocetos-con-claude.md`
 - `docs/adr/0017-copias-de-la-base.md`
 - `docs/adr/0018-bocetos-por-openrouter.md`
+- `docs/adr/0019-astrolabio-crea-fuentes.md`

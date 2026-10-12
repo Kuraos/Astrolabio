@@ -25,6 +25,7 @@ export function piezaDePrueba(cambios: Partial<Pieza> = {}): Pieza {
     fecha_publicacion_prevista: null,
     estado: 'investigacion',
     de_quien_es: 'investigador',
+    archivada_en: null,
     transiciones: [],
     ...cambios,
   }

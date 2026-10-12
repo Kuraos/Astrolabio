@@ -98,6 +98,7 @@ def test_la_pieza_tiene_su_forma_completa():
         "etiquetas",
         "fecha_entrega",
         "fecha_publicacion_prevista",
+        "archivada_en",
     }
 
 

@@ -111,7 +111,15 @@ def atasco(
     Dos consultas —las piezas y todas sus historias— y no una por pieza.
     """
     ahora = datetime.now(timezone.utc)
-    piezas = db.query(Pieza).options(selectinload(Pieza.traspasos)).order_by(Pieza.id).all()
+    # BD2: una pieza archivada sale también de aquí, o las de prueba
+    # seguirían contando como atascadas.
+    piezas = (
+        db.query(Pieza)
+        .filter(Pieza.archivada_en.is_(None))
+        .options(selectinload(Pieza.traspasos))
+        .order_by(Pieza.id)
+        .all()
+    )
 
     filas = []
     for pieza in piezas:
