@@ -26,6 +26,9 @@ export default function PanelRespaldo({
   const [error, setError] = useState<string | null>(null)
   const [consultando, setConsultando] = useState(false)
   const [busqueda, setBusqueda] = useState('')
+  // BC3: las del vault no se pintan hasta que se buscan o se piden todas. El
+  // vault crece con cada pieza, y la lista entera enterraba el panel.
+  const [todas, setTodas] = useState(false)
   const [creando, setCreando] = useState(false)
 
   // Una nota que se crea en Obsidian con la pieza abierta no llega sola: se
@@ -75,7 +78,8 @@ export default function PanelRespaldo({
   }
 
   const reparto = repartir(estado?.notas ?? [], pieza.respaldo, busqueda)
-  const hayDisponibles = (estado?.notas.length ?? 0) > reparto.enlazadas.length
+  const cuantasDisponibles = (estado?.notas.length ?? 0) - reparto.enlazadas.length
+  const seVen = todas || busqueda.trim() !== ''
 
   return (
     <Estacion
@@ -101,7 +105,7 @@ export default function PanelRespaldo({
             </h3>
             {pieza.respaldo.length === 0 ? (
               <p className="text-sm text-ink-2">
-                Todavía no tiene fuentes. Marca las que la respaldan, o crea una.
+                Todavía no tiene fuentes. Busca las que la respaldan, o crea una.
               </p>
             ) : (
               <ul className="flex flex-col gap-3.5">
@@ -130,11 +134,25 @@ export default function PanelRespaldo({
             )}
           </section>
 
-          {hayDisponibles && (
+          {cuantasDisponibles > 0 && (
             <section aria-labelledby="respaldo-del-vault" className="flex flex-col gap-3">
-              <h3 id="respaldo-del-vault" className="mono-label text-ink-2">
-                Disponibles en el vault
-              </h3>
+              <div className="flex items-baseline justify-between gap-3">
+                <h3 id="respaldo-del-vault" className="mono-label text-ink-2">
+                  Disponibles en el vault · {cuantasDisponibles}
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => {
+                    // «Todas» son todas: una búsqueda a medias las recortaría.
+                    if (!todas) setBusqueda('')
+                    setTodas(!todas)
+                  }}
+                  aria-expanded={todas}
+                  className={BOTON_DE_TEXTO}
+                >
+                  {todas ? 'Ocultar' : 'Ver todas'}
+                </button>
+              </div>
               <Campo rotulo="Buscar por título o autor">
                 <input
                   type="search"
@@ -143,15 +161,16 @@ export default function PanelRespaldo({
                   className={CONTROL}
                 />
               </Campo>
-              {reparto.disponibles.length === 0 ? (
-                <p className="text-sm text-ink-2">Ninguna fuente coincide con la búsqueda.</p>
-              ) : (
-                <ul className="flex flex-col gap-3.5">
-                  {reparto.disponibles.map((nota) => (
-                    <Fuente key={nota.archivo} nota={nota} marcada={false} alAlternar={alternar} />
-                  ))}
-                </ul>
-              )}
+              {seVen &&
+                (reparto.disponibles.length === 0 ? (
+                  <p className="text-sm text-ink-2">Ninguna fuente coincide con la búsqueda.</p>
+                ) : (
+                  <ul className="flex flex-col gap-3.5">
+                    {reparto.disponibles.map((nota) => (
+                      <Fuente key={nota.archivo} nota={nota} marcada={false} alAlternar={alternar} />
+                    ))}
+                  </ul>
+                ))}
             </section>
           )}
 
@@ -204,8 +223,15 @@ function Fuente({
         <span className="flex min-w-0 flex-col gap-1">
           <span className="text-sm leading-snug break-words">{nota.fuente_titulo}</span>
           {(nota.autor || nota.fecha) && (
-            <span className="mono-data text-ink-3">
-              {[nota.autor, nota.fecha].filter(Boolean).join(' · ')}
+            // En una línea: en las disponibles, una lista larga de autores
+            // doblaba el alto de cada fuente. Entera, en el `title`.
+            <span
+              className={`mono-data text-ink-3 ${marcada ? '' : 'truncate'}`}
+              title={marcada ? undefined : (nota.autor ?? undefined)}
+            >
+              {[marcada ? nota.autor : null, nota.fecha, marcada ? null : nota.autor]
+                .filter(Boolean)
+                .join(' · ')}
             </span>
           )}
         </span>
