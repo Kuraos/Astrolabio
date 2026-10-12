@@ -54,7 +54,7 @@ después saldrá del uso.
   [`docs/fase-8-cuadro-de-materiales.md`](docs/fase-8-cuadro-de-materiales.md).
 - **Fase 9, bocetos con Claude**: un botón le pide a Claude el boceto de cada
   lámina —qué elementos, cuánto pesa cada uno y dónde va—, la API lo valida y
-  la pieza lo dibuja en su rejilla. Es opcional: sin `ANTHROPIC_API_KEY` en el
+  la pieza lo dibuja en su rejilla. Es opcional: sin `OPENROUTER_API_KEY` en el
   `.env`, la app es la de siempre. Falta la prueba con la clave de Johan. Su
   alcance está en [`docs/fase-9-bocetos.md`](docs/fase-9-bocetos.md).
 - **Fase 10, atasco, copias y aviso**: una estación con cuántos días lleva

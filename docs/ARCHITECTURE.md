@@ -48,9 +48,10 @@ flowchart LR
 - **Autoalojado.** Todo corre en el PC de Johan; el editor entra por
   Tailscale, sin nube y sin puertos abiertos
   ([ADR 0002](adr/0002-autoalojado-con-tailscale.md)). La excepción son los
-  bocetos: si hay clave, la API sale a Anthropic cuando alguien pide uno, con
+  bocetos: si hay clave, la API sale a OpenRouter cuando alguien pide uno, con
   el cuadro, el copy y el guion de la pieza
-  ([ADR 0016](adr/0016-bocetos-con-claude.md)).
+  ([ADR 0016](adr/0016-bocetos-con-claude.md) y
+  [0018](adr/0018-bocetos-por-openrouter.md)).
 - **Los archivos pesados no pasan por la API.** Viajan entre las dos máquinas
   por Syncthing, y la app solo ve la copia de la máquina donde corre
   ([ADR 0003](adr/0003-binarios-fuera-de-la-app.md),
@@ -74,9 +75,10 @@ cada cosa.
 | Verificación | GitHub Actions, en cada push |
 | Fuera de la app | Tailscale (red), Syncthing (archivos entre las dos máquinas), Obsidian con obsidian-git (el vault) |
 
-Un solo servicio de terceros, y opcional: la API de Anthropic, a la que se le
-piden los bocetos cuando hay clave en el `.env`
-([ADR 0016](adr/0016-bocetos-con-claude.md)). Ni autenticación externa, ni
+Un solo servicio de terceros, y opcional: OpenRouter, por donde se le piden
+los bocetos a Claude cuando hay clave en el `.env`
+([ADR 0016](adr/0016-bocetos-con-claude.md) y
+[0018](adr/0018-bocetos-por-openrouter.md)). Ni autenticación externa, ni
 correo, ni analítica, ni almacenamiento en la nube.
 
 ## 3. Estructura del proyecto
