@@ -67,6 +67,9 @@ de una pieza archivada · archivar en lote · que el editor archive.
   en el vault se dice y se puede quitar.
 - **BC2** Las disponibles se buscan por título, nombre de nota o autor, sin
   tildes ni mayúsculas. Buscar no esconde las de la pieza.
+- **BC3** Las disponibles no se pintan hasta que se busca o se pide «Ver
+  todas»: el panel mide lo que midan las fuentes de la pieza, tenga el vault
+  diez notas o quinientas. El rótulo dice cuántas hay.
 
 ### BD. Archivar
 
@@ -121,6 +124,11 @@ salir en el tablero y en el atasco.
   textos sin guardar, la pregunta lo dice.
 - **El error de archivar se ve arriba**, junto al botón, y no con el de
   guardar, que está con los textos, una pantalla más abajo.
+- **El panel se alargaba.** Con las trece fuentes de las cuatro primeras
+  piezas, «Disponibles en el vault» ocupaba una pantalla entera y enterraba lo
+  que venía después. De ahí BC3, del 2026-10-11. Se descartó una caja con su
+  propio desplazamiento, que en el teléfono es un scroll dentro de otro. En
+  las disponibles, la fecha y el autor van en una línea, recortada.
 - **Las letras.** La Fase 10 ya había usado BA para sus documentos; esta
   empieza en BB.
 - **Mirado el 2026-10-11** en una pila aparte, con un vault de mentira de tres
