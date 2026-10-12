@@ -6,7 +6,6 @@ import {
   type Archivo,
   type Enlace,
   type EstadoDeLaCarpeta,
-  type EstadoDelRespaldo,
   type Pieza,
   type Tarea,
   type Traspaso,
@@ -20,6 +19,7 @@ import { aQuienLeToca, confirmacion, enPalabras, vuelveAtras } from './flujo'
 import Guion from './Guion'
 import { ESTADOS } from './tablero'
 import ListaDeTareas, { quedan } from './Tareas'
+import PanelRespaldo from './Respaldo'
 import PanelTemas from './Temas'
 import { Caption, CopyGrafico } from './Textos'
 import {
@@ -79,6 +79,10 @@ export default function VistaPieza({
   const [texto, setTexto] = useState<Texto>('guion')
   const [error, setError] = useState<string | null>(null)
   const [guardando, setGuardando] = useState(false)
+  const [archivando, setArchivando] = useState(false)
+  // Aparte del error de guardar, que se enseña junto a los textos: este se
+  // ve arriba, donde está el botón.
+  const [errorDeArchivo, setErrorDeArchivo] = useState<string | null>(null)
 
   const sinGuardar =
     guion !== pieza.guion ||
@@ -102,6 +106,33 @@ export default function VistaPieza({
     }
   }
 
+  // BD: archivar saca la pieza del taller y vuelve al tablero; recuperar la
+  // devuelve y la deja abierta. Los textos sin guardar se perderían al volver,
+  // así que se dice en la pregunta.
+  async function archivar() {
+    const accion = pieza.archivada_en ? 'desarchivar' : 'archivar'
+    if (
+      accion === 'archivar' &&
+      !window.confirm(
+        'La pieza sale del tablero, de las semanas y del atasco. No se borra nada, y se recupera desde «Archivadas».' +
+          (sinGuardar ? ' Tiene textos sin guardar, que se pierden.' : ''),
+      )
+    )
+      return
+
+    setArchivando(true)
+    setErrorDeArchivo(null)
+    try {
+      const movida = await pedir<Pieza>(`/api/piezas/${pieza.id}/${accion}`, { method: 'POST' })
+      if (movida.archivada_en) alVolver()
+      else setPieza(movida)
+    } catch (causa) {
+      setErrorDeArchivo(causa instanceof ErrorDeApi ? causa.message : 'No se pudo archivar')
+    } finally {
+      setArchivando(false)
+    }
+  }
+
   return (
     <main className="flex flex-col pb-16">
       {/* AJ1: volver, qué pieza es, y guardar o exportar. */}
@@ -114,6 +145,11 @@ export default function VistaPieza({
               ← Piezas
             </button>
             <span className="mono-label text-ink-3">Pieza {pieza.id}</span>
+            {pieza.archivada_en && (
+              <span className="mono-label text-alert">
+                Archivada · {fechaYHora(pieza.archivada_en)}
+              </span>
+            )}
           </div>
           <div className="ml-auto flex items-center gap-2.5 whitespace-nowrap">
             {sinGuardar && <span className="mono-label text-alert">Sin guardar</span>}
@@ -131,11 +167,27 @@ export default function VistaPieza({
             {usuario.rol === 'investigador' && (
               <Exportar pieza={pieza} haySinGuardar={sinGuardar} />
             )}
+            {/* BD1: solo Johan, acompañando al 403 del servidor. */}
+            {usuario.rol === 'investigador' && (
+              <button
+                type="button"
+                onClick={() => void archivar()}
+                disabled={archivando}
+                className={BOTON_DE_TEXTO}
+              >
+                {pieza.archivada_en ? 'Recuperar' : 'Archivar'}
+              </button>
+            )}
           </div>
         </div>
       </div>
 
       <div className={`${ANCHO} flex flex-col`}>
+        {errorDeArchivo && (
+          <div className="pt-4">
+            <Aviso mensaje={errorDeArchivo} />
+          </div>
+        )}
         <header className="flex flex-col gap-3 pt-7 pb-6">
           <h2 className="text-[clamp(2rem,4vw,3.25rem)] leading-none font-bold tracking-[-0.01em] break-words font-stretch-semi-condensed">
             {pieza.titulo}
@@ -947,107 +999,5 @@ function Exportar({ pieza, haySinGuardar }: { pieza: Pieza; haySinGuardar: boole
         </div>
       )}
     </>
-  )
-}
-
-function PanelRespaldo({
-  pieza,
-  alCambiar,
-}: {
-  pieza: Pieza
-  alCambiar: (p: Pieza) => void
-}) {
-  const [estado, setEstado] = useState<EstadoDelRespaldo | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [consultando, setConsultando] = useState(false)
-
-  // Una nota que se crea en el vault con la pieza abierta no llega sola: se
-  // vuelve a mirar con «Actualizar», como la carpeta de Syncthing.
-  const consultar = useCallback(() => {
-    setConsultando(true)
-    setError(null)
-    pedir<EstadoDelRespaldo>('/api/respaldo')
-      .then(setEstado)
-      .catch((causa: unknown) =>
-        setError(causa instanceof ErrorDeApi ? causa.message : 'No se pudo consultar'),
-      )
-      .finally(() => setConsultando(false))
-  }, [])
-
-  useEffect(consultar, [consultar])
-
-  const alternar = useCallback(
-    async (archivo: string) => {
-      const respaldo = pieza.respaldo.includes(archivo)
-        ? pieza.respaldo.filter((a) => a !== archivo)
-        : [...pieza.respaldo, archivo]
-
-      try {
-        alCambiar(
-          await pedir<Pieza>(`/api/piezas/${pieza.id}`, {
-            method: 'PATCH',
-            body: JSON.stringify({ respaldo }),
-          }),
-        )
-      } catch (causa) {
-        setError(causa instanceof ErrorDeApi ? causa.message : 'No se pudo enlazar')
-      }
-    },
-    [pieza, alCambiar],
-  )
-
-  return (
-    <Estacion
-      titulo="Respaldo científico"
-      extra={
-        <button type="button" onClick={consultar} disabled={consultando} className={BOTON_DE_TEXTO}>
-          Actualizar
-        </button>
-      }
-      className="border-t border-line pt-5 pb-7"
-    >
-      {error && <Aviso mensaje={error} />}
-
-      {/* G4, la mitad de interfaz: si el vault no está montado la aplicación
-          funciona igual y dice por qué, en vez de fingir que no hay notas. */}
-      {estado && !estado.disponible && <p className="text-sm text-ink-2">{estado.motivo}</p>}
-
-      {estado?.disponible &&
-        (estado.notas.length === 0 ? (
-          <p className="text-sm text-ink-2">No hay notas de respaldo en el vault todavía.</p>
-        ) : (
-          <ul className="flex flex-col gap-3.5">
-            {estado.notas.map((nota) => (
-              <li key={nota.archivo}>
-                <label className="flex cursor-pointer items-start gap-2.5">
-                  <input
-                    type="checkbox"
-                    checked={pieza.respaldo.includes(nota.archivo)}
-                    onChange={() => void alternar(nota.archivo)}
-                    className="mt-0.5 size-4 shrink-0 accent-ink"
-                  />
-                  <span className="flex min-w-0 flex-col gap-1">
-                    <span className="text-sm leading-snug break-words">{nota.fuente_titulo}</span>
-                    {(nota.autor || nota.fecha) && (
-                      <span className="mono-data text-ink-3">
-                        {[nota.autor, nota.fecha].filter(Boolean).join(' · ')}
-                      </span>
-                    )}
-                  </span>
-                </label>
-              </li>
-            ))}
-          </ul>
-        ))}
-
-      {/* §2.1: el respaldo lo escribe el vault y aquí solo se enlaza. Dicho en
-          pantalla, porque «no deja añadir» se lee como un fallo. */}
-      {estado?.disponible && (
-        <p className="text-[13px] leading-snug text-ink-3">
-          Son las notas literature de Investigacion/Recursos, en el vault. Una nota nueva
-          aparece aquí al actualizar.
-        </p>
-      )}
-    </Estacion>
   )
 }

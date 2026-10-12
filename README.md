@@ -64,6 +64,11 @@ después saldrá del uso.
   al día solo mientras la pestaña se ve. Con la pestaña cerrada no hay aviso.
   Falta su prueba en el uso. Su alcance está en
   [`docs/fase-10-atasco-copias-aviso.md`](docs/fase-10-atasco-copias-aviso.md).
+- **Fase 12, fuentes por pieza y archivar**: una fuente científica nueva se
+  crea desde la pieza, como nota del vault; el panel separa las fuentes de
+  cada pieza de las demás, con un buscador; y una pieza que sobra se archiva,
+  sin borrar su historia. Falta su prueba con el vault de Johan. Su alcance
+  está en [`docs/fase-12-fuentes-y-archivo.md`](docs/fase-12-fuentes-y-archivo.md).
 
 ---
 

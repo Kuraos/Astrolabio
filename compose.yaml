@@ -65,6 +65,11 @@ services:
       # Docker crea las rutas que faltan como directorios, así que un vault
       # sin configurar acabaría con una carpeta llamada `MOC-VozDelCosmos.md`.
       - ${VAULT_HOST_PATH}/Investigacion:/vault/Investigacion:ro
+      # La excepción del ADR 0019: Astrolabio crea notas `literature` en
+      # `Recursos/`, y solo ahí. El resto de `Investigacion/` sigue sin poder
+      # tocarse. Crea y no pisa: eso ya no lo impone el montaje, sino el
+      # `open("x")` de `fuentes.py` y su prueba.
+      - ${VAULT_HOST_PATH}/Investigacion/Recursos:/vault/Investigacion/Recursos:rw
       # La carpeta que Syncthing comparte entre las dos máquinas (ADR 0010).
       # En escritura porque la app crea ahí la carpeta de cada pieza, y es lo
       # único que escribe: no crea, mueve, renombra ni borra archivos (Q5).

@@ -61,8 +61,9 @@ Quién puede qué, hoy:
 - **Los dos**: ven todas las piezas, editan el guion y los datos de la pieza,
   mueven la pieza cuando la transición es suya, añaden o quitan material,
   crean, marcan y quitan tareas, de las piezas o sueltas, y piden bocetos.
-- **Solo Johan**: crea piezas, ve y enlaza el respaldo científico de su vault
-  y exporta la pieza al vault.
+- **Solo Johan**: crea piezas y las archiva, ve y enlaza el respaldo
+  científico de su vault, crea fuentes nuevas en él y exporta la pieza al
+  vault.
 
 ## 6. Flujos
 
@@ -140,8 +141,8 @@ Los que no se negocian; cada uno tiene su invariante en
   de quién puede qué tiene su prueba de 403 (§2.3).
 - La historia del traspaso es de solo inserción, y lo impone la base (§2.6).
 - Las piezas se editan solo en Astrolabio: el vault recibe una copia marcada
-  como generada, y el respaldo científico se lee del vault sin escribirlo
-  (§2.1). El LaTeX del guion llega intacto.
+  como generada, y el respaldo científico se lee del vault; Astrolabio puede
+  crear una nota de respaldo, y no la edita después (§2.1). El LaTeX del guion llega intacto.
 - Los archivos pesados no pasan por la app: viajan por Syncthing, y la app
   guarda dónde están, con la excepción de una miniatura de menos de 200 KB
   (§2.2).

@@ -33,7 +33,7 @@ flowchart LR
     editor -->|"http · un solo puerto"| web
     web -->|"/api/* →"| api
     api --> db
-    api -->|"lee Investigacion/<br/>escribe Contenido/ y el MOC"| vault
+    api -->|"lee Investigacion/ y crea fuentes<br/>escribe Contenido/ y el MOC"| vault
     api -->|"lista archivos y<br/>crea la carpeta de la pieza"| compartida
     compartida <-->|"Syncthing"| copia
     editor -.->|"abre los originales"| copia
@@ -195,7 +195,7 @@ hay nada.
 
 | Variable (host) | En el contenedor | Qué hace la app |
 |---|---|---|
-| `VAULT_HOST_PATH` → `03-Negocios/Voz-del-Cosmos/` | `/vault` | Lee las notas de `Investigacion/Recursos`; `Investigacion/` se monta aparte, en solo lectura. Al exportar, escribe en `Contenido/` y en el MOC ([ADR 0007](adr/0007-como-escribe-astrolabio-en-el-vault.md)) |
+| `VAULT_HOST_PATH` → `03-Negocios/Voz-del-Cosmos/` | `/vault` | Lee las notas de `Investigacion/Recursos`; `Investigacion/` se monta aparte, en solo lectura, y encima, en escritura, solo `Recursos/`, donde crea una nota cuando Johan añade una fuente y no la vuelve a tocar ([ADR 0019](adr/0019-astrolabio-crea-fuentes.md)). Al exportar, escribe en `Contenido/` y en el MOC ([ADR 0007](adr/0007-como-escribe-astrolabio-en-el-vault.md)) |
 | `SYNCTHING_HOST_PATH` → la carpeta compartida | `/material` | Busca la carpeta de cada pieza por su número, lista sus archivos y crea la que falta. De cada imagen hace al vuelo una miniatura WebP de menos de 200 kB, que no guarda. No escribe nada más ([ADR 0010](adr/0010-la-carpeta-de-cada-pieza.md)) |
 
 La carpeta de Syncthing tiene que tener su `.stfolder`: si no lo tiene, la
@@ -219,8 +219,11 @@ ruta del `.env` no es la compartida y la app no crea nada en ella.
   transiciones contra la tabla de `traspasos.py`.
 - **Ninguna ruta sale de su carpeta.** `respaldo.dentro_de` resuelve los
   enlaces simbólicos antes de comparar. El vault se monta acotado a
-  `03-Negocios/Voz-del-Cosmos/`, con `Investigacion/` en solo lectura; el
-  diario de Johan no es alcanzable ni desde el código.
+  `03-Negocios/Voz-del-Cosmos/`, con `Investigacion/` en solo lectura salvo
+  `Recursos/`; el diario de Johan no es alcanzable ni desde el código.
+- **En `Recursos/` se crea y no se pisa.** `fuentes.py` abre la nota nueva en
+  modo `x`, que falla si el archivo existe, y una prueba vigila que el módulo
+  no edite, mueva ni borre.
 - **`/api/health` es público y no filtra nada**: de un fallo de la base da el
   nombre de la excepción, no su texto, que llevaría la cadena de conexión.
 
